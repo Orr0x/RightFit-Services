@@ -5,6 +5,11 @@ import syncService from './syncService'
 import NetInfo from '@react-native-community/netinfo'
 
 class OfflineDataService {
+  // Check if offline database is available
+  isDatabaseAvailable(): boolean {
+    return database !== null
+  }
+
   // Check if device is online
   async isOnline(): Promise<boolean> {
     const state = await NetInfo.fetch()
@@ -21,8 +26,9 @@ class OfflineDataService {
         const serverWorkOrder = await api.createWorkOrder(data)
 
         // Also save to local database for offline access
-        await database.write(async () => {
-          const workOrdersCollection = database.get<WorkOrder>('work_orders')
+        if (this.isDatabaseAvailable()) {
+          await database!.write(async () => {
+            const workOrdersCollection = database!.get<WorkOrder>('work_orders')
           await workOrdersCollection.create(workOrder => {
             workOrder.serverId = serverWorkOrder.id
             workOrder.tenantId = serverWorkOrder.tenant_id
@@ -40,6 +46,7 @@ class OfflineDataService {
             workOrder.synced = true
           })
         })
+        }
 
         return serverWorkOrder
       } catch (error) {
@@ -49,9 +56,13 @@ class OfflineDataService {
     }
 
     // Offline mode: save to local database only
+    if (!this.isDatabaseAvailable()) {
+      throw new Error('Cannot create work order: Device is offline and database not available')
+    }
+
     let localWorkOrder: any = null
-    await database.write(async () => {
-      const workOrdersCollection = database.get<WorkOrder>('work_orders')
+    await database!.write(async () => {
+      const workOrdersCollection = database!.get<WorkOrder>('work_orders')
       localWorkOrder = await workOrdersCollection.create(workOrder => {
         workOrder.tenantId = data.tenant_id
         workOrder.propertyId = data.property_id
@@ -84,8 +95,15 @@ class OfflineDataService {
   async updateWorkOrder(id: string, data: any): Promise<any> {
     const online = await this.isOnline()
 
+    if (!this.isDatabaseAvailable()) {
+      if (!online) {
+        throw new Error('Cannot update work order: Device is offline and database not available')
+      }
+      return await api.updateWorkOrder(id, data)
+    }
+
     // Find the local work order
-    const workOrdersCollection = database.get<WorkOrder>('work_orders')
+    const workOrdersCollection = database!.get<WorkOrder>('work_orders')
     let localWorkOrder: WorkOrder | null = null
 
     try {
@@ -111,7 +129,7 @@ class OfflineDataService {
         const serverWorkOrder = await api.updateWorkOrder(localWorkOrder.serverId, data)
 
         // Update local database
-        await database.write(async () => {
+        await database!.write(async () => {
           await localWorkOrder.update(workOrder => {
             if (data.title !== undefined) workOrder.title = data.title
             if (data.description !== undefined) workOrder.description = data.description
@@ -134,7 +152,7 @@ class OfflineDataService {
     }
 
     // Offline mode: update local database only
-    await database.write(async () => {
+    await database!.write(async () => {
       await localWorkOrder.update(workOrder => {
         if (data.title !== undefined) workOrder.title = data.title
         if (data.description !== undefined) workOrder.description = data.description
@@ -164,10 +182,37 @@ class OfflineDataService {
   async uploadPhoto(localUri: string, data: any): Promise<any> {
     const online = await this.isOnline()
 
+    if (!this.isDatabaseAvailable()) {
+      if (!online) {
+        throw new Error('Cannot upload photo: Device is offline and database not available')
+      }
+
+      const formData = new FormData()
+      formData.append('photo', {
+        uri: localUri,
+        type: 'image/jpeg',
+        name: 'photo.jpg',
+      } as any)
+
+      if (data.work_order_id) {
+        formData.append('work_order_id', data.work_order_id)
+        formData.append('label', data.label || 'DURING')
+      }
+      if (data.property_id) {
+        formData.append('property_id', data.property_id)
+        formData.append('label', data.label || 'PROPERTY')
+      }
+      if (data.caption) {
+        formData.append('caption', data.caption)
+      }
+
+      return await api.uploadPhoto(formData)
+    }
+
     // Save to local database first
     let localPhoto: any = null
-    await database.write(async () => {
-      const photosCollection = database.get<Photo>('photos')
+    await database!.write(async () => {
+      const photosCollection = database!.get<Photo>('photos')
       localPhoto = await photosCollection.create(photo => {
         photo.tenantId = data.tenant_id
         photo.workOrderId = data.work_order_id
@@ -204,7 +249,7 @@ class OfflineDataService {
         const serverPhoto = await api.uploadPhoto(formData)
 
         // Update local record
-        await database.write(async () => {
+        await database!.write(async () => {
           await localPhoto.update((photo: Photo) => {
             photo.serverId = serverPhoto.id
             photo.s3Url = serverPhoto.s3_url
@@ -239,7 +284,11 @@ class OfflineDataService {
 
   // Get work orders from local database
   async getLocalWorkOrders(): Promise<any[]> {
-    const workOrdersCollection = database.get<WorkOrder>('work_orders')
+    if (!this.isDatabaseAvailable()) {
+      return []
+    }
+
+    const workOrdersCollection = database!.get<WorkOrder>('work_orders')
     const workOrders = await workOrdersCollection.query().fetch()
 
     return workOrders.map(wo => ({
@@ -265,7 +314,11 @@ class OfflineDataService {
 
   // Get photos from local database
   async getLocalPhotos(workOrderId?: string, propertyId?: string): Promise<any[]> {
-    const photosCollection = database.get<Photo>('photos')
+    if (!this.isDatabaseAvailable()) {
+      return []
+    }
+
+    const photosCollection = database!.get<Photo>('photos')
     let query = photosCollection.query()
 
     if (workOrderId) {

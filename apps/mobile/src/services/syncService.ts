@@ -30,6 +30,10 @@ class SyncService {
 
   // Main sync function
   async syncAll(): Promise<{ success: boolean; error?: string }> {
+    if (!database) {
+      return { success: false, error: 'Offline mode not available' }
+    }
+
     if (this.isSyncing) {
       return { success: false, error: 'Sync already in progress' }
     }
@@ -260,6 +264,10 @@ class SyncService {
 
   // Add item to sync queue
   async addToSyncQueue(entityType: string, entityId: string, action: string, payload: any) {
+    if (!database) {
+      return
+    }
+
     await database.write(async () => {
       const syncQueueCollection = database.get<SyncQueue>('sync_queue')
       await syncQueueCollection.create(item => {

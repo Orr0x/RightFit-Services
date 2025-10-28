@@ -3,18 +3,26 @@ import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite'
 import { schema } from './schema'
 import { Property, WorkOrder, Contractor, Photo, SyncQueue } from './models'
 
-const adapter = new SQLiteAdapter({
-  schema,
-  // Uncomment for debugging:
-  // jsi: true, // Use JSI for better performance (requires new architecture)
-  // onSetUpError: error => {
-  //   console.error('Database setup error:', error)
-  // }
-})
+let database: Database | null = null
 
-const database = new Database({
-  adapter,
-  modelClasses: [Property, WorkOrder, Contractor, Photo, SyncQueue],
-})
+try {
+  const adapter = new SQLiteAdapter({
+    schema,
+    // Uncomment for debugging:
+    // jsi: true, // Use JSI for better performance (requires new architecture)
+    // onSetUpError: error => {
+    //   console.error('Database setup error:', error)
+    // }
+  })
+
+  database = new Database({
+    adapter,
+    modelClasses: [Property, WorkOrder, Contractor, Photo, SyncQueue],
+  })
+} catch (error) {
+  // WatermelonDB requires a development build and won't work in Expo Go
+  // App will run in online-only mode
+  console.log('WatermelonDB not available (Expo Go). Running in online-only mode.')
+}
 
 export { database }
