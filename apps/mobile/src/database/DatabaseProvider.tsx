@@ -3,7 +3,8 @@ import { Database } from '@nozbe/watermelondb'
 import { database } from './index'
 
 interface DatabaseContextValue {
-  database: Database
+  database: Database | null
+  isAvailable: boolean
 }
 
 const DatabaseContext = createContext<DatabaseContextValue | null>(null)
@@ -22,7 +23,7 @@ interface DatabaseProviderProps {
 
 export function DatabaseProvider({ children }: DatabaseProviderProps) {
   return (
-    <DatabaseContext.Provider value={{ database }}>
+    <DatabaseContext.Provider value={{ database, isAvailable: database !== null }}>
       {children}
     </DatabaseContext.Provider>
   )

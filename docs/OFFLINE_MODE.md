@@ -4,6 +4,36 @@
 
 The RightFit Services mobile app now supports full offline functionality, allowing landlords and contractors to work without an internet connection. Changes made offline are automatically synced when connectivity is restored.
 
+## ⚠️ Requirements
+
+**IMPORTANT:** Offline mode requires a **development build** and **will NOT work in Expo Go**.
+
+### Why?
+WatermelonDB uses native modules (`WMDatabaseBridge`) that are not available in Expo Go. You must create a development build to use offline functionality.
+
+### How to Enable Offline Mode
+
+1. **Create a development build**:
+   ```bash
+   cd apps/mobile
+   npx expo prebuild
+   npx expo run:ios     # For iOS
+   npx expo run:android # For Android
+   ```
+
+2. **Test on device or simulator**:
+   - The app will automatically detect if WatermelonDB is available
+   - If running in Expo Go, you'll see a warning in console
+   - Offline features will be disabled, but the app will still work online
+
+### Graceful Degradation
+
+The app is designed to work with or without offline mode:
+
+- **With development build**: Full offline functionality enabled
+- **In Expo Go**: App works online-only, API calls go directly to server
+- **No crashes**: Database unavailability is handled gracefully
+
 ## Architecture
 
 ### Core Components
