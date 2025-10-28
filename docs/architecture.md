@@ -48,6 +48,7 @@ This is a greenfield project with no existing codebase. Given the critical offli
 
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
+| 2025-10-28 | 1.1 | Tech stack migration decision: React 19→18.3.1, Node 24→20 LTS | Winston (Architect) |
 | 2025-10-27 | 1.0 | Initial architecture document | Winston (Architect) |
 
 ### Document Overview
@@ -251,13 +252,13 @@ graph TB
 |----------|-----------|---------|---------|-----------|
 | **Frontend Language** | TypeScript | 5.3+ | Type-safe frontend development | Catch bugs at compile-time, shared types with backend, required for Prisma |
 | **Frontend Framework (Mobile)** | React Native | 0.73+ | iOS + Android native apps | 70-80% code sharing, mature offline libraries (WatermelonDB), proven for property management apps |
-| **Frontend Framework (Web)** | React | 18+ | Web application | Consistency with React Native, shared business logic, strong ecosystem |
+| **Frontend Framework (Web)** | React | 18.3.1 | Web application | **UPDATED (2025-10-28):** Stable LTS version - Downgraded from React 19 to eliminate compatibility issues. Consistency with React Native, shared business logic, strong ecosystem |
 | **UI Component Library (Mobile)** | React Native Paper | 5.x | Material Design for mobile | Out-of-the-box accessible components, reduces custom design time for solo dev |
 | **UI Component Library (Web)** | Material-UI (MUI) | 5.x | Material Design for web | Visual consistency with mobile, comprehensive component library |
 | **State Management** | Redux Toolkit | 2.x | Global state management | Redux Persist for offline sync state, Redux Toolkit simplifies boilerplate, proven pattern |
 | **Offline Database (Mobile)** | WatermelonDB | 0.27+ | Local SQLite with sync | Built for React Native offline-first apps, automatic sync queue, lazy loading |
 | **Backend Language** | TypeScript | 5.3+ | Type-safe backend development | Consistency with frontend, Prisma requires TypeScript, catch bugs early |
-| **Backend Framework** | Node.js + Express | 20 LTS + 4.x | REST API server | Proven, lightweight, excellent async performance for I/O-heavy workloads |
+| **Backend Framework** | Node.js + Express | 20 LTS + 4.x | REST API server | **UPDATED (2025-10-28):** Node 20 LTS (stable until 2026) - Downgraded from Node 24 for stability. Proven, lightweight, excellent async performance for I/O-heavy workloads |
 | **API Style** | REST | - | RESTful API endpoints | Simpler than GraphQL for MVP, easier for external integrations, standard HTTP |
 | **ORM** | Prisma | 5.x | Database access layer | Best TypeScript ORM, migrations, type-safe queries, code generation |
 | **Validation** | Zod | 3.x | Runtime schema validation | TypeScript-first, shared schemas between frontend/backend, runtime type checking |
@@ -920,6 +921,47 @@ interface ApiError {
 - ❌ No pub/sub for real-time features (not needed for MVP)
 
 **Revisit:** When API response times >500ms or database connections >80% of max.
+
+---
+
+### ADR-005: Migrate to Stable Tech Stack (React 18.3.1 + Node 20 LTS)
+
+**Status:** ✅ Accepted (2025-10-28)
+
+**Context:** During Sprint 4 implementation, encountered critical compatibility issues with React 19 RC and Node.js 24 (non-LTS):
+- 6 peer dependency conflicts across React Native ecosystem
+- Multiple React instances causing hook errors
+- Node 24 filesystem bugs causing pnpm failures
+- 156 lines of workaround code required
+- 150% development overhead (2.5x time per feature)
+
+**Decision:** Immediately migrate to stable, industry-standard versions:
+- React 19.x → React 18.3.1 (stable LTS)
+- Node.js 24 → Node.js 20 LTS (supported until 2026)
+- Expo SDK 54 → Expo SDK 52/53
+- MUI 7.x → MUI 5.x
+
+**Rationale:**
+1. **Ecosystem Alignment** - React Native ecosystem standardized on React 18
+2. **Development Velocity** - Eliminate 150% overhead blocking feature development
+3. **Production Stability** - LTS versions provide predictable, tested behavior
+4. **Cost-Effectiveness** - 6-8 hour migration vs 120-180 hours ongoing issues (ROI: 900-1400%)
+5. **Developer Experience** - Remove complexity, improve confidence
+6. **Risk Reduction** - Eliminate production stability concerns
+
+**Consequences:**
+- ✅ Returns to normal development velocity (eliminate 150% overhead)
+- ✅ Removes all 6 peer dependency conflicts
+- ✅ Eliminates 156 lines of workaround code
+- ✅ Improves production stability and confidence
+- ✅ Aligns with 95% of React Native community
+- ✅ Node 20 LTS supported until April 2026
+- ❌ 6-8 hours migration effort required
+- ❌ Cannot use React 19 features (not needed for MVP)
+
+**Migration Plan:** See [docs/MIGRATION_PLAN.md](./MIGRATION_PLAN.md)
+
+**Evidence:** See [docs/TECH_STACK_EVALUATION.md](./TECH_STACK_EVALUATION.md)
 
 ---
 

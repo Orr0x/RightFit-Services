@@ -1,18 +1,27 @@
 # Technical Stack Deep Dive
 
+**Last Updated:** 2025-10-28
+**Status:** ✅ Updated for Stable Stack Migration (React 18.3.1 + Node 20 LTS)
+
+> **IMPORTANT:** This document has been updated following ADR-005 to reflect the migration from React 19 + Node 24 to stable versions. See [MIGRATION_PLAN.md](../MIGRATION_PLAN.md) for details.
+
+---
+
 ## Frontend - Mobile (React Native)
 
 ### Core Framework
 
-**React Native 0.73+ with Expo 50+**
+**React Native 0.73+ with Expo 52+**
+
+**Migration Note (2025-10-28):** Updated to React 18.3.1 (from 19.x) and Expo SDK 52 (from 54) for ecosystem compatibility and stability.
 
 **Key Libraries:**
 ```json
 {
   "dependencies": {
-    "react": "18.2.0",
-    "react-native": "0.73.2",
-    "expo": "~50.0.0",
+    "react": "18.3.1",
+    "react-native": "0.73.6",
+    "expo": "~52.0.0",
 
     // UI Components
     "react-native-paper": "^5.11.0",
@@ -57,7 +66,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/react": "~18.2.45",
+    "@types/react": "18.3.12",
     "@types/react-native": "^0.73.0",
     "typescript": "^5.3.3",
 
@@ -193,20 +202,22 @@ export class SyncService {
 
 ### Core Framework
 
-**React 18+ with Vite**
+**React 18.3.1 with Vite**
+
+**Migration Note (2025-10-28):** Updated to React 18.3.1 (from 19.x) and MUI 5.x (from 7.x) for ecosystem compatibility and stability.
 
 **Key Libraries:**
 ```json
 {
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
 
     // UI Components
-    "@mui/material": "^5.15.0",
-    "@mui/icons-material": "^5.15.0",
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
+    "@mui/material": "5.16.9",
+    "@mui/icons-material": "5.16.9",
+    "@emotion/react": "11.13.5",
+    "@emotion/styled": "11.13.5",
 
     // Routing
     "react-router-dom": "^6.21.1",
@@ -234,8 +245,8 @@ export class SyncService {
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.5",
     "@vitejs/plugin-react": "^4.2.1",
     "vite": "^5.0.8",
     "typescript": "^5.3.3",
@@ -296,9 +307,17 @@ export default defineConfig({
 
 ### Core Framework
 
+**Node.js 20 LTS + Express 4.x**
+
+**Migration Note (2025-10-28):** Updated to Node.js 20 LTS (from Node 24) for stability. Node 20 is supported until April 2026.
+
 **Key Libraries:**
 ```json
 {
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
