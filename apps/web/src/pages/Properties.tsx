@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Container,
@@ -31,35 +31,7 @@ import {
   Logout as LogoutIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../contexts/AuthContext'
-import { propertiesAPI } from '../lib/api'
-
-interface Property {
-  id: string
-  name: string
-  address_line1: string
-  address_line2?: string
-  city: string
-  postcode: string
-  property_type: 'HOUSE' | 'FLAT' | 'COTTAGE' | 'COMMERCIAL'
-  bedrooms: number
-  bathrooms: number
-  access_instructions?: string
-  tenant_id: string
-  created_at: string
-  updated_at: string
-}
-
-interface CreatePropertyData {
-  name: string
-  address_line1: string
-  address_line2?: string
-  city: string
-  postcode: string
-  property_type: 'HOUSE' | 'FLAT' | 'COTTAGE' | 'COMMERCIAL'
-  bedrooms: number
-  bathrooms: number
-  access_instructions?: string
-}
+import { propertiesAPI, type Property, type CreatePropertyData } from '../lib/api'
 
 export default function Properties() {
   const navigate = useNavigate()

@@ -33,7 +33,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Logout as LogoutIcon,
-  Assignment as AssignmentIcon,
   PhotoCamera as PhotoCameraIcon,
   Image as ImageIcon,
 } from '@mui/icons-material'

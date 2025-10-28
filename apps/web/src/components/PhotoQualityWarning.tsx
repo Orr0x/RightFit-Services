@@ -14,7 +14,7 @@ import {
   Box,
 } from '@mui/material'
 import { Warning as WarningIcon, LightMode, BlurOff } from '@mui/icons-material'
-import { PhotoQualityData } from '../lib/api'
+import type { PhotoQualityData } from '../lib/api'
 
 interface PhotoQualityWarningProps {
   open: boolean

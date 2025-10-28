@@ -34,18 +34,7 @@ import {
   Logout as LogoutIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../contexts/AuthContext'
-import { certificatesAPI, propertiesAPI } from '../lib/api'
-
-interface Property {
-  id: string
-  name: string
-  address_line1: string
-  city: string
-  postcode: string
-  tenant_id: string
-  created_at: string
-  updated_at: string
-}
+import { certificatesAPI, propertiesAPI, type Property } from '../lib/api'
 
 interface Certificate {
   id: string
@@ -384,7 +373,7 @@ export default function Certificates() {
             >
               {properties.map((prop) => (
                 <MenuItem key={prop.id} value={prop.id}>
-                  {prop.name} - {prop.address}
+                  {prop.name} - {prop.address_line1}
                 </MenuItem>
               ))}
             </TextField>

@@ -87,10 +87,14 @@ export interface RegisterData {
 export interface Property {
   id: string
   name: string
-  address: string
+  address_line1: string
+  address_line2?: string
   city: string
-  state: string
-  zip_code: string
+  postcode: string
+  property_type: 'HOUSE' | 'FLAT' | 'COTTAGE' | 'COMMERCIAL'
+  bedrooms: number
+  bathrooms: number
+  access_instructions?: string
   tenant_id: string
   created_at: string
   updated_at: string
@@ -98,10 +102,14 @@ export interface Property {
 
 export interface CreatePropertyData {
   name: string
-  address: string
+  address_line1: string
+  address_line2?: string
   city: string
-  state: string
-  zip_code: string
+  postcode: string
+  property_type: 'HOUSE' | 'FLAT' | 'COTTAGE' | 'COMMERCIAL'
+  bedrooms: number
+  bathrooms: number
+  access_instructions?: string
 }
 
 // Auth API calls
