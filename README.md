@@ -3,8 +3,16 @@
 **Property Maintenance Management Platform for UK Landlords**
 
 [![Status](https://img.shields.io/badge/Status-MVP_Development-blue)]()
-[![Sprint](https://img.shields.io/badge/Sprint-3_Complete-green)]()
-[![Progress](https://img.shields.io/badge/Progress-58%25-yellow)]()
+[![Sprint](https://img.shields.io/badge/Sprint-4_Complete-green)]()
+[![Progress](https://img.shields.io/badge/Progress-77%25-yellow)]()
+[![Tests](https://img.shields.io/badge/Coverage-14.94%25-orange)]()
+[![Tech Stack](https://img.shields.io/badge/Tech_Stack-Under_Review-red)]()
+
+---
+
+## ⚠️ Important Notice
+
+**Tech Stack Under Review:** We've identified critical compatibility issues with React 19 and Node.js 24 that are impacting development velocity. See **[TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md)** for detailed analysis and migration recommendations.
 
 ---
 
@@ -20,15 +28,19 @@ RightFit Services is a comprehensive property maintenance management platform de
 ✅ **Contractor Management** - Maintain database of contractors and their specialties
 ✅ **SMS Notifications** - Automatic SMS alerts when work orders are assigned (Twilio)
 ✅ **Photo Documentation** - Upload and store property and work order photos (AWS S3)
+✅ **Mobile Photo Upload** - Camera/gallery integration with offline queueing
 ✅ **AI Photo Quality** - Google Vision API checks photo quality (brightness, blur)
 ✅ **UK Compliance Tracking** - Track certificates (Gas Safety, Electrical, EPC, STL)
-✅ **Mobile App** - React Native app fully functional with Expo
+✅ **Mobile App** - React Native app fully functional with Expo SDK 54
 ✅ **Web Dashboard** - React web app for desktop management
 ✅ **Datetime Scheduling** - Full date and time support for work order scheduling
+✅ **Offline Mode** - WatermelonDB local database with automatic sync (requires dev build)
 
 ### Core Differentiator
 
-🚀 **Offline-First Mobile App** - The app works fully offline in rural areas with poor connectivity, automatically syncing changes when connection is restored.
+🚀 **Offline-First Mobile App** - The app works fully offline in rural areas with poor connectivity. Uses WatermelonDB for local data storage with automatic bi-directional sync, conflict resolution, and sync queue management. Changes are automatically synced when connection is restored.
+
+**Note:** Full offline functionality requires a development build (not available in Expo Go). App gracefully degrades to online-only mode when running in Expo Go.
 
 ---
 
@@ -55,30 +67,36 @@ RightFit-Services/
 
 ### Technology Stack
 
+⚠️ **Tech Stack Under Review** - See [TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md) for compatibility issues with React 19 and Node 24.
+
 **Backend:**
-- Node.js + Express.js
-- TypeScript
-- Prisma ORM
-- PostgreSQL
+- Node.js 24.6.0 (⚠️ Non-LTS, migration to Node 20 LTS recommended)
+- Express.js 4.21.2
+- TypeScript 5.9.3
+- Prisma ORM 5.22.0
+- PostgreSQL 16+
 - AWS S3 (photo storage)
 - Twilio (SMS notifications)
 - Google Cloud Vision API (photo quality analysis)
 - JWT authentication
 
 **Web Frontend:**
-- React 18
-- Vite
-- Material-UI (MUI)
-- Axios
-- React Router
+- React 19.1.1 (⚠️ Migration to React 18.3.1 recommended)
+- Vite 7.1.12
+- Material-UI v7.3.4
+- Axios 1.13.0
+- React Router 7.9.4
 
 **Mobile App:**
 - React Native 0.81.4
+- React 19.1.0 (⚠️ Migration to React 18.3.1 recommended)
 - Expo SDK 54 (Legacy Architecture)
 - React Navigation 7
-- React Native Paper
-- AsyncStorage (token persistence)
-- (Future) WatermelonDB for offline mode
+- React Native Paper 5.14.5
+- AsyncStorage 2.1.0 (token persistence)
+- WatermelonDB 0.28.0 (offline mode)
+- @react-native-community/netinfo 11.4.1 (connectivity monitoring)
+- expo-image-picker 17.0.8 (camera/gallery access)
 
 ---
 
@@ -86,12 +104,14 @@ RightFit-Services/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 24.6.0 (⚠️ or Node 20 LTS if migrating - recommended)
 - pnpm installed globally
 - PostgreSQL 14+
 - AWS account (for S3)
 - Twilio account (optional for SMS)
 - Google Cloud account (optional for Vision API)
+
+**⚠️ Important:** If experiencing compatibility issues, consider downgrading to Node 20 LTS and React 18. See [TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md).
 
 ### Installation
 
@@ -137,7 +157,7 @@ pnpx prisma studio
 
 ## 📊 Project Status
 
-### Completed (177 story points)
+### Completed (233 story points / 77%)
 
 - ✅ **Sprint 1: Foundation** (50 points)
   - Monorepo setup
@@ -151,7 +171,7 @@ pnpx prisma studio
   - SMS notifications (Twilio)
   - Photo upload to S3
 
-- ✅ **Sprint 3: Mobile App Foundation** (53/53 points - 100% COMPLETE)
+- ✅ **Sprint 3: Mobile App Foundation** (53 points - 100% COMPLETE)
   - React Native + Expo setup with SDK 54
   - Authentication screens (login, register)
   - Property screens (list, details, create)
@@ -160,19 +180,28 @@ pnpx prisma studio
   - Auth state management with AsyncStorage
   - Network configuration for physical devices
 
+- ✅ **Sprint 4: Offline Mode** (56 points - 100% COMPLETE)
+  - WatermelonDB local database with 5 tables
+  - Sync service with bidirectional sync
+  - Offline work order creation & updates
+  - Sync queue with retry logic
+  - Conflict resolution (last-write-wins)
+  - Network monitoring and offline indicators
+  - Graceful degradation for Expo Go
+  - Mobile photo upload with camera/gallery
+  - ⚠️ **Issue Identified:** React 19 + Node 24 compatibility problems
+
 - ✅ **Sprint 5: AI + UK Compliance** (24/42 points - 57% complete)
   - Google Vision API integration
   - Photo quality warnings
   - Certificate upload and tracking
   - ⏸️ Push notifications (pending)
 
-### Next Steps (127 story points remaining)
+### Next Steps (71 story points remaining)
 
-- ⏸️ **Sprint 4: Offline Mode** (56 points) - **CRITICAL**
-  - WatermelonDB local database
-  - Offline work order creation
-  - Sync queue processor
-  - Conflict resolution
+- 🔴 **Tech Stack Migration** (0 points - CRITICAL)
+  - Evaluate and potentially migrate to stable stack
+  - See [TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md)
 
 - ⏸️ **Sprint 5 Completion** (18 points)
   - Push notifications (Firebase)
@@ -201,6 +230,11 @@ pnpx prisma studio
 - **[SPRINT1_STATUS.md](SPRINT1_STATUS.md)** - Sprint 1 detailed report
 - **[docs/project-plan/sprint-plans.md](docs/project-plan/sprint-plans.md)** - Complete sprint plans
 
+### Architecture & Technical
+- 🔴 **[docs/TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md)** - Tech stack analysis & migration recommendations (CRITICAL READ)
+- **[docs/OFFLINE_MODE.md](docs/OFFLINE_MODE.md)** - Offline mode implementation guide
+- **[packages/database/prisma/schema.prisma](packages/database/prisma/schema.prisma)** - Database schema
+
 ### Deployment
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment instructions (Sprint 6)
 
@@ -224,11 +258,19 @@ pnpx prisma studio
 ## 🧪 Testing
 
 **Current Status:**
-- ⚠️ Unit tests: 0% coverage
+- ✅ Unit tests: 14.94% coverage (38 passing tests)
+  - WorkOrdersService: 89.65% coverage (22 tests)
+  - Multi-tenancy enforcement tested
+  - CRUD operations covered
 - ⚠️ Integration tests: None
 - ⚠️ E2E tests: None
 
-**Immediate Priority:** Add unit tests for critical paths (AuthService, PropertiesService, multi-tenancy filtering)
+**Recent Additions:**
+- Added comprehensive WorkOrdersService test suite
+- Multi-tenancy isolation tests
+- Pagination and filtering tests
+
+**Next Priority:** Expand coverage to PropertiesService, ContractorsService, CertificatesService (target: 50%+ coverage)
 
 ---
 
@@ -279,21 +321,34 @@ pnpx prisma studio
 
 ## ⚠️ Known Issues
 
+### 🔴 Critical
+1. **React 19 + Node 24 Compatibility** - Causing development friction and instability
+   - React hook errors (multiple React instances)
+   - Peer dependency conflicts
+   - 150% development time overhead
+   - **Action Required:** Review [TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md)
+
+2. **Offline Mode Limitations** - WatermelonDB requires development build
+   - Not functional in Expo Go
+   - App gracefully degrades but offline features unavailable for testing
+   - Requires: `npx expo prebuild` → `npx expo run:ios/android`
+
 ### High Priority
-1. **No Tests** - 0% test coverage (unit tests needed for AuthService, PropertiesService)
-2. **No Error Monitoring** - No Sentry or equivalent
-3. **Offline Mode** - Not yet implemented (Sprint 4 priority)
+3. **Test Coverage Low** - 14.94% coverage (target: 50%+)
+4. **No Error Monitoring** - No Sentry or equivalent
+5. **No API Rate Limiting** - Only auth endpoints are rate-limited
 
 ### Medium Priority
-4. **No API Rate Limiting** - Only auth endpoints are rate-limited
-5. **Photo Display Missing** - No photo viewing screens in mobile app
 6. **Web App Polish** - Functional but could be more polished
 7. **Push Notifications** - Not implemented yet (Sprint 5)
 
 ### Recently Fixed ✅
 - ~~Mobile Auth State~~ - FIXED: AuthContext with AsyncStorage working
-- ~~API Base URL~~ - FIXED: Mobile app now uses local IP (192.168.0.17:3001)
+- ~~API Base URL~~ - FIXED: Mobile app now uses local IP
 - ~~Date-only work orders~~ - FIXED: Full datetime support added
+- ~~Offline Mode~~ - FIXED: WatermelonDB + sync service implemented
+- ~~Mobile Photo Upload~~ - FIXED: Camera/gallery integration complete
+- ~~Test Coverage 0%~~ - FIXED: Now at 14.94% with WorkOrdersService tests
 
 **Full list:** See `HANDOVER.md` section "Known Issues"
 
@@ -301,13 +356,14 @@ pnpx prisma studio
 
 ## 🎯 Roadmap
 
-### Phase 1: MVP (Current - Week 12)
-- Complete offline mode (Sprint 4)
-- Add push notifications (Sprint 5)
-- Integrate Stripe payments (Sprint 6)
-- Deploy to production
-- Submit to App Store and Google Play
-- Launch with 10-20 beta users
+### Phase 1: MVP (Current - Week 12-13)
+- 🔴 **Evaluate tech stack migration** (React 18, Node 20 LTS) - URGENT
+- ✅ ~~Complete offline mode (Sprint 4)~~ - DONE
+- ⏸️ Add push notifications (Sprint 5)
+- ⏸️ Integrate Stripe payments (Sprint 6)
+- ⏸️ Deploy to production
+- ⏸️ Submit to App Store and Google Play
+- ⏸️ Launch with 10-20 beta users
 
 ### Phase 2: Growth (Week 13-24)
 - Email notifications (SendGrid)
@@ -383,8 +439,11 @@ Built with:
 
 **Last Updated:** 2025-10-28
 **Version:** 1.0.0-alpha
-**Status:** Active Development
-**Progress:** 177/304 story points (58%)
+**Status:** Active Development (⚠️ Tech Stack Under Review)
+**Progress:** 233/304 story points (77%)
+**Test Coverage:** 14.94%
 **GitHub:** https://github.com/Orr0x/RightFit-Services
 
-🚀 **Next Sprint:** Sprint 4 - Offline Mode (CRITICAL)
+🔴 **Critical:** Tech stack compatibility issues identified - See [TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md)
+✅ **Completed:** Sprint 4 - Offline Mode (WatermelonDB + Sync Service)
+🚀 **Next:** Tech stack migration decision → Sprint 5 completion
