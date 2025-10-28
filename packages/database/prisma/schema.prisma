@@ -1,0 +1,285 @@
+// Prisma Schema for RightFit Services
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== CORE ENTITIES =====
+
+model Tenant {
+  id                  String             @id @default(uuid())
+  tenant_name         String             @db.VarChar(100)
+  subscription_status SubscriptionStatus @default(TRIAL)
+  trial_ends_at       DateTime?
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+
+  // Relationships
+  users        User[]
+  properties   Property[]
+  work_orders  WorkOrder[]
+  contractors  Contractor[]
+  certificates Certificate[]
+  photos       Photo[]
+
+  @@map("tenants")
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(uuid())
+  tenant_id     String
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.VarChar(255)
+  full_name     String    @db.VarChar(100)
+  role          UserRole  @default(ADMIN)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  tenant            Tenant     @relation(fields: [tenant_id], references: [id])
+  properties        Property[] @relation("PropertyOwner")
+  work_orders       WorkOrder[] @relation("WorkOrderCreator")
+  photos_uploaded   Photo[]    @relation("PhotoUploader")
+  contractor_profile Contractor? @relation("ContractorUser")
+
+  @@index([tenant_id])
+  @@index([email])
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  CONTRACTOR
+}
+
+model PasswordResetToken {
+  id         String    @id @default(uuid())
+  user_id    String
+  token      String    @unique
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  @@index([token])
+  @@index([user_id])
+  @@map("password_reset_tokens")
+}
+
+model Property {
+  id                  String         @id @default(uuid())
+  tenant_id           String
+  owner_user_id       String
+  name                String         @db.VarChar(100)
+  address_line1       String         @db.VarChar(255)
+  address_line2       String?        @db.VarChar(255)
+  city                String         @db.VarChar(100)
+  postcode            String         @db.VarChar(10)
+  property_type       PropertyType
+  bedrooms            Int            @default(0)
+  bathrooms           Int            @default(0)
+  access_instructions String?        @db.Text
+  status              PropertyStatus @default(ACTIVE)
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+  deleted_at          DateTime?
+
+  // Relationships
+  tenant       Tenant        @relation(fields: [tenant_id], references: [id])
+  owner        User          @relation("PropertyOwner", fields: [owner_user_id], references: [id])
+  work_orders  WorkOrder[]
+  certificates Certificate[]
+  photos       Photo[]
+
+  @@index([tenant_id])
+  @@index([owner_user_id])
+  @@index([postcode])
+  @@index([tenant_id, deleted_at])
+  @@map("properties")
+}
+
+enum PropertyType {
+  HOUSE
+  FLAT
+  COTTAGE
+  COMMERCIAL
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model WorkOrder {
+  id                  String            @id @default(uuid())
+  tenant_id           String
+  property_id         String
+  contractor_id       String?
+  created_by_user_id  String
+  title               String            @db.VarChar(255)
+  description         String?           @db.Text
+  status              WorkOrderStatus   @default(OPEN)
+  priority            WorkOrderPriority @default(MEDIUM)
+  category            WorkOrderCategory @default(OTHER)
+  due_date            DateTime?
+  estimated_cost      Decimal?          @db.Decimal(10, 2)
+  actual_cost         Decimal?          @db.Decimal(10, 2)
+  started_at          DateTime?
+  completed_at        DateTime?
+  completion_note     String?           @db.VarChar(500)
+  cancellation_reason String?           @db.VarChar(500)
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  deleted_at          DateTime?
+
+  // Relationships
+  tenant      Tenant      @relation(fields: [tenant_id], references: [id])
+  property    Property    @relation(fields: [property_id], references: [id])
+  contractor  Contractor? @relation(fields: [contractor_id], references: [id])
+  created_by  User        @relation("WorkOrderCreator", fields: [created_by_user_id], references: [id])
+  photos      Photo[]
+
+  @@index([tenant_id])
+  @@index([property_id])
+  @@index([contractor_id])
+  @@index([status])
+  @@index([priority])
+  @@index([due_date])
+  @@map("work_orders")
+}
+
+enum WorkOrderStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum WorkOrderPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum WorkOrderCategory {
+  PLUMBING
+  ELECTRICAL
+  HEATING
+  APPLIANCES
+  EXTERIOR
+  INTERIOR
+  OTHER
+}
+
+model Contractor {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  user_id      String?   @unique
+  name         String    @db.VarChar(100)
+  trade        String    @db.VarChar(50)
+  company_name String?   @db.VarChar(100)
+  phone        String    @db.VarChar(20)
+  email        String?   @db.VarChar(255)
+  notes        String?   @db.VarChar(500)
+  sms_opt_out  Boolean   @default(false)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted_at   DateTime?
+
+  // Relationships
+  tenant      Tenant      @relation(fields: [tenant_id], references: [id])
+  user        User?       @relation("ContractorUser", fields: [user_id], references: [id])
+  work_orders WorkOrder[]
+
+  @@index([tenant_id])
+  @@index([user_id])
+  @@index([tenant_id, trade])
+  @@map("contractors")
+}
+
+model Photo {
+  id                    String      @id @default(uuid())
+  tenant_id             String
+  uploaded_by_user_id   String
+  property_id           String?
+  work_order_id         String?
+  s3_key                String      @db.VarChar(255)
+  s3_url                String      @db.VarChar(500)
+  thumbnail_url         String      @db.VarChar(500)
+  file_size             Int
+  mime_type             String      @db.VarChar(50)
+  width                 Int
+  height                Int
+  label                 PhotoLabel?
+  caption               String?     @db.Text
+  gps_latitude          Decimal?    @db.Decimal(10, 8)
+  gps_longitude         Decimal?    @db.Decimal(11, 8)
+  quality_check_passed  Boolean?
+  quality_check_details Json?
+  created_at            DateTime    @default(now())
+
+  // Relationships
+  tenant      Tenant     @relation(fields: [tenant_id], references: [id])
+  uploaded_by User       @relation("PhotoUploader", fields: [uploaded_by_user_id], references: [id])
+  property    Property?  @relation(fields: [property_id], references: [id])
+  work_order  WorkOrder? @relation(fields: [work_order_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([property_id])
+  @@index([work_order_id])
+  @@index([created_at])
+  @@map("photos")
+}
+
+enum PhotoLabel {
+  BEFORE
+  DURING
+  AFTER
+  PROPERTY
+}
+
+model Certificate {
+  id                 String          @id @default(uuid())
+  tenant_id          String
+  property_id        String
+  certificate_type   CertificateType
+  issue_date         DateTime
+  expiry_date        DateTime
+  document_url       String          @db.VarChar(500)
+  certificate_number String?         @db.VarChar(100)
+  issuer_name        String?         @db.VarChar(100)
+  notes              String?         @db.Text
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+  deleted_at         DateTime?
+
+  // Relationships
+  tenant   Tenant   @relation(fields: [tenant_id], references: [id])
+  property Property @relation(fields: [property_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([property_id])
+  @@index([expiry_date])
+  @@index([certificate_type])
+  @@map("certificates")
+}
+
+enum CertificateType {
+  GAS_SAFETY
+  ELECTRICAL
+  EPC
+  STL_LICENSE
+  OTHER
+}

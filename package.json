@@ -1,0 +1,35 @@
+{
+  "name": "rightfit-services",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RightFit Services - Property Maintenance SaaS MVP",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:api": "turbo run dev --filter=api",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:mobile": "turbo run dev --filter=mobile",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "cd packages/database && pnpm prisma generate",
+    "db:migrate": "cd packages/database && pnpm prisma migrate dev",
+    "db:push": "cd packages/database && pnpm prisma db push",
+    "db:studio": "cd packages/database && pnpm prisma studio",
+    "db:seed": "cd packages/database && pnpm tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.14.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

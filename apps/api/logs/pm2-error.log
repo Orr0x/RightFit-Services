@@ -1,0 +1,272 @@
+2025-10-27 23:44:46 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:46 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:46 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:46 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:46 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:46 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:46 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:46 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:46 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:46 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:46 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:46 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:46 +00:00:   errno: -4091,
+2025-10-27 23:44:46 +00:00:   syscall: 'listen',
+2025-10-27 23:44:46 +00:00:   address: '::',
+2025-10-27 23:44:46 +00:00:   port: 3001
+2025-10-27 23:44:46 +00:00: }
+2025-10-27 23:44:47 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:47 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:47 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:47 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:47 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:47 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:47 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:47 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:47 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:47 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:47 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:47 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:47 +00:00:   errno: -4091,
+2025-10-27 23:44:47 +00:00:   syscall: 'listen',
+2025-10-27 23:44:47 +00:00:   address: '::',
+2025-10-27 23:44:47 +00:00:   port: 3001
+2025-10-27 23:44:47 +00:00: }
+2025-10-27 23:44:47 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:47 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:47 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:47 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:47 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:47 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:47 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:47 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:47 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:47 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:47 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:47 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:47 +00:00:   errno: -4091,
+2025-10-27 23:44:47 +00:00:   syscall: 'listen',
+2025-10-27 23:44:47 +00:00:   address: '::',
+2025-10-27 23:44:47 +00:00:   port: 3001
+2025-10-27 23:44:47 +00:00: }
+2025-10-27 23:44:48 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:48 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:48 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:48 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:48 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:48 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:48 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:48 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:48 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:48 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:48 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:48 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:48 +00:00:   errno: -4091,
+2025-10-27 23:44:48 +00:00:   syscall: 'listen',
+2025-10-27 23:44:48 +00:00:   address: '::',
+2025-10-27 23:44:48 +00:00:   port: 3001
+2025-10-27 23:44:48 +00:00: }
+2025-10-27 23:44:48 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:48 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:48 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:48 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:48 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:48 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:48 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:48 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:48 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:48 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:48 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:48 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:48 +00:00:   errno: -4091,
+2025-10-27 23:44:48 +00:00:   syscall: 'listen',
+2025-10-27 23:44:48 +00:00:   address: '::',
+2025-10-27 23:44:48 +00:00:   port: 3001
+2025-10-27 23:44:48 +00:00: }
+2025-10-27 23:44:49 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:49 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:49 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:49 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:49 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:49 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:49 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:49 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:49 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:49 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:49 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:49 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:49 +00:00:   errno: -4091,
+2025-10-27 23:44:49 +00:00:   syscall: 'listen',
+2025-10-27 23:44:49 +00:00:   address: '::',
+2025-10-27 23:44:49 +00:00:   port: 3001
+2025-10-27 23:44:49 +00:00: }
+2025-10-27 23:44:49 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:49 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:49 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:49 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:49 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:49 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:49 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:49 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:49 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:49 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:49 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:49 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:49 +00:00:   errno: -4091,
+2025-10-27 23:44:49 +00:00:   syscall: 'listen',
+2025-10-27 23:44:49 +00:00:   address: '::',
+2025-10-27 23:44:49 +00:00:   port: 3001
+2025-10-27 23:44:49 +00:00: }
+2025-10-27 23:44:49 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:49 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:49 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:49 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:49 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:49 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:49 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:49 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:49 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:49 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:49 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:49 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:49 +00:00:   errno: -4091,
+2025-10-27 23:44:49 +00:00:   syscall: 'listen',
+2025-10-27 23:44:49 +00:00:   address: '::',
+2025-10-27 23:44:49 +00:00:   port: 3001
+2025-10-27 23:44:49 +00:00: }
+2025-10-27 23:44:50 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:50 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:50 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:50 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:50 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:50 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:50 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:50 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:50 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:50 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:50 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:50 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:50 +00:00:   errno: -4091,
+2025-10-27 23:44:50 +00:00:   syscall: 'listen',
+2025-10-27 23:44:50 +00:00:   address: '::',
+2025-10-27 23:44:50 +00:00:   port: 3001
+2025-10-27 23:44:50 +00:00: }
+2025-10-27 23:44:50 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:50 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:50 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:50 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:50 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:50 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:50 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:50 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:50 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:50 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:50 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:50 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:50 +00:00:   errno: -4091,
+2025-10-27 23:44:50 +00:00:   syscall: 'listen',
+2025-10-27 23:44:50 +00:00:   address: '::',
+2025-10-27 23:44:50 +00:00:   port: 3001
+2025-10-27 23:44:50 +00:00: }
+2025-10-27 23:44:51 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:51 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:51 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:51 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:51 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:51 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:51 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:51 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:51 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:51 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:51 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:51 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:51 +00:00:   errno: -4091,
+2025-10-27 23:44:51 +00:00:   syscall: 'listen',
+2025-10-27 23:44:51 +00:00:   address: '::',
+2025-10-27 23:44:51 +00:00:   port: 3001
+2025-10-27 23:44:51 +00:00: }
+2025-10-27 23:44:51 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:51 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:51 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:51 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:51 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:51 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:51 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:51 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:51 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:51 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:51 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:51 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:51 +00:00:   errno: -4091,
+2025-10-27 23:44:51 +00:00:   syscall: 'listen',
+2025-10-27 23:44:51 +00:00:   address: '::',
+2025-10-27 23:44:51 +00:00:   port: 3001
+2025-10-27 23:44:51 +00:00: }
+2025-10-27 23:44:52 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:52 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:52 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:52 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:52 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:52 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:52 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:52 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:52 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:52 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:52 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:52 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:52 +00:00:   errno: -4091,
+2025-10-27 23:44:52 +00:00:   syscall: 'listen',
+2025-10-27 23:44:52 +00:00:   address: '::',
+2025-10-27 23:44:52 +00:00:   port: 3001
+2025-10-27 23:44:52 +00:00: }
+2025-10-27 23:44:52 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:52 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:52 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:52 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:52 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:52 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:52 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:52 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:52 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:52 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:52 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:52 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:52 +00:00:   errno: -4091,
+2025-10-27 23:44:52 +00:00:   syscall: 'listen',
+2025-10-27 23:44:52 +00:00:   address: '::',
+2025-10-27 23:44:52 +00:00:   port: 3001
+2025-10-27 23:44:52 +00:00: }
+2025-10-27 23:44:53 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:53 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:53 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:53 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:53 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:53 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:53 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:53 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:53 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:53 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:53 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:53 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:53 +00:00:   errno: -4091,
+2025-10-27 23:44:53 +00:00:   syscall: 'listen',
+2025-10-27 23:44:53 +00:00:   address: '::',
+2025-10-27 23:44:53 +00:00:   port: 3001
+2025-10-27 23:44:53 +00:00: }
+2025-10-27 23:44:53 +00:00: Error: listen EADDRINUSE: address already in use :::3001
+2025-10-27 23:44:53 +00:00:     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+2025-10-27 23:44:53 +00:00:     at listenInCluster (node:net:1997:12)
+2025-10-27 23:44:53 +00:00:     at Server.listen (node:net:2102:7)
+2025-10-27 23:44:53 +00:00:     at app.listen (I:\RightFit-Services\node_modules\.pnpm\express@4.21.2\node_modules\express\lib\application.js:635:24)
+2025-10-27 23:44:53 +00:00:     at Object.<anonymous> (I:\RightFit-Services\apps\api\src\index.ts:73:5)
+2025-10-27 23:44:53 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1738:14)
+2025-10-27 23:44:53 +00:00:     at Object..js (node:internal/modules/cjs/loader:1871:10)
+2025-10-27 23:44:53 +00:00:     at Module.load (node:internal/modules/cjs/loader:1470:32)
+2025-10-27 23:44:53 +00:00:     at Module._load (node:internal/modules/cjs/loader:1290:12)
+2025-10-27 23:44:53 +00:00:     at Object.<anonymous> (C:\Users\james\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js:33:23) {
+2025-10-27 23:44:53 +00:00:   code: 'EADDRINUSE',
+2025-10-27 23:44:53 +00:00:   errno: -4091,
+2025-10-27 23:44:53 +00:00:   syscall: 'listen',
+2025-10-27 23:44:53 +00:00:   address: '::',
+2025-10-27 23:44:53 +00:00:   port: 3001
+2025-10-27 23:44:53 +00:00: }
