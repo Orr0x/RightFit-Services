@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import LoginScreen from '../screens/auth/LoginScreen'
 import RegisterScreen from '../screens/auth/RegisterScreen'
 import MainTabNavigator from './MainTabNavigator'
+import OfflineIndicator from '../components/OfflineIndicator'
 
 const Stack = createStackNavigator<RootStackParamList>()
 
@@ -22,20 +23,23 @@ export default function RootNavigator() {
   }
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      {!isAuthenticated ? (
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-        </>
-      ) : (
-        <Stack.Screen name="Main" component={MainTabNavigator} />
-      )}
-    </Stack.Navigator>
+    <>
+      <OfflineIndicator />
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+        ) : (
+          <Stack.Screen name="Main" component={MainTabNavigator} />
+        )}
+      </Stack.Navigator>
+    </>
   )
 }
 
