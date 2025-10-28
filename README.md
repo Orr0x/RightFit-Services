@@ -22,8 +22,9 @@ RightFit Services is a comprehensive property maintenance management platform de
 ✅ **Photo Documentation** - Upload and store property and work order photos (AWS S3)
 ✅ **AI Photo Quality** - Google Vision API checks photo quality (brightness, blur)
 ✅ **UK Compliance Tracking** - Track certificates (Gas Safety, Electrical, EPC, STL)
-✅ **Mobile App** - React Native app with offline capabilities (in progress)
+✅ **Mobile App** - React Native app fully functional with Expo
 ✅ **Web Dashboard** - React web app for desktop management
+✅ **Datetime Scheduling** - Full date and time support for work order scheduling
 
 ### Core Differentiator
 
@@ -72,11 +73,11 @@ RightFit-Services/
 - React Router
 
 **Mobile App:**
-- React Native
-- Expo 50+
-- React Navigation
+- React Native 0.81.4
+- Expo SDK 54 (Legacy Architecture)
+- React Navigation 7
 - React Native Paper
-- AsyncStorage
+- AsyncStorage (token persistence)
 - (Future) WatermelonDB for offline mode
 
 ---
@@ -150,12 +151,14 @@ pnpx prisma studio
   - SMS notifications (Twilio)
   - Photo upload to S3
 
-- ✅ **Sprint 3: Mobile App Foundation** (53 points)
-  - React Native + Expo setup
-  - Authentication screens
+- ✅ **Sprint 3: Mobile App Foundation** (53/53 points - 100% COMPLETE)
+  - React Native + Expo setup with SDK 54
+  - Authentication screens (login, register)
   - Property screens (list, details, create)
-  - Work order screens (list, details, create)
+  - Work order screens (list, details, create with datetime)
   - Complete navigation structure
+  - Auth state management with AsyncStorage
+  - Network configuration for physical devices
 
 - ✅ **Sprint 5: AI + UK Compliance** (24/42 points - 57% complete)
   - Google Vision API integration
@@ -276,20 +279,21 @@ pnpx prisma studio
 
 ## ⚠️ Known Issues
 
-### Critical
-1. **Mobile Auth State** - Hardcoded `isAuthenticated = false` in `apps/mobile/src/navigation/RootNavigator.tsx:12`
-   - **Impact:** App is unusable - always shows login screen
-   - **Fix:** Implement AuthContext with AsyncStorage (see HANDOVER.md)
-
 ### High Priority
-2. **No Tests** - 0% test coverage
-3. **API Base URL** - Mobile app hardcoded to `localhost:3001` (need local IP for physical devices)
-4. **No Error Monitoring** - No Sentry or equivalent
+1. **No Tests** - 0% test coverage (unit tests needed for AuthService, PropertiesService)
+2. **No Error Monitoring** - No Sentry or equivalent
+3. **Offline Mode** - Not yet implemented (Sprint 4 priority)
 
 ### Medium Priority
-5. **No API Rate Limiting** - Only auth endpoints are rate-limited
-6. **Photo Display Missing** - No photo viewing screens in mobile app
-7. **Web App Polish** - Functional but not polished
+4. **No API Rate Limiting** - Only auth endpoints are rate-limited
+5. **Photo Display Missing** - No photo viewing screens in mobile app
+6. **Web App Polish** - Functional but could be more polished
+7. **Push Notifications** - Not implemented yet (Sprint 5)
+
+### Recently Fixed ✅
+- ~~Mobile Auth State~~ - FIXED: AuthContext with AsyncStorage working
+- ~~API Base URL~~ - FIXED: Mobile app now uses local IP (192.168.0.17:3001)
+- ~~Date-only work orders~~ - FIXED: Full datetime support added
 
 **Full list:** See `HANDOVER.md` section "Known Issues"
 
@@ -381,5 +385,6 @@ Built with:
 **Version:** 1.0.0-alpha
 **Status:** Active Development
 **Progress:** 177/304 story points (58%)
+**GitHub:** https://github.com/Orr0x/RightFit-Services
 
 🚀 **Next Sprint:** Sprint 4 - Offline Mode (CRITICAL)

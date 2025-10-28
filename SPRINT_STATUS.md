@@ -664,6 +664,85 @@ See `packages/database/prisma/schema.prisma` for complete schema.
 
 ---
 
+## 🔧 Recent Session Updates (2025-10-28)
+
+### Mobile App Bug Fixes & Enhancements
+**Status:** ✅ COMPLETE - Mobile app fully functional
+
+#### Fixed: Mobile Authentication State
+**Issue:** Mobile app authentication was broken - users couldn't stay logged in
+**Solution:**
+- Implemented AuthContext with AsyncStorage token persistence
+- Fixed token extraction from `response.data.data` (API returns nested structure)
+- Added null safety checks for AsyncStorage operations
+**Files Modified:**
+- `apps/mobile/src/contexts/AuthContext.tsx`
+- `apps/mobile/src/services/api.ts`
+
+#### Fixed: Network Configuration for Physical Devices
+**Issue:** Mobile app using localhost:3001, which doesn't work on physical devices
+**Solution:**
+- Changed API_BASE_URL to local IP address (192.168.0.17:3001)
+- App now works on physical devices over local network
+**Files Modified:**
+- `apps/mobile/src/services/api.ts`
+
+#### Fixed: Work Order Details Crashes
+**Issue:** App crashed when viewing existing work orders from database
+**Solution:**
+- Added null safety checks for `estimated_cost`, `property` fields, and `contractor.phone`
+- Used `Number()` conversion for decimal values before calling `.toFixed()`
+**Files Modified:**
+- `apps/mobile/src/screens/workOrders/WorkOrderDetailsScreen.tsx`
+
+#### Fixed: Expo SDK 54 Compatibility
+**Issue:** TurboModuleRegistry errors preventing app from running
+**Solution:**
+- Disabled React Native New Architecture in `app.json` (newArchEnabled: false)
+- Using Expo SDK 54 with Legacy Architecture mode
+- React 19.1.0 + React Native 0.81.4 (official SDK 54 versions)
+**Files Modified:**
+- `apps/mobile/app.json`
+- `apps/mobile/package.json`
+
+### Datetime Support Feature
+**Status:** ✅ COMPLETE - Both web and mobile support full datetime
+
+#### Web Implementation
+- Changed date input to `datetime-local` input type
+- Displays date and time in format: `DD/MM/YYYY, HH:MM`
+- Resolves console warnings about date format mismatches
+**Files Modified:**
+- `apps/web/src/pages/WorkOrders.tsx` (lines 532, 428-435)
+
+#### Mobile Implementation
+- Added datetime and estimated cost fields to CreateWorkOrderScreen
+- Text input with format guidance (YYYY-MM-DD HH:MM)
+- Updated WorkOrderDetailsScreen to show date and time
+- Format: `DD/MM/YYYY, HH:MM` using `toLocaleString()`
+**Files Modified:**
+- `apps/mobile/src/screens/workOrders/CreateWorkOrderScreen.tsx`
+- `apps/mobile/src/screens/workOrders/WorkOrderDetailsScreen.tsx`
+
+#### Rationale
+Jobs may be only a few hours (not full days), so time-of-day scheduling is essential for:
+- Plumbers/electricians with 2-3 hour jobs
+- Precise contractor scheduling
+- Better coordination with tenants
+
+### GitHub Repository Setup
+**Status:** ✅ COMPLETE
+- Repository created: https://github.com/Orr0x/RightFit-Services
+- All code pushed to main branch (165 files, 58,652+ lines)
+- Documentation included (docs/ folder with 35+ files)
+- .gitignore configured to exclude:
+  - Environment variables (.env files)
+  - node_modules
+  - AI tool folders (.claude, .goose, .bmad-core)
+  - Build artifacts and caches
+
+---
+
 ## 📚 Documentation Files
 
 - `DATABASE_SETUP.md` - Database setup instructions

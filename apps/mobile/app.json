@@ -12,8 +12,21 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to upload property and work order images.",
+          "cameraPermission": "The app needs access to your camera to take photos of properties and work orders."
+        }
+      ]
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "The app needs access to your photos to upload property and work order images.",
+        "NSCameraUsageDescription": "The app needs access to your camera to take photos of properties and work orders."
+      }
     },
     "android": {
       "adaptiveIcon": {
