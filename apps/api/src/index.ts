@@ -15,6 +15,8 @@ import certificatesRoutes from './routes/certificates'
 import devicesRoutes from './routes/devices'
 import notificationsRoutes from './routes/notifications'
 import adminRoutes from './routes/admin'
+import financialRoutes from './routes/financial'
+import propertyTenantsRoutes from './routes/property-tenants'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -103,6 +105,8 @@ app.use('/api/certificates', certificatesRoutes)
 app.use('/api/devices', devicesRoutes)
 app.use('/api/notifications', notificationsRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/financial', financialRoutes)
+app.use('/api/tenants', propertyTenantsRoutes)
 
 // Apply general rate limiting to all other API routes
 app.use('/api', generalApiRateLimiter)
