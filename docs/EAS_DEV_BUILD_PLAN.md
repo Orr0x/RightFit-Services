@@ -4,26 +4,29 @@
 **Estimated Time:** 2-2.5 hours (hands-on: 1.5 hours, waiting: 0.5-1 hour)
 **Priority:** 🔴 CRITICAL
 **Prerequisites:** Android device (Android 6.0+), Node.js 20, pnpm
+**Project Root:** `I:\RightFit-Services`
 
 ---
 
 ## Quick Start (TL;DR)
 
 ```bash
-# 1. Install EAS CLI
+# 1. Install EAS CLI (GLOBAL - run from anywhere)
 npm install -g eas-cli
 eas login
 
-# 2. Initialize project
-cd apps/mobile
+# 2. Initialize project (run from mobile app directory)
+cd I:\RightFit-Services\apps\mobile
 eas init
 
-# 3. Add dependencies
+# 3. Add dependencies (run from mobile app directory)
+# Current directory: I:\RightFit-Services\apps\mobile
 pnpm add expo-dev-client
 
 # 4. Create eas.json and update app.json (see below)
 
-# 5. Build
+# 5. Build (run from mobile app directory)
+# Current directory: I:\RightFit-Services\apps\mobile
 eas build --profile development --platform android
 
 # 6. Install APK on device and test
@@ -31,25 +34,64 @@ eas build --profile development --platform android
 
 **Expected time:** 2-2.5 hours total
 
+**📁 Note:** Most commands run from `I:\RightFit-Services\apps\mobile` unless marked as GLOBAL
+
+---
+
+## Pre-Flight Checklist
+
+**Before you start, understand what needs to be running:**
+
+### ❌ **DO NOT NEED TO BE RUNNING** (Build happens on Expo servers)
+- ❌ API server (`pnpm dev` in `apps/api`) - **Can be stopped or running, doesn't matter**
+- ❌ Metro bundler (`pnpm start` in `apps/mobile`) - **Should NOT be running yet**
+- ❌ Web app dev server - Doesn't affect mobile build
+- ❌ Database - Doesn't affect build process
+- ❌ Any Expo Go app - Close if open
+
+### ✅ **SHOULD BE AVAILABLE**
+- ✅ Internet connection (EAS uploads code to Expo servers)
+- ✅ Node.js 20 installed
+- ✅ pnpm installed
+- ✅ Android device available (for testing later)
+
+### 📱 **WHEN WILL YOU NEED SERVERS?**
+- **Phase 4 & 5 (Testing):** You'll need API server running to test app functionality
+- **Phase 3 (Connect to dev server):** Metro bundler will be started then
+- **Build Phase (Phase 2):** Nothing needs to run locally - build happens on Expo's servers
+
+### 💡 **Quick Summary:**
+```
+Phase 1 (Setup):       Servers not needed
+Phase 2 (Build):       Servers not needed (build is remote)
+Phase 3 (Install):     Servers not needed yet
+Phase 4 (Testing):     Start Metro bundler: pnpm start
+Phase 5 (Full test):   Start API server: cd apps/api && pnpm dev
+```
+
+**You can start the build process right now without stopping anything!**
+
 ---
 
 ## Phase 1: Setup (30 minutes)
 
 ### Task 1.1: Install EAS CLI (5 minutes)
 
+**📁 Working Directory:** ANY (global commands)
+
 ```bash
-# Install globally
+# GLOBAL - Can run from anywhere (e.g., I:\RightFit-Services)
 npm install -g eas-cli
 
-# Verify
+# GLOBAL - Verify installation
 eas --version
 # Expected output: eas-cli/5.x.x
 
-# Login (create account if needed)
+# GLOBAL - Login (create account if needed)
 eas login
 # Follow prompts to login or sign up (free account)
 
-# Verify
+# GLOBAL - Verify login
 eas whoami
 # Expected: your-expo-username
 ```
@@ -63,10 +105,13 @@ eas whoami
 
 ### Task 1.2: Initialize EAS Project (10 minutes)
 
-```bash
-cd apps/mobile
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
 
-# Initialize EAS
+```bash
+# Navigate to mobile app directory
+cd I:\RightFit-Services\apps\mobile
+
+# Initialize EAS (must be in apps/mobile directory)
 eas init
 
 # Follow prompts:
@@ -89,7 +134,8 @@ eas init
 
 ### Task 1.3: Create eas.json (10 minutes)
 
-Create `apps/mobile/eas.json`:
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
+**📁 File Location:** Create `I:\RightFit-Services\apps\mobile\eas.json`
 
 ```json
 {
@@ -134,7 +180,10 @@ Create `apps/mobile/eas.json`:
 
 ### Task 1.4: Update app.json (5 minutes)
 
-Update `apps/mobile/app.json` - add these fields:
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
+**📁 File Location:** Edit `I:\RightFit-Services\apps\mobile\app.json`
+
+Update `app.json` - add these fields:
 
 ```json
 {
@@ -196,7 +245,12 @@ Update `apps/mobile/app.json` - add these fields:
 
 ### Task 1.5: Install Dependencies (5 minutes)
 
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
+
 ```bash
+# Ensure you're in the mobile app directory
+cd I:\RightFit-Services\apps\mobile
+
 # Add expo-dev-client
 pnpm add expo-dev-client
 
@@ -222,12 +276,19 @@ pnpm install
 
 ### Task 1.6: Commit Configuration (5 minutes)
 
+**📁 Working Directory:** `I:\RightFit-Services` (project root)
+
 ```bash
+# Navigate to project root
+cd I:\RightFit-Services
+
+# Stage configuration files
 git add apps/mobile/eas.json
 git add apps/mobile/app.json
 git add apps/mobile/package.json
 git add pnpm-lock.yaml
 
+# Commit changes
 git commit -m "Configure EAS build for development client
 
 - Add eas.json with build profiles
@@ -252,8 +313,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ### Task 2.1: Start Build (2 minutes)
 
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
+
 ```bash
-cd apps/mobile
+# Navigate to mobile app directory (if not already there)
+cd I:\RightFit-Services\apps\mobile
 
 # Build Android development client
 eas build --profile development --platform android
@@ -364,9 +428,15 @@ https://expo.dev/accounts/[your-username]/projects/rightfit-services/builds
 4. Skip to Task 3.3
 
 **Method 2: USB Transfer**
+
+**📁 Working Directory:** Directory where APK was downloaded (usually `I:\RightFit-Services` or `Downloads`)
+
 ```bash
 # Connect device via USB
-# Copy APK to device
+# Navigate to where you downloaded the APK
+cd I:\RightFit-Services  # or wherever you saved the APK
+
+# Copy APK to device (REQUIRES ADB installed)
 adb push rightfit-services-dev.apk /sdcard/Download/
 
 # Verify
@@ -387,7 +457,14 @@ adb shell ls /sdcard/Download/rightfit-services-dev.apk
 ### Task 3.3: Install APK (5 minutes)
 
 **Install via ADB (if USB connected):**
+
+**📁 Working Directory:** Directory where APK is located
+
 ```bash
+# Navigate to APK location
+cd I:\RightFit-Services  # or wherever APK is downloaded
+
+# Install APK via ADB (REQUIRES ADB installed)
 adb install rightfit-services-dev.apk
 
 # Expected: Success
@@ -433,11 +510,17 @@ adb install rightfit-services-dev.apk
 ### Task 3.5: Connect to Development Server (5 minutes)
 
 **On computer:**
+
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
+
 ```bash
-cd apps/mobile
+# Navigate to mobile app directory
+cd I:\RightFit-Services\apps\mobile
+
+# Start Metro bundler with dev client support
 pnpm start --dev-client
 
-# Or shortcut:
+# Or shortcut (also works):
 pnpm start
 ```
 
@@ -446,6 +529,11 @@ pnpm start
 - Shows local URL (e.g., exp://192.168.1.100:8081)
 - Press 'r' to reload
 - Press 'd' to open dev tools
+
+**⚠️ Note:** If you get an error about port 8081 already in use:
+- Another Metro bundler or dev server is running
+- Kill it: `npx kill-port 8081` (GLOBAL - run from anywhere)
+- Or restart computer to clear all processes
 
 **On device:**
 1. In dev client app, tap "Scan QR Code"
@@ -521,7 +609,10 @@ pnpm start
 ### Task 4.3: Test Hot Reload (5 minutes)
 
 **Test hot reload works:**
-1. Open `apps/mobile/src/screens/properties/PropertiesListScreen.tsx`
+
+**📁 File to Edit:** `I:\RightFit-Services\apps\mobile\src\screens\properties\PropertiesListScreen.tsx`
+
+1. Open `I:\RightFit-Services\apps\mobile\src\screens\properties\PropertiesListScreen.tsx`
 2. Change title text: `<Text>Properties TEST</Text>`
 3. Save file
 4. Watch device
@@ -539,6 +630,22 @@ pnpm start
 ---
 
 ### Task 4.4: Test Database Operations (5 minutes)
+
+**⚠️ For full testing, you'll need the API server running:**
+
+**📁 Working Directory for API:** `I:\RightFit-Services\apps\api`
+
+```bash
+# Open a NEW terminal window
+cd I:\RightFit-Services\apps\api
+
+# Start API server (keep Metro bundler running in other terminal)
+pnpm dev
+
+# API should start on http://localhost:3001
+```
+
+**Now test on device:**
 
 **Create a property:**
 1. Navigate to Properties → Create Property
@@ -700,17 +807,23 @@ eas init --force
 ### Issue 4: Can't connect to Metro bundler
 
 **Solutions:**
+
+**📁 Working Directory for commands:** `I:\RightFit-Services\apps\mobile`
+
 ```bash
 # 1. Check WiFi - same network?
-# 2. Get your IP:
+
+# 2. Get your IP (GLOBAL - run from anywhere):
 ipconfig  # Windows
 ifconfig  # Mac/Linux
 
-# 3. Manually enter in dev client:
+# 3. Manually enter in dev client app on phone:
 exp://192.168.1.100:8081
 
 # 4. Check firewall allows port 8081
-# 5. Restart Metro:
+
+# 5. Restart Metro (from mobile directory):
+cd I:\RightFit-Services\apps\mobile
 pnpm start --dev-client --clear
 ```
 
@@ -722,7 +835,11 @@ pnpm start --dev-client --clear
 3. Build profile is "development"
 
 **Try clean build:**
+
+**📁 Working Directory:** `I:\RightFit-Services\apps\mobile`
+
 ```bash
+cd I:\RightFit-Services\apps\mobile
 eas build --profile development --platform android --clear-cache
 ```
 
