@@ -8,6 +8,8 @@ import Properties from './pages/Properties'
 import WorkOrders from './pages/WorkOrders'
 import Contractors from './pages/Contractors'
 import Certificates from './pages/Certificates'
+import Financial from './pages/Financial'
+import Tenants from './pages/Tenants'
 
 const theme = createTheme({
   palette: {
@@ -58,6 +60,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Certificates />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/financial"
+              element={
+                <ProtectedRoute>
+                  <Financial />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tenants"
+              element={
+                <ProtectedRoute>
+                  <Tenants />
                 </ProtectedRoute>
               }
             />

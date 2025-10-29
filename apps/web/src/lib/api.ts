@@ -343,3 +343,257 @@ export const certificatesAPI = {
     return response.data.data
   },
 }
+
+// Financial Management Types
+export interface FinancialTransaction {
+  id: string
+  tenant_id: string
+  property_id: string
+  type: 'INCOME' | 'EXPENSE'
+  category?: string
+  amount: number
+  date: string
+  description: string
+  receipt_url?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+  property?: {
+    id: string
+    name: string
+  }
+}
+
+export interface CreateTransactionData {
+  propertyId: string
+  type: 'INCOME' | 'EXPENSE'
+  category?: string
+  amount: number
+  date: string
+  description: string
+  receiptUrl?: string
+  notes?: string
+}
+
+export interface PropertyFinancialSummary {
+  propertyId: string
+  propertyName: string
+  totalIncome: number
+  totalExpenses: number
+  netIncome: number
+  expensesByCategory: Array<{
+    category: string
+    amount: number
+    percentage: number
+  }>
+  transactions: number
+}
+
+export interface BudgetStatus {
+  budget: {
+    id: string
+    propertyId: string
+    propertyName: string
+    monthlyBudget: number
+    alertThreshold: number
+  }
+  currentMonth: {
+    startDate: string
+    endDate: string
+    totalSpent: number
+    remaining: number
+    percentageUsed: number
+  }
+  alerts: {
+    isOverBudget: boolean
+    isNearThreshold: boolean
+    message: string | null
+  }
+}
+
+// Financial API calls
+export const financialAPI = {
+  listTransactions: async (filters?: {
+    propertyId?: string
+    type?: 'INCOME' | 'EXPENSE'
+    category?: string
+    startDate?: string
+    endDate?: string
+    page?: number
+    limit?: number
+  }) => {
+    const response = await api.get<{ data: FinancialTransaction[]; pagination: any }>(
+      '/api/financial/transactions',
+      { params: filters }
+    )
+    return response.data
+  },
+
+  createTransaction: async (data: CreateTransactionData) => {
+    const response = await api.post<{ data: FinancialTransaction }>(
+      '/api/financial/transactions',
+      data
+    )
+    return response.data.data
+  },
+
+  updateTransaction: async (id: string, data: Partial<CreateTransactionData>) => {
+    const response = await api.patch<{ data: FinancialTransaction }>(
+      `/api/financial/transactions/${id}`,
+      data
+    )
+    return response.data.data
+  },
+
+  deleteTransaction: async (id: string) => {
+    await api.delete(`/api/financial/transactions/${id}`)
+  },
+
+  getPropertySummary: async (propertyId: string, startDate?: string, endDate?: string) => {
+    const response = await api.get<{ data: PropertyFinancialSummary }>(
+      `/api/financial/reports/property/${propertyId}`,
+      { params: { startDate, endDate } }
+    )
+    return response.data.data
+  },
+
+  setBudget: async (data: { propertyId: string; monthlyBudget: number; alertThreshold?: number }) => {
+    const response = await api.post('/api/financial/budgets', data)
+    return response.data.data
+  },
+
+  getBudgetStatus: async (propertyId: string) => {
+    const response = await api.get<{ data: BudgetStatus | null }>(
+      `/api/financial/budgets/${propertyId}`
+    )
+    return response.data.data
+  },
+
+  exportCSV: async (filters?: { propertyId?: string; startDate?: string; endDate?: string }) => {
+    const response = await api.get('/api/financial/export', {
+      params: filters,
+      responseType: 'blob',
+    })
+    return response.data
+  },
+}
+
+// Tenant Management Types
+export interface PropertyTenant {
+  id: string
+  tenant_id: string
+  property_id: string
+  name: string
+  email?: string
+  phone?: string
+  move_in_date: string
+  lease_expiry_date?: string
+  rent_amount: number
+  rent_frequency: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY'
+  rent_due_day?: number
+  status: 'ACTIVE' | 'INACTIVE' | 'NOTICE_GIVEN'
+  notes?: string
+  created_at: string
+  updated_at: string
+  property?: {
+    id: string
+    name: string
+  }
+  rent_payments?: RentPayment[]
+}
+
+export interface CreatePropertyTenantData {
+  propertyId: string
+  name: string
+  email?: string
+  phone?: string
+  moveInDate: string
+  leaseExpiryDate?: string
+  rentAmount: number
+  rentFrequency: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY'
+  rentDueDay?: number
+  notes?: string
+}
+
+export interface RentPayment {
+  id: string
+  property_tenant_id: string
+  amount: number
+  payment_date: string
+  expected_date?: string
+  payment_method?: 'BANK_TRANSFER' | 'CASH' | 'CHEQUE' | 'STANDING_ORDER' | 'OTHER'
+  reference?: string
+  notes?: string
+  created_at: string
+}
+
+export interface RecordRentPaymentData {
+  amount: number
+  paymentDate: string
+  expectedDate?: string
+  paymentMethod?: 'BANK_TRANSFER' | 'CASH' | 'CHEQUE' | 'STANDING_ORDER' | 'OTHER'
+  reference?: string
+  notes?: string
+}
+
+// Tenant Management API calls
+export const tenantsAPI = {
+  list: async (filters?: {
+    propertyId?: string
+    status?: 'ACTIVE' | 'INACTIVE' | 'NOTICE_GIVEN'
+    page?: number
+    limit?: number
+  }) => {
+    const response = await api.get<{ data: PropertyTenant[]; pagination: any }>('/api/tenants', {
+      params: filters,
+    })
+    return response.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: PropertyTenant }>(`/api/tenants/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreatePropertyTenantData) => {
+    const response = await api.post<{ data: PropertyTenant }>('/api/tenants', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreatePropertyTenantData>) => {
+    const response = await api.patch<{ data: PropertyTenant }>(`/api/tenants/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/tenants/${id}`)
+  },
+
+  getRentPayments: async (tenantId: string, page?: number, limit?: number) => {
+    const response = await api.get<{ data: RentPayment[]; pagination: any }>(
+      `/api/tenants/${tenantId}/payments`,
+      { params: { page, limit } }
+    )
+    return response.data
+  },
+
+  recordPayment: async (tenantId: string, data: RecordRentPaymentData) => {
+    const response = await api.post<{ data: RentPayment }>(
+      `/api/tenants/${tenantId}/payments`,
+      data
+    )
+    return response.data.data
+  },
+
+  getExpiringLeases: async (days?: number) => {
+    const response = await api.get('/api/tenants/alerts/expiring-leases', {
+      params: { days },
+    })
+    return response.data.data
+  },
+
+  getOverdueRent: async () => {
+    const response = await api.get('/api/tenants/alerts/overdue-rent')
+    return response.data.data
+  },
+}
