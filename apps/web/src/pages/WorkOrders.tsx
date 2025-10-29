@@ -338,8 +338,17 @@ export default function WorkOrders() {
               <Button color="inherit" onClick={() => navigate('/properties')}>
                 Properties
               </Button>
+              <Button color="inherit" onClick={() => navigate('/tenants')}>
+                Tenants
+              </Button>
+              <Button color="inherit" onClick={() => navigate('/financial')}>
+                Financial
+              </Button>
               <Button color="inherit" onClick={() => navigate('/contractors')}>
                 Contractors
+              </Button>
+              <Button color="inherit" onClick={() => navigate('/certificates')}>
+                Certificates
               </Button>
               <Chip label={user.tenant_name} color="secondary" sx={{ mr: 2 }} />
               <Chip

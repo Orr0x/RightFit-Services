@@ -239,6 +239,12 @@ export default function Certificates() {
               <Button color="inherit" onClick={() => navigate('/work-orders')}>
                 Work Orders
               </Button>
+              <Button color="inherit" onClick={() => navigate('/tenants')}>
+                Tenants
+              </Button>
+              <Button color="inherit" onClick={() => navigate('/financial')}>
+                Financial
+              </Button>
               <Button color="inherit" onClick={() => navigate('/contractors')}>
                 Contractors
               </Button>

@@ -195,6 +195,15 @@ export default function Contractors() {
               <Button color="inherit" onClick={() => navigate('/work-orders')}>
                 Work Orders
               </Button>
+              <Button color="inherit" onClick={() => navigate('/tenants')}>
+                Tenants
+              </Button>
+              <Button color="inherit" onClick={() => navigate('/financial')}>
+                Financial
+              </Button>
+              <Button color="inherit" onClick={() => navigate('/certificates')}>
+                Certificates
+              </Button>
               <Chip label={user.tenant_name} color="secondary" sx={{ mr: 2 }} />
               <Chip
                 label={user.role}
