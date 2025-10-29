@@ -21,18 +21,19 @@
     "@rightfit/shared": "workspace:*",
     "axios": "^1.6.2",
     "expo": "~52.0.0",
-    "expo-dev-client": "~6.0.16",
-    "expo-device": "~6.0.2",
-    "expo-image-picker": "~15.0.0",
+    "expo-dev-client": "~5.0.20",
+    "expo-device": "~7.0.3",
+    "expo-image-picker": "~16.0.6",
     "expo-notifications": "~0.29.13",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",
-    "react-native": "0.76.5",
+    "react-dom": "18.3.1",
+    "react-native": "0.76.9",
     "react-native-gesture-handler": "~2.20.0",
     "react-native-paper": "5.12.5",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.1.0",
+    "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.12"
   },
   "devDependencies": {
@@ -40,7 +41,7 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/react": "18.3.12",
-    "jest-expo": "^54.0.13",
+    "jest-expo": "^52.0.6",
     "typescript": "~5.9.2"
   },
   "private": true
