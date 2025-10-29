@@ -235,6 +235,9 @@ importers:
         specifier: ~0.19.12
         version: 0.19.13(react@18.3.1)
     devDependencies:
+      '@lovesworking/watermelondb-expo-plugin-sdk-52-plus':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@testing-library/jest-native':
         specifier: ^5.4.3
         version: 5.4.3(react-native@0.76.5)(react-test-renderer@19.2.0)(react@18.3.1)
@@ -4114,6 +4117,10 @@ packages:
   /@js-sdsl/ordered-map@4.4.2:
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
     dev: false
+
+  /@lovesworking/watermelondb-expo-plugin-sdk-52-plus@1.0.2:
+    resolution: {integrity: sha512-6lWK1NbBL9H+JSCqslp/ZU1w7mM3iWOqmWVQ89q27UjxLvt9mo5CHSlo7abgE+AkiLLwEaN9qo0RQuc97aUoGw==}
+    dev: true
 
   /@mapbox/node-pre-gyp@1.0.11:
     resolution: {integrity: sha512-Yhlar6v9WQgUp/He7BdgzOz8lqMQ8sU+jkCq7Wx8Myc5YFJLbEe7lgui/V7G1qB1DJykHSGwreceSaD60Y0PUQ==}

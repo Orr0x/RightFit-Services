@@ -14,7 +14,7 @@
     },
     "plugins": [
       "expo-dev-client",
-      "@nozbe/watermelondb/expo-plugin",
+      "@lovesworking/watermelondb-expo-plugin-sdk-52-plus",
       [
         "expo-image-picker",
         {
