@@ -276,4 +276,5 @@ class PushNotificationService {
   }
 }
 
-export default new PushNotificationService()
+export { PushNotificationService }  // Named export for testing
+export default new PushNotificationService()  // Default export for production

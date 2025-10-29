@@ -286,4 +286,5 @@ RightFit Services
   }
 }
 
-export default new EmailService()
+export { EmailService }  // Named export for testing
+export default new EmailService()  // Default export for production

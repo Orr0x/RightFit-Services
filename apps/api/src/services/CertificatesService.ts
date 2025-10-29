@@ -338,4 +338,5 @@ class CertificatesService {
   }
 }
 
-export default new CertificatesService()
+export { CertificatesService }  // Named export for testing
+export default new CertificatesService()  // Default export for production
