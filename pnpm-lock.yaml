@@ -195,6 +195,9 @@ importers:
       expo:
         specifier: ~52.0.0
         version: 52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5)(react-native@0.76.9)(react@18.3.1)
+      expo-build-properties:
+        specifier: ^1.0.9
+        version: 1.0.9(expo@52.0.47)
       expo-dev-client:
         specifier: ~5.0.20
         version: 5.0.20(expo@52.0.47)
@@ -6522,7 +6525,6 @@ packages:
       fast-uri: 3.1.0
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
-    dev: true
 
   /anser@1.4.10:
     resolution: {integrity: sha512-hCv9AqTQ8ycjpSd3upOJd7vFwW1JaoYQ7tpham03GJ1ca8/65rqn0RpaWpItOAd6ylW9wAw6luXYPJIyPFVOww==}
@@ -8327,6 +8329,16 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
+  /expo-build-properties@1.0.9(expo@52.0.47):
+    resolution: {integrity: sha512-2icttCy3OPTk/GWIFt+vwA+0hup53jnmYb7JKRbvNvrrOrz+WblzpeoiaOleI2dYG/vjwpNO8to8qVyKhYJtrQ==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      ajv: 8.17.1
+      expo: 52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5)(react-native@0.76.9)(react@18.3.1)
+      semver: 7.7.3
+    dev: false
+
   /expo-constants@17.0.8(expo@52.0.47)(react-native@0.76.9):
     resolution: {integrity: sha512-XfWRyQAf1yUNgWZ1TnE8pFBMqGmFP5Gb+SFSgszxDdOoheB/NI5D4p7q86kI2fvGyfTrxAe+D+74nZkfsGvUlg==}
     peerDependencies:
@@ -8651,7 +8663,6 @@ packages:
 
   /fast-uri@3.1.0:
     resolution: {integrity: sha512-iPeeDKJSWf4IEOasVVrknXpaBV0IApz/gp7S2bb7Z4Lljbl2MGJRqInZiUrQwV16cpzw/D3S5j5Julj/gT52AA==}
-    dev: true
 
   /fast-xml-parser@5.2.5:
     resolution: {integrity: sha512-pfX9uG9Ki0yekDHx2SiuRIyFdyAr1kMIMitPvb0YBo8SUfKvia7w7FIyd/l6av85pFYRhZscS75MwMnbvY+hcQ==}

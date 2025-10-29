@@ -16,6 +16,16 @@
       "expo-dev-client",
       "@lovesworking/watermelondb-expo-plugin-sdk-52-plus",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "packagingOptions": {
+              "pickFirst": ["**/libc++_shared.so"]
+            }
+          }
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "The app needs access to your photos to upload property and work order images.",
