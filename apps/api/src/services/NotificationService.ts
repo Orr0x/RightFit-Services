@@ -1,6 +1,8 @@
 import { PrismaClient } from '@rightfit/database'
 import logger from '../utils/logger'
-// import smsService from './SmsService' // Can be enabled later for SMS notifications
+import pushNotificationService from './PushNotificationService'
+import emailService from './EmailService'
+// import smsService from './SmsService' // Will be enabled when phone field is added to User model
 
 const prisma = new PrismaClient()
 
@@ -71,7 +73,10 @@ class NotificationService {
             days_until_expiry: days,
           })
 
-          // Send email notification (would integrate with SendGrid/SES in production)
+          // Send push notification
+          await this.sendPushNotification(notification, days)
+
+          // Send email notification
           await this.sendEmailNotification(notification)
 
           // Send SMS notification if phone number available
@@ -145,25 +150,104 @@ class NotificationService {
   }
 
   /**
-   * Send email notification (placeholder - would integrate with SendGrid/AWS SES)
+   * Send push notification for certificate expiry
+   */
+  private async sendPushNotification(
+    notification: CertificateExpiryNotification,
+    daysUntilExpiry: number
+  ): Promise<void> {
+    try {
+      // Determine priority and message based on days until expiry
+      let priority: 'default' | 'normal' | 'high' = 'default'
+      let title = ''
+      let body = ''
+
+      if (daysUntilExpiry === 60) {
+        title = 'Certificate Renewal Reminder'
+        body = `Your ${notification.certificateType} for ${notification.propertyName} expires in 60 days`
+      } else if (daysUntilExpiry === 30) {
+        priority = 'normal'
+        title = 'Certificate Expiring Soon'
+        body = `Your ${notification.certificateType} for ${notification.propertyName} expires in 30 days. Please renew soon.`
+      } else if (daysUntilExpiry === 7) {
+        priority = 'high'
+        title = 'URGENT: Certificate Expiring'
+        body = `Your ${notification.certificateType} for ${notification.propertyName} expires in 7 days! Renew immediately.`
+      } else if (daysUntilExpiry < 0) {
+        priority = 'high'
+        const daysExpired = Math.abs(daysUntilExpiry)
+        title = 'EXPIRED: Certificate Renewal Required'
+        body = `Your ${notification.certificateType} for ${notification.propertyName} expired ${daysExpired} days ago. Renew now to stay compliant.`
+      }
+
+      // Get certificate to find property and owner information
+      const certificate = await prisma.certificate.findUnique({
+        where: { id: notification.certificateId },
+        include: {
+          property: {
+            include: {
+              owner: true,
+            },
+          },
+        },
+      })
+
+      if (!certificate || !certificate.property) {
+        logger.warn('Certificate or property not found', {
+          certificate_id: notification.certificateId,
+        })
+        return
+      }
+
+      // Send push notification
+      await pushNotificationService.sendNotification({
+        userId: certificate.property.owner.id,
+        title,
+        body,
+        notificationType: 'CERTIFICATE_EXPIRY',
+        priority,
+        data: {
+          certificate_id: notification.certificateId,
+          property_name: notification.propertyName,
+          certificate_type: notification.certificateType,
+          expiry_date: notification.expiryDate.toISOString(),
+          days_until_expiry: daysUntilExpiry,
+          tenant_id: certificate.property.tenant_id,
+          deep_link: `rightfit://certificates/${notification.certificateId}`,
+        },
+      })
+
+      logger.info('Push notification sent for certificate expiry', {
+        certificate_id: notification.certificateId,
+        days_until_expiry: daysUntilExpiry,
+      })
+    } catch (error: any) {
+      logger.error('Failed to send push notification for certificate expiry', {
+        error: error.message,
+        certificate_id: notification.certificateId,
+      })
+    }
+  }
+
+  /**
+   * Send email notification using SendGrid
    */
   private async sendEmailNotification(notification: CertificateExpiryNotification): Promise<void> {
-    // In production, integrate with SendGrid or AWS SES
-    logger.info('Would send email notification', {
-      to: notification.ownerEmail,
-      subject: `Certificate Expiry Alert: ${notification.certificateType}`,
-      message: `Your ${notification.certificateType} for ${notification.propertyName} expires in ${notification.daysUntilExpiry} days.`,
-    })
-
-    // Example SendGrid integration (commented out):
-    // const msg = {
-    //   to: notification.ownerEmail,
-    //   from: 'notifications@rightfitservices.co.uk',
-    //   subject: `Certificate Expiry Alert: ${notification.certificateType}`,
-    //   text: `Your ${notification.certificateType} for ${notification.propertyName} expires in ${notification.daysUntilExpiry} days on ${notification.expiryDate.toLocaleDateString()}.`,
-    //   html: `<strong>Certificate Expiry Alert</strong><br>Your ${notification.certificateType} for ${notification.propertyName} expires in <strong>${notification.daysUntilExpiry} days</strong> on ${notification.expiryDate.toLocaleDateString()}.`,
-    // }
-    // await sgMail.send(msg)
+    try {
+      await emailService.sendCertificateExpiryEmail({
+        to: notification.ownerEmail,
+        ownerName: notification.ownerName,
+        certificateType: notification.certificateType,
+        propertyName: notification.propertyName,
+        expiryDate: notification.expiryDate,
+        daysUntilExpiry: notification.daysUntilExpiry,
+      })
+    } catch (error: any) {
+      logger.error('Failed to send email notification', {
+        error: error.message,
+        certificate_id: notification.certificateId,
+      })
+    }
   }
 
   /**

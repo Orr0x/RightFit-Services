@@ -12,6 +12,8 @@ import workOrdersRoutes from './routes/work-orders'
 import contractorsRoutes from './routes/contractors'
 import photosRoutes from './routes/photos'
 import certificatesRoutes from './routes/certificates'
+import devicesRoutes from './routes/devices'
+import notificationsRoutes from './routes/notifications'
 import adminRoutes from './routes/admin'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
@@ -98,6 +100,8 @@ app.use('/api/work-orders', workOrdersRoutes)
 app.use('/api/contractors', contractorsRoutes)
 app.use('/api/photos', photosRoutes)
 app.use('/api/certificates', certificatesRoutes)
+app.use('/api/devices', devicesRoutes)
+app.use('/api/notifications', notificationsRoutes)
 app.use('/api/admin', adminRoutes)
 
 // Apply general rate limiting to all other API routes

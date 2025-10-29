@@ -5,7 +5,17 @@ import notificationService from '../services/NotificationService'
 
 const router: Router = Router()
 
-// All routes require authentication
+// Test endpoint for development - no auth required (REMOVE IN PRODUCTION!)
+router.post('/test-notification', async (_req: Request, res: Response) => {
+  try {
+    await notificationService.checkAndSendCertificateExpiryNotifications()
+    res.json({ message: 'Test notification check completed' })
+  } catch (error: any) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// All routes below require authentication
 router.use(authenticate)
 
 // Manually trigger certificate expiry check (for testing)

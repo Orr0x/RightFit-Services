@@ -45,6 +45,9 @@ api.interceptors.response.use(
           localStorage.setItem('access_token', access_token)
 
           // Retry original request with new token
+          if (!originalRequest.headers) {
+            originalRequest.headers = {}
+          }
           originalRequest.headers.Authorization = `Bearer ${access_token}`
           return api(originalRequest)
         }

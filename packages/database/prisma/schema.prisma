@@ -19,12 +19,14 @@ model Tenant {
   updated_at          DateTime           @updatedAt
 
   // Relationships
-  users        User[]
-  properties   Property[]
-  work_orders  WorkOrder[]
-  contractors  Contractor[]
-  certificates Certificate[]
-  photos       Photo[]
+  users         User[]
+  properties    Property[]
+  work_orders   WorkOrder[]
+  contractors   Contractor[]
+  certificates  Certificate[]
+  photos        Photo[]
+  devices       Device[]
+  notifications Notification[]
 
   @@map("tenants")
 }
@@ -48,11 +50,13 @@ model User {
   deleted_at    DateTime?
 
   // Relationships
-  tenant            Tenant     @relation(fields: [tenant_id], references: [id])
-  properties        Property[] @relation("PropertyOwner")
-  work_orders       WorkOrder[] @relation("WorkOrderCreator")
-  photos_uploaded   Photo[]    @relation("PhotoUploader")
-  contractor_profile Contractor? @relation("ContractorUser")
+  tenant             Tenant        @relation(fields: [tenant_id], references: [id])
+  properties         Property[]    @relation("PropertyOwner")
+  work_orders        WorkOrder[]   @relation("WorkOrderCreator")
+  photos_uploaded    Photo[]       @relation("PhotoUploader")
+  contractor_profile Contractor?   @relation("ContractorUser")
+  devices            Device[]
+  notifications      Notification[]
 
   @@index([tenant_id])
   @@index([email])
@@ -282,4 +286,58 @@ enum CertificateType {
   EPC
   STL_LICENSE
   OTHER
+}
+
+model Device {
+  id            String         @id @default(uuid())
+  user_id       String
+  tenant_id     String
+  push_token    String         @db.VarChar(255)
+  device_id     String         @db.VarChar(255)
+  platform      DevicePlatform
+  is_active     Boolean        @default(true)
+  registered_at DateTime       @default(now())
+
+  // Relationships
+  user   User   @relation(fields: [user_id], references: [id])
+  tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@unique([device_id, user_id])
+  @@index([user_id])
+  @@index([tenant_id])
+  @@map("devices")
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+}
+
+model Notification {
+  id                String           @id @default(uuid())
+  user_id           String
+  tenant_id         String
+  notification_type NotificationType
+  title             String           @db.VarChar(255)
+  body              String           @db.Text
+  data              Json?
+  sent_at           DateTime         @default(now())
+  read_at           DateTime?
+
+  // Relationships
+  user   User   @relation(fields: [user_id], references: [id])
+  tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([user_id, read_at])
+  @@index([tenant_id])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  CERTIFICATE_EXPIRY
+  PHOTO_QUALITY
+  WORK_ORDER_ASSIGNED
+  SUBSCRIPTION_ENDING
+  PAYMENT_FAILED
+  SYSTEM_ANNOUNCEMENT
 }

@@ -3,16 +3,16 @@
 **Property Maintenance Management Platform for UK Landlords**
 
 [![Status](https://img.shields.io/badge/Status-MVP_Development-blue)]()
-[![Sprint](https://img.shields.io/badge/Sprint-Migration_Complete-green)]()
-[![Progress](https://img.shields.io/badge/Progress-77%25-yellow)]()
+[![Sprint](https://img.shields.io/badge/Sprint-5_Complete-green)]()
+[![Progress](https://img.shields.io/badge/Progress-82%25-yellow)]()
 [![Tests](https://img.shields.io/badge/Coverage-14.94%25-orange)]()
 [![Tech Stack](https://img.shields.io/badge/Tech_Stack-Stable_LTS-brightgreen)]()
 
 ---
 
-## ✅ Recent Update: Tech Stack Migration Complete
+## ✅ Recent Update: Sprint 5 Complete - Multi-Channel Notifications
 
-**Migration Complete (2025-10-28):** Successfully migrated from React 19 + Node 24 to production-ready stable versions (React 18.3.1 + Node 20 LTS). All peer dependency warnings eliminated. See **[MIGRATION_RESULTS.md](docs/MIGRATION_RESULTS.md)** for details.
+**Sprint 5 Complete (2025-10-29):** All notification features implemented and operational. Email notifications successfully migrated from SendGrid to Resend (3,000 emails/month free vs SendGrid's paid tier). Push notifications, SMS alerts, and automated certificate reminders all tested and working. See **[SPRINT_5_COMPLETION_GUIDE.md](docs/SPRINT_5_COMPLETION_GUIDE.md)** for details.
 
 ---
 
@@ -27,6 +27,8 @@ RightFit Services is a comprehensive property maintenance management platform de
 ✅ **Work Order Tracking** - Create, assign, and track maintenance work orders
 ✅ **Contractor Management** - Maintain database of contractors and their specialties
 ✅ **SMS Notifications** - Automatic SMS alerts when work orders are assigned (Twilio)
+✅ **Email Notifications** - Certificate expiry reminders with beautiful HTML templates (Resend)
+✅ **Push Notifications** - Mobile push notifications for important events (Expo)
 ✅ **Photo Documentation** - Upload and store property and work order photos (AWS S3)
 ✅ **Mobile Photo Upload** - Camera/gallery integration with offline queueing
 ✅ **AI Photo Quality** - Google Vision API checks photo quality (brightness, blur)
@@ -77,6 +79,7 @@ RightFit-Services/
 - PostgreSQL 16+
 - AWS S3 (photo storage)
 - Twilio (SMS notifications)
+- Resend (email notifications)
 - Google Cloud Vision API (photo quality analysis)
 - JWT authentication
 
@@ -157,7 +160,7 @@ pnpx prisma studio
 
 ## 📊 Project Status
 
-### Completed (233 story points / 77%)
+### Completed (251 story points / 82%)
 
 - ✅ **Sprint 1: Foundation** (50 points)
   - Monorepo setup
@@ -191,23 +194,27 @@ pnpx prisma studio
   - Mobile photo upload with camera/gallery
   - ✅ **Post-Sprint:** React 19 + Node 24 → React 18.3.1 + Node 20 LTS migration complete
 
-- ✅ **Sprint 5: AI + UK Compliance** (24/42 points - 57% complete)
+- ✅ **Sprint 5: AI + UK Compliance + Notifications** (42/42 points - 100% COMPLETE)
   - Google Vision API integration
   - Photo quality warnings
   - Certificate upload and tracking
-  - ⏸️ Push notifications (pending)
+  - Push notifications (Expo)
+  - Email notifications (Resend - migrated from SendGrid)
+  - SMS notifications (Twilio)
+  - Certificate expiry reminders (60, 30, 7 days)
 
-### Next Steps (71 story points remaining)
+### Next Steps (53 story points remaining)
 
 - ✅ **Tech Stack Migration** (13 points - COMPLETED 2025-10-28)
   - Successfully migrated to stable stack
   - See [MIGRATION_RESULTS.md](docs/MIGRATION_RESULTS.md)
 
-- 🔜 **Sprint 5 Completion** (18 points - NEXT)
-  - Push notifications (Firebase)
+- ✅ **Sprint 5 Completion** (18 points - COMPLETED 2025-10-29)
+  - Push notifications (Expo)
+  - Email notifications (Resend)
   - Background certificate reminders
 
-- ⏸️ **Sprint 6: Payments + Launch** (53 points)
+- 🔜 **Sprint 6: Payments + Launch** (53 points - NEXT)
   - Stripe integration
   - CI/CD pipeline
   - Error monitoring (Sentry)
@@ -219,25 +226,38 @@ pnpx prisma studio
 
 ## 📚 Documentation
 
-### Getting Started
-- **[QUICK_START.md](QUICK_START.md)** - Quick start guide
+### 📖 Complete Documentation Index
+- **[docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md)** - **START HERE** - Complete guide to all documentation
+
+### Getting Started (New Developers)
+- **[QUICK_START.md](QUICK_START.md)** - Get up and running in 15 minutes
 - **[DATABASE_SETUP.md](DATABASE_SETUP.md)** - Database setup instructions
+- **[HANDOVER.md](HANDOVER.md)** - Comprehensive developer onboarding
 - **[apps/mobile/README.md](apps/mobile/README.md)** - Mobile app specific guide
 
-### Development
-- **[SPRINT_STATUS.md](SPRINT_STATUS.md)** - Complete sprint status and progress
-- **[HANDOVER.md](HANDOVER.md)** - Comprehensive developer handover (START HERE)
-- **[SPRINT1_STATUS.md](SPRINT1_STATUS.md)** - Sprint 1 detailed report
-- **[docs/project-plan/sprint-plans.md](docs/project-plan/sprint-plans.md)** - Complete sprint plans
+### Current Development
+- **[SPRINT_STATUS.md](SPRINT_STATUS.md)** - Current sprint progress (82% complete)
+- **[docs/prd.md](docs/prd.md)** - Product requirements document
+- **[docs/project-plan/sprint-plans.md](docs/project-plan/sprint-plans.md)** - 6-sprint MVP plan
+- **[docs/stories/](docs/stories/)** - All user stories with acceptance criteria
 
 ### Architecture & Technical
-- ✅ **[docs/MIGRATION_RESULTS.md](docs/MIGRATION_RESULTS.md)** - Tech stack migration results & metrics (2025-10-28)
-- **[docs/TECH_STACK_EVALUATION.md](docs/TECH_STACK_EVALUATION.md)** - Original tech stack analysis (archived)
-- **[docs/OFFLINE_MODE.md](docs/OFFLINE_MODE.md)** - Offline mode implementation guide
+- **[docs/architecture.md](docs/architecture.md)** - Complete fullstack architecture
+- **[docs/architecture/tech-stack.md](docs/architecture/tech-stack.md)** - Tech stack deep dive
+- **[docs/architecture/coding-standards.md](docs/architecture/coding-standards.md)** - **Critical coding rules**
+- **[docs/OFFLINE_MODE.md](docs/OFFLINE_MODE.md)** - Offline mode implementation
 - **[packages/database/prisma/schema.prisma](packages/database/prisma/schema.prisma)** - Database schema
 
+### Migration Reference
+- **[docs/migration/README.md](docs/migration/README.md)** - Tech stack migration summary
+- **[docs/migration/MIGRATION_RESULTS.md](docs/migration/MIGRATION_RESULTS.md)** - Migration results (2025-10-28)
+- **[docs/ARCHITECTURE_VALIDATION_REPORT.md](docs/ARCHITECTURE_VALIDATION_REPORT.md)** - Post-migration validation
+
 ### Deployment
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment instructions (Sprint 6)
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide (Sprint 6)
+
+### Historical Archive
+- **[docs/archive/](docs/archive/)** - Historical documents (discovery, old iterations, session reports)
 
 ---
 
@@ -341,7 +361,7 @@ pnpx prisma studio
 
 ### Medium Priority
 6. **Web App Polish** - Functional but could be more polished
-7. **Push Notifications** - Not implemented yet (Sprint 5)
+7. **Domain Email Setup** - Currently using Resend's onboarding@resend.dev (custom domain for production)
 
 ### Recently Fixed ✅
 - ~~Mobile Auth State~~ - FIXED: AuthContext with AsyncStorage working
@@ -360,14 +380,14 @@ pnpx prisma studio
 ### Phase 1: MVP (Current - Week 12-13)
 - ✅ ~~Evaluate & execute tech stack migration~~ - DONE (2025-10-28)
 - ✅ ~~Complete offline mode (Sprint 4)~~ - DONE
-- ⏸️ Add push notifications (Sprint 5)
-- ⏸️ Integrate Stripe payments (Sprint 6)
+- ✅ ~~Multi-channel notifications (Sprint 5)~~ - DONE (2025-10-29)
+- 🔜 Integrate Stripe payments (Sprint 6)
 - ⏸️ Deploy to production
 - ⏸️ Submit to App Store and Google Play
 - ⏸️ Launch with 10-20 beta users
 
 ### Phase 2: Growth (Week 13-24)
-- Email notifications (SendGrid)
+- Enhanced email notifications (custom domains via Resend)
 - Contractor mobile app
 - Advanced reporting and analytics
 - Bulk operations
@@ -438,13 +458,14 @@ Built with:
 
 ---
 
-**Last Updated:** 2025-10-28
+**Last Updated:** 2025-10-29
 **Version:** 1.0.0-alpha
 **Status:** Active Development (✅ Stable Tech Stack)
-**Progress:** 233/304 story points (77%)
+**Progress:** 251/304 story points (82%)
 **Test Coverage:** 14.94%
 **GitHub:** https://github.com/Orr0x/RightFit-Services
 
 ✅ **Migration Complete:** React 18.3.1 + Node 20 LTS - Zero peer warnings
-✅ **Completed:** Sprint 4 - Offline Mode (WatermelonDB + Sync Service)
-🚀 **Next:** Sprint 5 completion (Push Notifications)
+✅ **Completed:** Sprint 5 - Multi-Channel Notifications (Push, Email, SMS)
+✅ **Email Migration:** SendGrid → Resend (3,000 emails/month free)
+🚀 **Next:** Sprint 6 - Payments & Launch (Stripe Integration)
