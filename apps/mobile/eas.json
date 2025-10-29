@@ -6,6 +6,7 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "credentialsSource": "remote",
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
