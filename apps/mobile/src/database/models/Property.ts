@@ -6,6 +6,9 @@ export default class Property extends Model {
   static associations = {
     work_orders: { type: 'has_many' as const, foreignKey: 'property_id' },
     photos: { type: 'has_many' as const, foreignKey: 'property_id' },
+    property_tenants: { type: 'has_many' as const, foreignKey: 'property_id' },
+    financial_transactions: { type: 'has_many' as const, foreignKey: 'property_id' },
+    property_budgets: { type: 'has_many' as const, foreignKey: 'property_id' },
   }
 
   @field('server_id') serverId!: string
@@ -29,4 +32,7 @@ export default class Property extends Model {
 
   @children('work_orders') workOrders: any
   @children('photos') photos: any
+  @children('property_tenants') propertyTenants: any
+  @children('financial_transactions') financialTransactions: any
+  @children('property_budgets') propertyBudgets: any
 }

@@ -19,14 +19,17 @@ model Tenant {
   updated_at          DateTime           @updatedAt
 
   // Relationships
-  users         User[]
-  properties    Property[]
-  work_orders   WorkOrder[]
-  contractors   Contractor[]
-  certificates  Certificate[]
-  photos        Photo[]
-  devices       Device[]
-  notifications Notification[]
+  users                  User[]
+  properties             Property[]
+  work_orders            WorkOrder[]
+  contractors            Contractor[]
+  certificates           Certificate[]
+  photos                 Photo[]
+  devices                Device[]
+  notifications          Notification[]
+  property_tenants       PropertyTenant[]
+  financial_transactions FinancialTransaction[]
+  property_budgets       PropertyBudget[]
 
   @@map("tenants")
 }
@@ -50,11 +53,11 @@ model User {
   deleted_at    DateTime?
 
   // Relationships
-  tenant             Tenant        @relation(fields: [tenant_id], references: [id])
-  properties         Property[]    @relation("PropertyOwner")
-  work_orders        WorkOrder[]   @relation("WorkOrderCreator")
-  photos_uploaded    Photo[]       @relation("PhotoUploader")
-  contractor_profile Contractor?   @relation("ContractorUser")
+  tenant             Tenant         @relation(fields: [tenant_id], references: [id])
+  properties         Property[]     @relation("PropertyOwner")
+  work_orders        WorkOrder[]    @relation("WorkOrderCreator")
+  photos_uploaded    Photo[]        @relation("PhotoUploader")
+  contractor_profile Contractor?    @relation("ContractorUser")
   devices            Device[]
   notifications      Notification[]
 
@@ -101,11 +104,14 @@ model Property {
   deleted_at          DateTime?
 
   // Relationships
-  tenant       Tenant        @relation(fields: [tenant_id], references: [id])
-  owner        User          @relation("PropertyOwner", fields: [owner_user_id], references: [id])
-  work_orders  WorkOrder[]
-  certificates Certificate[]
-  photos       Photo[]
+  tenant                 Tenant                 @relation(fields: [tenant_id], references: [id])
+  owner                  User                   @relation("PropertyOwner", fields: [owner_user_id], references: [id])
+  work_orders            WorkOrder[]
+  certificates           Certificate[]
+  photos                 Photo[]
+  property_tenants       PropertyTenant[]
+  financial_transactions FinancialTransaction[]
+  property_budget        PropertyBudget?
 
   @@index([tenant_id])
   @@index([owner_user_id])
@@ -149,11 +155,11 @@ model WorkOrder {
   deleted_at          DateTime?
 
   // Relationships
-  tenant      Tenant      @relation(fields: [tenant_id], references: [id])
-  property    Property    @relation(fields: [property_id], references: [id])
-  contractor  Contractor? @relation(fields: [contractor_id], references: [id])
-  created_by  User        @relation("WorkOrderCreator", fields: [created_by_user_id], references: [id])
-  photos      Photo[]
+  tenant     Tenant      @relation(fields: [tenant_id], references: [id])
+  property   Property    @relation(fields: [property_id], references: [id])
+  contractor Contractor? @relation(fields: [contractor_id], references: [id])
+  created_by User        @relation("WorkOrderCreator", fields: [created_by_user_id], references: [id])
+  photos     Photo[]
 
   @@index([tenant_id])
   @@index([property_id])
@@ -340,4 +346,145 @@ enum NotificationType {
   SUBSCRIPTION_ENDING
   PAYMENT_FAILED
   SYSTEM_ANNOUNCEMENT
+  LEASE_EXPIRING
+  RENT_OVERDUE
+  BUDGET_ALERT
+}
+
+// ===== TENANT MANAGEMENT =====
+
+model PropertyTenant {
+  id                String        @id @default(uuid())
+  tenant_id         String
+  property_id       String
+  name              String        @db.VarChar(100)
+  email             String?       @db.VarChar(255)
+  phone             String?       @db.VarChar(20)
+  move_in_date      DateTime
+  lease_expiry_date DateTime?
+  rent_amount       Decimal       @db.Decimal(10, 2)
+  rent_frequency    RentFrequency
+  rent_due_day      Int? // Day of month for monthly rent (1-31)
+  status            TenantStatus  @default(ACTIVE)
+  notes             String?       @db.Text
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  deleted_at        DateTime?
+
+  // Relationships
+  tenant        Tenant        @relation(fields: [tenant_id], references: [id])
+  property      Property      @relation(fields: [property_id], references: [id])
+  rent_payments RentPayment[]
+
+  @@index([tenant_id])
+  @@index([property_id])
+  @@index([status])
+  @@index([lease_expiry_date])
+  @@map("property_tenants")
+}
+
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+  NOTICE_GIVEN
+}
+
+enum RentFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+model RentPayment {
+  id                 String         @id @default(uuid())
+  property_tenant_id String
+  amount             Decimal        @db.Decimal(10, 2)
+  payment_date       DateTime
+  expected_date      DateTime?
+  payment_method     PaymentMethod?
+  reference          String?        @db.VarChar(100)
+  notes              String?        @db.Text
+  created_at         DateTime       @default(now())
+
+  // Relationships
+  property_tenant PropertyTenant @relation(fields: [property_tenant_id], references: [id])
+
+  @@index([property_tenant_id])
+  @@index([payment_date])
+  @@index([expected_date])
+  @@map("rent_payments")
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  CHEQUE
+  STANDING_ORDER
+  OTHER
+}
+
+// ===== FINANCIAL MANAGEMENT =====
+
+model FinancialTransaction {
+  id          String           @id @default(uuid())
+  tenant_id   String
+  property_id String
+  type        TransactionType
+  category    ExpenseCategory?
+  amount      Decimal          @db.Decimal(10, 2)
+  date        DateTime
+  description String           @db.VarChar(500)
+  receipt_url String?          @db.VarChar(500)
+  notes       String?          @db.Text
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+  deleted_at  DateTime?
+
+  // Relationships
+  tenant   Tenant   @relation(fields: [tenant_id], references: [id])
+  property Property @relation(fields: [property_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([property_id])
+  @@index([type])
+  @@index([date])
+  @@index([category])
+  @@map("financial_transactions")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum ExpenseCategory {
+  MAINTENANCE
+  REPAIRS
+  UTILITIES
+  INSURANCE
+  PROPERTY_TAX
+  MANAGEMENT_FEES
+  MORTGAGE
+  LEGAL_FEES
+  CLEANING
+  GARDENING
+  SAFETY_CERTIFICATES
+  OTHER
+}
+
+model PropertyBudget {
+  id              String   @id @default(uuid())
+  tenant_id       String
+  property_id     String   @unique
+  monthly_budget  Decimal  @db.Decimal(10, 2)
+  alert_threshold Decimal  @default(0.8) @db.Decimal(3, 2) // 0.8 = 80%
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relationships
+  tenant   Tenant   @relation(fields: [tenant_id], references: [id])
+  property Property @relation(fields: [property_id], references: [id])
+
+  @@index([tenant_id])
+  @@map("property_budgets")
 }

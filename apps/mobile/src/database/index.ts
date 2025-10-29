@@ -1,7 +1,17 @@
 import { Database } from '@nozbe/watermelondb'
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite'
 import { schema } from './schema'
-import { Property, WorkOrder, Contractor, Photo, SyncQueue } from './models'
+import {
+  Property,
+  WorkOrder,
+  Contractor,
+  Photo,
+  SyncQueue,
+  PropertyTenant,
+  RentPayment,
+  FinancialTransaction,
+  PropertyBudget
+} from './models'
 
 let database: Database | null = null
 
@@ -17,7 +27,17 @@ try {
 
   database = new Database({
     adapter,
-    modelClasses: [Property, WorkOrder, Contractor, Photo, SyncQueue],
+    modelClasses: [
+      Property,
+      WorkOrder,
+      Contractor,
+      Photo,
+      SyncQueue,
+      PropertyTenant,
+      RentPayment,
+      FinancialTransaction,
+      PropertyBudget
+    ],
   })
 } catch (error) {
   // WatermelonDB requires a development build and won't work in Expo Go
