@@ -13,6 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "plugins": [
+      "expo-dev-client",
+      "@nozbe/watermelondb/expo-plugin",
       [
         "expo-image-picker",
         {
@@ -23,21 +25,35 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.rightfitservices.app",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app needs access to your photos to upload property and work order images.",
         "NSCameraUsageDescription": "The app needs access to your camera to take photos of properties and work orders."
       }
     },
     "android": {
+      "package": "com.rightfitservices.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "525a1d2c-5629-4fe2-9b64-26c4bd01ca50"
+      }
+    },
+    "owner": "jamesrobins9"
   }
 }

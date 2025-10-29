@@ -21,6 +21,7 @@
     "@rightfit/shared": "workspace:*",
     "axios": "^1.6.2",
     "expo": "~52.0.0",
+    "expo-dev-client": "~6.0.16",
     "expo-device": "~6.0.2",
     "expo-image-picker": "~15.0.0",
     "expo-notifications": "~0.29.13",
@@ -35,7 +36,10 @@
     "react-native-web": "~0.19.12"
   },
   "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
     "@types/react": "18.3.12",
+    "jest-expo": "^54.0.13",
     "typescript": "~5.9.2"
   },
   "private": true
