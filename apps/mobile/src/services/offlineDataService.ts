@@ -345,6 +345,37 @@ class OfflineDataService {
       _offline: !photo.synced,
     }))
   }
+
+  // Get properties from local database
+  async getLocalProperties(): Promise<any[]> {
+    if (!this.isDatabaseAvailable()) {
+      return []
+    }
+
+    const Property = database!.collections.get('properties')
+    const properties = await Property.query().fetch()
+
+    return properties.map((prop: any) => ({
+      id: prop.serverId || prop.id,
+      tenant_id: prop.tenantId,
+      name: prop.name,
+      address_line1: prop.addressLine1,
+      address_line2: prop.addressLine2,
+      city: prop.city,
+      state: prop.state,
+      zip_code: prop.zipCode,
+      type: prop.type,
+      bedrooms: prop.bedrooms,
+      bathrooms: prop.bathrooms,
+      square_footage: prop.squareFootage,
+      rent_amount: prop.rentAmount,
+      status: prop.status,
+      created_at: prop.createdAt.toISOString(),
+      updated_at: prop.updatedAt.toISOString(),
+      synced: prop.synced,
+      _offline: !prop.synced,
+    }))
+  }
 }
 
 export default new OfflineDataService()

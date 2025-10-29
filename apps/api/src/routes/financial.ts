@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { financialService } from '../services/FinancialService'
 import { authMiddleware } from '../middleware/auth'
+import { ExpenseCategory } from '@rightfit/database'
 import { z } from 'zod'
 
 const router: Router = Router()
@@ -9,10 +10,25 @@ const router: Router = Router()
 router.use(authMiddleware)
 
 // Validation schemas
+const expenseCategoryEnum = z.enum([
+  'MAINTENANCE',
+  'REPAIRS',
+  'UTILITIES',
+  'INSURANCE',
+  'PROPERTY_TAX',
+  'MANAGEMENT_FEES',
+  'MORTGAGE',
+  'LEGAL_FEES',
+  'CLEANING',
+  'GARDENING',
+  'SAFETY_CERTIFICATES',
+  'OTHER',
+])
+
 const createTransactionSchema = z.object({
   propertyId: z.string().uuid(),
   type: z.enum(['INCOME', 'EXPENSE']),
-  category: z.string().optional(),
+  category: expenseCategoryEnum.optional(),
   amount: z.number().positive(),
   date: z.string().datetime().or(z.date()),
   description: z.string().min(1).max(500),
@@ -22,7 +38,7 @@ const createTransactionSchema = z.object({
 
 const updateTransactionSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE']).optional(),
-  category: z.string().optional(),
+  category: expenseCategoryEnum.optional(),
   amount: z.number().positive().optional(),
   date: z.string().datetime().or(z.date()).optional(),
   description: z.string().min(1).max(500).optional(),
@@ -46,7 +62,7 @@ router.get('/transactions', async (req: Request, res: Response, next: NextFuncti
     const options = {
       propertyId: req.query.propertyId as string | undefined,
       type: req.query.type as 'INCOME' | 'EXPENSE' | undefined,
-      category: req.query.category as string | undefined,
+      category: req.query.category as ExpenseCategory | undefined,
       startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
       endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
       page,
@@ -86,10 +102,11 @@ router.patch('/transactions/:id', async (req: Request, res: Response, next: Next
     const tenantId = req.user!.tenant_id
 
     // Convert date string to Date if needed
+    const { date, ...rest } = input
     const data = {
-      ...input,
-      ...(input.date && {
-        date: typeof input.date === 'string' ? new Date(input.date) : input.date,
+      ...rest,
+      ...(date && {
+        date: typeof date === 'string' ? new Date(date) : date,
       }),
     }
 

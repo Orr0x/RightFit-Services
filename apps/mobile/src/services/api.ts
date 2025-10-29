@@ -50,11 +50,17 @@ class ApiClient {
               })
 
               const { access_token } = response.data
-              await AsyncStorage.setItem(ACCESS_TOKEN_KEY, access_token)
 
-              // Retry original request with new token
-              originalRequest.headers!.Authorization = `Bearer ${access_token}`
-              return this.client(originalRequest)
+              // Only set token if it's valid
+              if (access_token && access_token.length > 0) {
+                await AsyncStorage.setItem(ACCESS_TOKEN_KEY, access_token)
+
+                // Retry original request with new token
+                originalRequest.headers!.Authorization = `Bearer ${access_token}`
+                return this.client(originalRequest)
+              } else {
+                throw new Error('Invalid access token received from refresh')
+              }
             }
           } catch (refreshError) {
             // Refresh failed, clear tokens and redirect to login

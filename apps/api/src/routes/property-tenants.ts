@@ -66,6 +66,31 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 })
 
+// GET /api/tenants/alerts/expiring-leases - Get tenants with expiring leases
+// Must be before /:id route to avoid matching
+router.get('/alerts/expiring-leases', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id
+    const daysInAdvance = parseInt(req.query.days as string) || 60
+
+    const expiringLeases = await tenantService.getExpiringLeases(tenantId, daysInAdvance)
+    res.json({ data: expiringLeases })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// GET /api/tenants/alerts/overdue-rent - Get tenants with overdue rent
+router.get('/alerts/overdue-rent', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id
+    const overdueRent = await tenantService.getOverdueRent(tenantId)
+    res.json({ data: overdueRent })
+  } catch (error) {
+    next(error)
+  }
+})
+
 // GET /api/tenants/:id - Get single property tenant
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -108,14 +133,14 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
     const tenantId = req.user!.tenant_id
 
     // Convert date strings to Date objects if needed
+    const { moveInDate, leaseExpiryDate, ...rest } = input
     const data = {
-      ...input,
-      ...(input.moveInDate && {
-        moveInDate: typeof input.moveInDate === 'string' ? new Date(input.moveInDate) : input.moveInDate,
+      ...rest,
+      ...(moveInDate && {
+        moveInDate: typeof moveInDate === 'string' ? new Date(moveInDate) : moveInDate,
       }),
-      ...(input.leaseExpiryDate && {
-        leaseExpiryDate:
-          typeof input.leaseExpiryDate === 'string' ? new Date(input.leaseExpiryDate) : input.leaseExpiryDate,
+      ...(leaseExpiryDate && {
+        leaseExpiryDate: typeof leaseExpiryDate === 'string' ? new Date(leaseExpiryDate) : leaseExpiryDate,
       }),
     }
 
@@ -173,30 +198,6 @@ router.get('/:id/payments', async (req: Request, res: Response, next: NextFuncti
 
     const result = await tenantService.getRentPayments(req.params.id, tenantId, { page, limit })
     res.json(result)
-  } catch (error) {
-    next(error)
-  }
-})
-
-// GET /api/tenants/expiring-leases - Get tenants with expiring leases
-router.get('/alerts/expiring-leases', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const tenantId = req.user!.tenant_id
-    const daysInAdvance = parseInt(req.query.days as string) || 60
-
-    const expiringLeases = await tenantService.getExpiringLeases(tenantId, daysInAdvance)
-    res.json({ data: expiringLeases })
-  } catch (error) {
-    next(error)
-  }
-})
-
-// GET /api/tenants/overdue-rent - Get tenants with overdue rent
-router.get('/alerts/overdue-rent', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const tenantId = req.user!.tenant_id
-    const overdueRent = await tenantService.getOverdueRent(tenantId)
-    res.json({ data: overdueRent })
   } catch (error) {
     next(error)
   }

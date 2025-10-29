@@ -1,10 +1,10 @@
-import { prisma } from '@rightfit/database'
+import { prisma, ExpenseCategory } from '@rightfit/database'
 import { NotFoundError, ValidationError } from '../utils/errors'
 
 interface CreateTransactionInput {
   propertyId: string
   type: 'INCOME' | 'EXPENSE'
-  category?: string
+  category?: ExpenseCategory
   amount: number
   date: Date
   description: string
@@ -14,7 +14,7 @@ interface CreateTransactionInput {
 
 interface UpdateTransactionInput {
   type?: 'INCOME' | 'EXPENSE'
-  category?: string
+  category?: ExpenseCategory
   amount?: number
   date?: Date
   description?: string
@@ -93,7 +93,7 @@ export class FinancialService {
     options: {
       propertyId?: string
       type?: 'INCOME' | 'EXPENSE'
-      category?: string
+      category?: ExpenseCategory
       startDate?: Date
       endDate?: Date
       page?: number

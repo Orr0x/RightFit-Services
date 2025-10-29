@@ -5,6 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { WorkOrdersStackParamList, Property } from '../../types'
 import api from '../../services/api'
+import offlineDataService from '../../services/offlineDataService'
 
 type CreateWorkOrderScreenNavigationProp = StackNavigationProp<WorkOrdersStackParamList, 'CreateWorkOrder'>
 type CreateWorkOrderScreenRouteProp = RouteProp<WorkOrdersStackParamList, 'CreateWorkOrder'>
@@ -32,10 +33,18 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
+        // Try to fetch from API first
         const data = await api.getProperties()
         setProperties(data)
       } catch (error) {
-        console.error('Failed to fetch properties:', error)
+        console.error('Failed to fetch properties from API:', error)
+        // Fall back to local database in offline mode
+        try {
+          const localData = await offlineDataService.getLocalProperties()
+          setProperties(localData)
+        } catch (localError) {
+          console.error('Failed to fetch local properties:', localError)
+        }
       }
     }
     fetchProperties()
