@@ -2,10 +2,10 @@ import axios, { AxiosInstance, AxiosError } from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import logger from './logger'
 
-// API base URL for Android emulator
-// 10.0.2.2 is a special alias to the Windows host machine from Android emulator
-// For physical device testing, change to your PC's actual IP (e.g., http://192.168.0.17:3001)
-const API_BASE_URL = 'http://10.0.2.2:3001'
+// API base URL - Using WSL IP for both emulator and physical devices
+// WSL2 doesn't reliably route 10.0.2.2, so we use the actual WSL IP address
+// This works for both Android emulator and physical devices on same network
+const API_BASE_URL = 'http://192.168.0.17:3001'
 
 // Storage keys
 const ACCESS_TOKEN_KEY = '@rightfit_access_token'

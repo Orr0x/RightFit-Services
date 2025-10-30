@@ -56,3 +56,13 @@ lerna-debug.log*
 
 # OS
 Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*-lock.yaml.backup
+package-lock.json
+
+# Log files
+*.log
+mcp-shell.log

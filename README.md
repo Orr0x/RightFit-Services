@@ -107,7 +107,7 @@ RightFit-Services/
 
 ## 🚀 Quick Start
 
-> **⚠️ Windows Users:** For optimal Android development on Windows, use WSL2. See **[WSL Development Setup Guide](docs/WSL_DEVELOPMENT_SETUP.md)** for complete instructions including Android emulator integration, networking configuration, and performance optimization.
+> **⚠️ Windows Users - Android Development:** For local Android builds on Windows, use WSL2. See **[Android Development Setup Guide](docs/ANDROID_DEV_SETUP.md)** for complete WSL2 setup, Android SDK installation, device connection, and local APK building. **Quick Reference:** [Common Commands](docs/QUICK_REFERENCE.md)
 
 ### Prerequisites
 
@@ -117,7 +117,7 @@ RightFit-Services/
 - AWS account (for S3)
 - Twilio account (optional for SMS)
 - Google Cloud account (optional for Vision API)
-- **Windows users:** WSL2 with Ubuntu 22.04 (recommended for mobile development)
+- **Windows users (Android dev):** WSL2 with Ubuntu + Android SDK (see [setup guide](docs/ANDROID_DEV_SETUP.md))
 
 ### Installation
 
@@ -234,9 +234,12 @@ pnpx prisma studio
 
 ### Getting Started (New Developers)
 - **[QUICK_START.md](QUICK_START.md)** - Get up and running in 15 minutes
+- **[docs/GETTING_BACK_TO_WORK.md](docs/GETTING_BACK_TO_WORK.md)** - 🔥 **"Haven't touched this in weeks"** restart guide
 - **[DATABASE_SETUP.md](DATABASE_SETUP.md)** - Database setup instructions
 - **[HANDOVER.md](HANDOVER.md)** - Comprehensive developer onboarding
 - **[apps/mobile/README.md](apps/mobile/README.md)** - Mobile app specific guide
+- **[docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md)** - **WSL2 Android development setup** (complete guide)
+- **[docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** - Common commands quick reference
 
 ### Current Development
 - **[SPRINT_STATUS.md](SPRINT_STATUS.md)** - Current sprint progress (82% complete)
@@ -352,20 +355,22 @@ pnpx prisma studio
    - Development overhead back to normal
    - See [MIGRATION_RESULTS.md](docs/MIGRATION_RESULTS.md)
 
+2. ~~Mobile Local Builds Blocked~~ - **FIXED (2025-10-30)**
+   - Successfully set up local Android builds on WSL2
+   - Android SDK + Gradle fully configured
+   - Physical device connected via USB (ADB)
+   - APK builds working: `./gradlew assembleDebug`
+   - Offline mode now fully testable
+   - See: [ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md)
+
+3. ~~Offline Mode Testing Blocked~~ - **FIXED (2025-10-30)**
+   - WatermelonDB + automatic sync fully operational
+   - Network detection working (NetInfo)
+   - Tested on physical device with airplane mode
+   - 5-minute background sync confirmed working
+   - Cross-platform sync verified (mobile → web)
+
 ### High Priority
-2. **Mobile Local Builds Blocked (WSL)** - Expo SDK 52 Gradle plugin error ⚠️ **ACTIVE BLOCKER**
-   - Error: `expo-module-gradle-plugin` not found during build
-   - Environment: WSL2, Node 20 LTS, Gradle 8.10.2
-   - Workaround: Use Expo Go for development testing
-   - See: [MOBILE_APP_BUILD_TROUBLESHOOTING.md](docs/MOBILE_APP_BUILD_TROUBLESHOOTING.md)
-   - Status: Under investigation (consider Expo SDK 51 downgrade)
-
-3. **Offline Mode Limitations** - WatermelonDB requires development build
-   - Not functional in Expo Go
-   - App gracefully degrades but offline features unavailable for testing
-   - Requires: `npx expo prebuild` → `npx expo run:ios/android`
-   - **Currently blocked by issue #2 above**
-
 4. **Test Coverage Low** - 14.94% coverage (target: 50%+)
 5. **No Error Monitoring** - No Sentry or equivalent
 6. **No API Rate Limiting** - Only auth endpoints are rate-limited
@@ -469,9 +474,9 @@ Built with:
 
 ---
 
-**Last Updated:** 2025-10-29
+**Last Updated:** 2025-10-30
 **Version:** 1.0.0-alpha
-**Status:** Active Development (✅ Stable Tech Stack)
+**Status:** Active Development (✅ Stable Tech Stack + Local Builds)
 **Progress:** 251/304 story points (82%)
 **Test Coverage:** 14.94%
 **GitHub:** https://github.com/Orr0x/RightFit-Services
@@ -479,4 +484,5 @@ Built with:
 ✅ **Migration Complete:** React 18.3.1 + Node 20 LTS - Zero peer warnings
 ✅ **Completed:** Sprint 5 - Multi-Channel Notifications (Push, Email, SMS)
 ✅ **Email Migration:** SendGrid → Resend (3,000 emails/month free)
+✅ **Android Dev Setup:** WSL2 + local builds + automatic sync verified
 🚀 **Next:** Sprint 6 - Payments & Launch (Stripe Integration)

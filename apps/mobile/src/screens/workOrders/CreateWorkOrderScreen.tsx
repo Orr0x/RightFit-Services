@@ -33,18 +33,28 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        // Try to fetch from API first
-        const data = await api.getProperties()
-        setProperties(data)
-      } catch (error) {
-        console.error('Failed to fetch properties from API:', error)
-        // Fall back to local database in offline mode
-        try {
+        // Check if online first
+        const isOnline = await offlineDataService.isOnline()
+
+        if (isOnline) {
+          try {
+            // Fetch from API when online
+            const data = await api.getProperties()
+            setProperties(data)
+          } catch (error) {
+            console.error('Failed to fetch properties from API:', error)
+            // Fall back to local database if API fails
+            const localData = await offlineDataService.getLocalProperties()
+            setProperties(localData)
+          }
+        } else {
+          // Offline: load from local database
+          console.log('Device offline, loading properties from local database')
           const localData = await offlineDataService.getLocalProperties()
           setProperties(localData)
-        } catch (localError) {
-          console.error('Failed to fetch local properties:', localError)
         }
+      } catch (error) {
+        console.error('Failed to fetch properties:', error)
       }
     }
     fetchProperties()
@@ -77,10 +87,11 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
         workOrderData.estimated_cost = parseFloat(estimatedCost)
       }
 
-      await api.createWorkOrder(workOrderData)
+      // Use offline-aware service for work order creation
+      await offlineDataService.createWorkOrder(workOrderData)
       navigation.goBack()
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create work order')
+      setError(err.message || 'Failed to create work order')
     } finally {
       setLoading(false)
     }
@@ -155,7 +166,7 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
               />
             }
           >
-            {['EMERGENCY', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
+            {['HIGH', 'MEDIUM', 'LOW'].map((p) => (
               <Menu.Item
                 key={p}
                 onPress={() => {

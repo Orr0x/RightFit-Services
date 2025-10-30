@@ -1,3 +1,4 @@
+import { Q } from '@nozbe/watermelondb'
 import { database } from '../database'
 import { WorkOrder, Photo } from '../database/models'
 import api from './api'
@@ -109,7 +110,7 @@ class OfflineDataService {
     try {
       // Try to find by server_id first
       const byServerId = await workOrdersCollection
-        .query(q => q.where('server_id', id))
+        .query(Q.where('server_id', id))
         .fetch()
 
       if (byServerId.length > 0) {
@@ -319,14 +320,18 @@ class OfflineDataService {
     }
 
     const photosCollection = database!.get<Photo>('photos')
-    let query = photosCollection.query()
+    const conditions = []
 
     if (workOrderId) {
-      query = query.extend(q => q.where('work_order_id', workOrderId))
+      conditions.push(Q.where('work_order_id', workOrderId))
     }
     if (propertyId) {
-      query = query.extend(q => q.where('property_id', propertyId))
+      conditions.push(Q.where('property_id', propertyId))
     }
+
+    const query = conditions.length > 0
+      ? photosCollection.query(...conditions)
+      : photosCollection.query()
 
     const photos = await query.fetch()
 
@@ -363,7 +368,9 @@ class OfflineDataService {
       address_line2: prop.addressLine2,
       city: prop.city,
       state: prop.state,
+      postcode: prop.zipCode, // Map zipCode back to postcode for UI
       zip_code: prop.zipCode,
+      property_type: prop.type, // Map type back to property_type for UI
       type: prop.type,
       bedrooms: prop.bedrooms,
       bathrooms: prop.bathrooms,

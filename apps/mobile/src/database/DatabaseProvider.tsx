@@ -1,6 +1,7 @@
-import React, { createContext, useContext, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, ReactNode } from 'react'
 import { Database } from '@nozbe/watermelondb'
 import { database } from './index'
+import syncService from '../services/syncService'
 
 const DatabaseContext = createContext<Database | null>(null)
 
@@ -18,6 +19,22 @@ interface DatabaseProviderProps {
 }
 
 export function DatabaseProvider({ children }: DatabaseProviderProps) {
+  useEffect(() => {
+    // Initialize sync service when database is available
+    if (database) {
+      console.log('[DATABASE_PROVIDER] Initializing sync service')
+      syncService.initialize()
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (database) {
+        console.log('[DATABASE_PROVIDER] Cleaning up sync service')
+        syncService.cleanup()
+      }
+    }
+  }, [])
+
   return (
     <DatabaseContext.Provider value={database}>
       {children}

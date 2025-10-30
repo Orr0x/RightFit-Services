@@ -1,3 +1,4 @@
+import { Q } from '@nozbe/watermelondb'
 import { database } from '../database'
 import { Property, WorkOrder, Contractor, Photo, SyncQueue } from '../database/models'
 import api from './api'
@@ -6,11 +7,47 @@ import NetInfo from '@react-native-community/netinfo'
 class SyncService {
   private isSyncing = false
   private syncInterval: NodeJS.Timeout | null = null
+  private netInfoUnsubscribe: (() => void) | null = null
+
+  // Initialize sync service with network listener
+  initialize() {
+    console.log('[SYNC] Initializing sync service')
+
+    // Start automatic sync every 5 minutes
+    this.startAutoSync()
+
+    // Listen for network connectivity changes
+    this.netInfoUnsubscribe = NetInfo.addEventListener(state => {
+      console.log('[SYNC] Network state changed:', {
+        isConnected: state.isConnected,
+        isInternetReachable: state.isInternetReachable,
+        type: state.type
+      })
+
+      if (state.isConnected && state.isInternetReachable !== false) {
+        console.log('[SYNC] Device back online, triggering sync')
+        this.syncAll()
+      }
+    })
+
+    console.log('[SYNC] Network listener registered')
+  }
+
+  // Cleanup
+  cleanup() {
+    console.log('[SYNC] Cleaning up sync service')
+    this.stopAutoSync()
+    if (this.netInfoUnsubscribe) {
+      this.netInfoUnsubscribe()
+      this.netInfoUnsubscribe = null
+    }
+  }
 
   // Start automatic sync (every 5 minutes when online)
   startAutoSync() {
     this.stopAutoSync()
     this.syncInterval = setInterval(() => {
+      console.log('[SYNC] Auto-sync interval triggered')
       this.syncAll()
     }, 5 * 60 * 1000) // 5 minutes
   }
@@ -31,30 +68,37 @@ class SyncService {
   // Main sync function
   async syncAll(): Promise<{ success: boolean; error?: string }> {
     if (!database) {
+      console.log('[SYNC] Database not available')
       return { success: false, error: 'Offline mode not available' }
     }
 
     if (this.isSyncing) {
+      console.log('[SYNC] Sync already in progress, skipping')
       return { success: false, error: 'Sync already in progress' }
     }
 
     const online = await this.isOnline()
     if (!online) {
+      console.log('[SYNC] Device is offline, skipping sync')
       return { success: false, error: 'Device is offline' }
     }
 
     try {
+      console.log('[SYNC] Starting sync')
       this.isSyncing = true
 
       // Step 1: Pull latest data from server
+      console.log('[SYNC] Step 1: Pulling data from server')
       await this.pullFromServer()
 
       // Step 2: Push local changes to server
+      console.log('[SYNC] Step 2: Pushing local changes to server')
       await this.pushToServer()
 
+      console.log('[SYNC] Sync completed successfully')
       return { success: true }
     } catch (error: any) {
-      console.error('Sync error:', error)
+      console.error('[SYNC] Sync error:', error)
       return { success: false, error: error.message }
     } finally {
       this.isSyncing = false
@@ -80,7 +124,7 @@ class SyncService {
         // Sync properties
         for (const serverProperty of properties) {
           const existing = await propertiesCollection
-            .query(q => q.where('server_id', serverProperty.id))
+            .query(Q.where('server_id', serverProperty.id))
             .fetch()
 
           if (existing.length > 0) {
@@ -102,7 +146,7 @@ class SyncService {
         // Sync work orders
         for (const serverWorkOrder of workOrders) {
           const existing = await workOrdersCollection
-            .query(q => q.where('server_id', serverWorkOrder.id))
+            .query(Q.where('server_id', serverWorkOrder.id))
             .fetch()
 
           if (existing.length > 0) {
@@ -124,7 +168,7 @@ class SyncService {
         // Sync contractors
         for (const serverContractor of contractors) {
           const existing = await contractorsCollection
-            .query(q => q.where('server_id', serverContractor.id))
+            .query(Q.where('server_id', serverContractor.id))
             .fetch()
 
           if (existing.length > 0) {
@@ -155,9 +199,12 @@ class SyncService {
       const syncQueueCollection = database.get<SyncQueue>('sync_queue')
       const queueItems = await syncQueueCollection.query().fetch()
 
+      console.log(`[SYNC] Found ${queueItems.length} items in sync queue`)
+
       for (const queueItem of queueItems) {
         try {
           const payload = JSON.parse(queueItem.payload)
+          console.log(`[SYNC] Syncing ${queueItem.entityType} (${queueItem.action}):`, queueItem.entityId)
 
           switch (queueItem.entityType) {
             case 'work_order':
@@ -173,8 +220,9 @@ class SyncService {
           await database.write(async () => {
             await queueItem.destroyPermanently()
           })
+          console.log(`[SYNC] Successfully synced ${queueItem.entityType}:`, queueItem.entityId)
         } catch (error: any) {
-          console.error(`Error syncing ${queueItem.entityType}:`, error)
+          console.error(`[SYNC] Error syncing ${queueItem.entityType}:`, error)
 
           // Update queue item with error
           await database.write(async () => {
@@ -186,6 +234,7 @@ class SyncService {
 
           // Remove from queue if too many attempts
           if (queueItem.attempts >= 5) {
+            console.log(`[SYNC] Removing ${queueItem.entityType} from queue after ${queueItem.attempts} failed attempts`)
             await database.write(async () => {
               await queueItem.destroyPermanently()
             })
@@ -193,7 +242,7 @@ class SyncService {
         }
       }
     } catch (error) {
-      console.error('Error pushing to server:', error)
+      console.error('[SYNC] Error pushing to server:', error)
       throw error
     }
   }
