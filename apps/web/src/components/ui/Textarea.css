@@ -1,0 +1,141 @@
+/**
+ * Textarea Styles
+ * US-UX-2: Component Library
+ */
+
+/* Wrapper */
+.textarea-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.textarea-wrapper-full-width {
+  width: 100%;
+}
+
+/* Header (label + count) */
+.textarea-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+/* Label */
+.textarea-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.textarea-required {
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Character Count */
+.textarea-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+/* Base Textarea Styles */
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+  outline: none;
+  resize: vertical;
+}
+
+.textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+/* Sizes */
+.textarea-sm {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  min-height: 60px;
+}
+
+.textarea-md {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-base);
+  min-height: 80px;
+}
+
+.textarea-lg {
+  padding: var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-lg);
+  min-height: 120px;
+}
+
+/* Auto-resize variant */
+.textarea-auto-resize {
+  resize: none;
+  overflow: hidden;
+}
+
+/* States */
+.textarea:hover:not(.textarea-disabled):not(.textarea-error) {
+  border-color: var(--color-primary-500);
+}
+
+.textarea:focus:not(.textarea-disabled) {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.textarea-error {
+  border-color: var(--color-error);
+}
+
+.textarea-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.textarea-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-surface);
+  resize: none;
+}
+
+/* Helper and Error Text */
+.textarea-helper-text,
+.textarea-error-text {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+.textarea-helper-text {
+  color: var(--color-text-secondary);
+}
+
+.textarea-error-text {
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .textarea {
+    transition: none;
+  }
+}
