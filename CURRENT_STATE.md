@@ -237,11 +237,12 @@ cd apps/web && npm run build
 
 ## 💡 Important Notes
 
-1. **Material-UI can be removed** after migration
+1. **⚠️ DO NOT REMOVE Material-UI YET** - Keep it until ALL pages are migrated and fully tested
 2. **All new components are typed** - TypeScript will guide you
 3. **Design system is documented** - see DESIGN_SYSTEM.md
 4. **Dark mode works automatically** - uses CSS variables
 5. **Mobile components exist** but need similar mobile app migration
+6. **⚠️ NEVER DELETE .bmad, .bmad-core, or similar config folders** - These are critical user configurations
 
 ---
 
