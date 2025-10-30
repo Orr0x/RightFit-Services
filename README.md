@@ -42,7 +42,14 @@ RightFit Services is a comprehensive property maintenance management platform de
 
 🚀 **Offline-First Mobile App** - The app works fully offline in rural areas with poor connectivity. Uses WatermelonDB for local data storage with automatic bi-directional sync, conflict resolution, and sync queue management. Changes are automatically synced when connection is restored.
 
-**Note:** Full offline functionality requires a development build (not available in Expo Go). App gracefully degrades to online-only mode when running in Expo Go.
+**Automatic Sync Features:**
+- ✅ Network-aware: Auto-syncs when connectivity restored
+- ✅ Background sync: Every 5 minutes when online
+- ✅ Sync queue: Offline changes queued and uploaded in order
+- ✅ Conflict resolution: Last-write-wins strategy
+- ✅ Tested and verified: Physical device testing with airplane mode
+
+**Note:** Full offline functionality requires a development build (not available in Expo Go). App gracefully degrades to online-only mode when running in Expo Go. See [Android Dev Setup](docs/ANDROID_DEV_SETUP.md) for local builds.
 
 ---
 

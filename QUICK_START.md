@@ -2,51 +2,48 @@
 
 This guide will help you quickly set up and test the RightFit Services API.
 
+> **Note:** This guide assumes you're using WSL2 on Windows. For Android development setup, see [docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md).
+
 ## Prerequisites
 
-✅ Node.js 20+ (installed)
+✅ Node.js 20 LTS (installed)
 ✅ pnpm 8+ (installed)
-✅ Docker Desktop (installed but not running)
+✅ PostgreSQL 14+ (Docker or WSL2 native)
+✅ WSL2 (recommended for Windows users)
 
-## Step 1: Start Docker Desktop
+## Step 1: Start PostgreSQL Database
 
-**Windows:**
-1. Press `Win` key and search for "Docker Desktop"
-2. Click to open Docker Desktop
-3. Wait for Docker to start (you'll see "Docker Desktop is running" in the system tray)
+You have two options:
 
-**Or use Command Line:**
-```bash
-# Start Docker Desktop (Windows)
-start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-```
-
-**Verify Docker is running:**
-```bash
-docker ps
-# Should show empty list of containers (not an error)
-```
-
-## Step 2: Start PostgreSQL Database
-
-Once Docker Desktop is running:
+### Option A: Docker (Easiest)
 
 ```bash
-# Navigate to project root
-cd I:\RightFit-Services
-
 # Start PostgreSQL container
-docker-compose up -d
+docker run --name rightfit-postgres \
+  -e POSTGRES_USER=rightfit_user \
+  -e POSTGRES_PASSWORD=rightfit_dev_password \
+  -e POSTGRES_DB=rightfit_dev \
+  -p 5432:5432 \
+  -d postgres:16
 
 # Verify PostgreSQL is running
 docker ps
-# You should see 'rightfit-postgres' container running
 
 # Check PostgreSQL logs (optional)
-docker-compose logs postgres
+docker logs rightfit-postgres
 ```
 
-## Step 3: Install Dependencies & Build
+### Option B: WSL2 Native PostgreSQL
+
+```bash
+# In WSL2 (Ubuntu)
+sudo systemctl start postgresql
+
+# Verify PostgreSQL is running
+sudo systemctl status postgresql
+```
+
+## Step 2: Install Dependencies & Build
 
 ```bash
 # Install all dependencies
@@ -59,7 +56,7 @@ pnpm build
 pnpm db:generate
 ```
 
-## Step 4: Push Database Schema
+## Step 3: Push Database Schema
 
 ```bash
 # Push Prisma schema to PostgreSQL
@@ -68,40 +65,40 @@ pnpm db:push
 # You should see output confirming tables were created
 ```
 
-## Step 5: Start API Server
+## Step 4: Start API Server
 
 ```bash
 # Start the API server in development mode
 pnpm dev:api
 
 # You should see:
-# 🚀 API server running on port 3000
+# 🚀 API server running on port 3001
 # Environment: development
 ```
 
-The API is now running at `http://localhost:3000`
+The API is now running at `http://localhost:3001`
 
-## Step 6: Test the API
+## Step 5: Test the API
 
 Open a new terminal window and run these tests:
 
 ### Test 1: Health Check
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3001/api/health
 ```
 
 Expected response:
 ```json
 {
   "status": "ok",
-  "timestamp": "2025-10-27T20:00:00.000Z",
+  "timestamp": "2025-10-30T20:00:00.000Z",
   "environment": "development"
 }
 ```
 
 ### Test 2: Register a User
 ```bash
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"test@example.com\",\"password\":\"Test123!@#\",\"confirm_password\":\"Test123!@#\",\"full_name\":\"Test User\",\"company_name\":\"Test Company\"}"
 ```
@@ -122,7 +119,7 @@ Expected response:
 
 ### Test 3: Login
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"test@example.com\",\"password\":\"Test123!@#\"}"
 ```
@@ -132,7 +129,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 Replace `YOUR_TOKEN_HERE` with the access_token from register/login:
 
 ```bash
-curl -X POST http://localhost:3000/api/properties \
+curl -X POST http://localhost:3001/api/properties \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d "{\"name\":\"Highland Cabin #2\",\"address_line1\":\"123 Highland Road\",\"city\":\"Edinburgh\",\"postcode\":\"EH1 2AB\",\"property_type\":\"COTTAGE\",\"bedrooms\":3,\"bathrooms\":2}"
@@ -140,7 +137,7 @@ curl -X POST http://localhost:3000/api/properties \
 
 ### Test 5: List Properties
 ```bash
-curl -X GET http://localhost:3000/api/properties \
+curl -X GET http://localhost:3001/api/properties \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
@@ -149,13 +146,13 @@ curl -X GET http://localhost:3000/api/properties \
 Replace `PROPERTY_ID` with the ID from the create response:
 
 ```bash
-curl -X GET http://localhost:3000/api/properties/PROPERTY_ID \
+curl -X GET http://localhost:3001/api/properties/PROPERTY_ID \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ### Test 7: Update Property
 ```bash
-curl -X PATCH http://localhost:3000/api/properties/PROPERTY_ID \
+curl -X PATCH http://localhost:3001/api/properties/PROPERTY_ID \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d "{\"name\":\"Updated Property Name\"}"
@@ -163,36 +160,41 @@ curl -X PATCH http://localhost:3000/api/properties/PROPERTY_ID \
 
 ### Test 8: Delete Property
 ```bash
-curl -X DELETE http://localhost:3000/api/properties/PROPERTY_ID \
+curl -X DELETE http://localhost:3001/api/properties/PROPERTY_ID \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ## Troubleshooting
 
-### Docker Desktop Won't Start
-- Ensure Windows Subsystem for Linux (WSL 2) is installed
-- Check Windows Services for Docker Engine
-- Restart your computer
-
 ### PostgreSQL Connection Error
 ```bash
-# Check if PostgreSQL container is running
+# Check if PostgreSQL container is running (if using Docker)
 docker ps
 
 # If not running, start it
-docker-compose up -d
+docker start rightfit-postgres
 
 # Check logs for errors
-docker-compose logs postgres
+docker logs rightfit-postgres
+
+# Or check WSL2 PostgreSQL service
+sudo systemctl status postgresql
+sudo systemctl start postgresql
 ```
 
-### Port 3000 Already in Use
+### Port 3001 Already in Use
 ```bash
-# Find process using port 3000
-netstat -ano | findstr :3000
+# Find process using port 3001 (Linux/WSL2)
+lsof -i :3001
 
-# Kill the process (replace PID with actual process ID)
-taskkill /PID <PID> /F
+# Or use ss
+ss -tlnp | grep :3001
+
+# Kill the process
+kill -9 <PID>
+
+# Or use npx kill-port
+npx kill-port 3001
 ```
 
 ### "Cannot find module" Errors
@@ -252,10 +254,10 @@ pnpm lint
 
 After successfully testing the API:
 
-1. **Write Integration Tests** - Test multi-tenancy isolation
-2. **Implement Mobile App** - React Native UI for Story 007 & 001
-3. **Deploy to Dev Environment** - Set up CI/CD pipeline
-4. **Continue Sprint 2** - Work Orders, Contractors, Photos
+1. **Mobile Development** - See [docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md) for local Android builds
+2. **Automatic Sync** - Offline-first mobile app with WatermelonDB (fully operational)
+3. **Write Integration Tests** - Test multi-tenancy isolation
+4. **Deploy to Production** - Continue Sprint 6 (Stripe + Launch)
 
 ## Support
 

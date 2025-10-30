@@ -1440,6 +1440,575 @@ async function getProperty(propertyId: string, tenantId: string) {
 
 ---
 
+## 👨‍💻 For the Next Developer
+
+### What We Just Completed (Session 2025-10-30)
+
+**Major Achievement: WSL2 Android Development + Automatic Sync**
+
+1. **Local Android Builds Working** ✅
+   - Complete WSL2 setup with Android SDK + Gradle 8.10.2
+   - Physical device connected via USB (ADB working)
+   - APK builds successfully: `./gradlew assembleDebug`
+   - See: [docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md)
+
+2. **Automatic Sync Fully Operational** ✅
+   - Fixed WatermelonDB query syntax ([syncService.ts:84](apps/mobile/src/services/syncService.ts#L84), 106, 129)
+   - Added network listener using NetInfo
+   - Background sync every 5 minutes
+   - Tested on physical device with airplane mode
+   - Cross-platform sync verified (mobile → web)
+
+3. **Priority Enum Alignment** ✅
+   - Fixed mobile app to match backend schema (HIGH, MEDIUM, LOW only)
+   - Updated [CreateWorkOrderScreen.tsx:169](apps/mobile/src/screens/workOrders/CreateWorkOrderScreen.tsx#L169)
+   - Updated [WorkOrdersListScreen.tsx:130](apps/mobile/src/screens/workOrders/WorkOrdersListScreen.tsx#L130)
+
+4. **Documentation Overhaul** ✅
+   - Created 3 comprehensive Android dev guides
+   - Organized root directory (20+ files → 6 essential docs)
+   - Created [DOCS_MAP.md](DOCS_MAP.md) for AI agent navigation
+   - Updated all docs for WSL2 environment (port 3001, Node 20 LTS)
+
+### Your Immediate Next Steps
+
+1. **Start Here:** Read [docs/GETTING_BACK_TO_WORK.md](docs/GETTING_BACK_TO_WORK.md) (5-minute restart guide)
+2. **Android Setup:** If needed, follow [docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md)
+3. **Quick Reference:** Bookmark [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) for daily commands
+4. **Current Status:** Review [SPRINT_STATUS.md](SPRINT_STATUS.md) (82% complete)
+
+### What's Working Now
+
+- ✅ Backend API fully functional (Node 20 LTS + React 18.3.1)
+- ✅ Web dashboard operational
+- ✅ Mobile app with offline mode + automatic sync
+- ✅ Local Android builds (no Expo cloud dependency)
+- ✅ Multi-channel notifications (Push, Email, SMS)
+- ✅ Certificate tracking + AI photo quality
+- ✅ Test coverage: 14.94% (WorkOrdersService comprehensive)
+
+### What Needs Work
+
+1. **Sprint 6: Payments & Launch** (53 points - NEXT)
+   - Stripe integration
+   - CI/CD pipeline
+   - Error monitoring (Sentry)
+   - App Store submission
+
+2. **Test Coverage Expansion** (Priority: HIGH)
+   - Currently: 14.94% (38 tests passing)
+   - Target: 50%+ before production
+   - Focus: PropertiesService, ContractorsService, CertificatesService
+
+3. **Web App Polish** (Priority: MEDIUM)
+   - Functional but basic UI
+   - Needs UX improvements
+
+### Critical Files to Know
+
+| File | Purpose | Status |
+|------|---------|--------|
+| [apps/mobile/src/services/syncService.ts](apps/mobile/src/services/syncService.ts) | Automatic sync service | ✅ Working |
+| [apps/mobile/src/database/DatabaseProvider.tsx](apps/mobile/src/database/DatabaseProvider.tsx) | Initializes sync on app load | ✅ Working |
+| [packages/database/prisma/schema.prisma](packages/database/prisma/schema.prisma) | Database schema (source of truth) | ✅ Stable |
+| [docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md) | Complete WSL2 Android setup | ✅ Complete |
+| [SPRINT_STATUS.md](SPRINT_STATUS.md) | Overall project progress | ✅ Up-to-date |
+
+### Development Environment
+
+**Required:**
+- Node.js 20 LTS (20.19.5+)
+- pnpm 8+
+- PostgreSQL 14+ (Docker or WSL2 native)
+- WSL2 (for Android development on Windows)
+
+**Quick Start:**
+```bash
+# WSL2 Ubuntu
+cd /home/orrox/projects/RightFit-Services
+
+# Start API (port 3001)
+pnpm dev:api
+
+# Start Web (port 3000)
+cd apps/web && pnpm dev
+
+# Start Mobile (Metro on port 8081)
+cd apps/mobile && pnpm start
+
+# Build Android APK (WSL2)
+cd apps/mobile/android && ./gradlew assembleDebug
+
+# Install on device
+adb -s RZCY51TJKKW install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Git Branches
+
+- **main:** Stable code (currently on `main`)
+- **fix/android-build-option2-npm:** Recent Android dev work (may be merged)
+
+### Recent Commits
+
+```
+f49f631 Update database and deployment documentation for WSL2 environment
+cd9f94f Update SPRINT_STATUS.md with WSL2 Android environment and automatic sync
+16b7f88 Add WSL2 Android development environment and automatic sync
+```
+
+### Tips for Success
+
+1. **Always filter by tenant_id** - Security is paramount
+2. **Use the Quick Reference** - Common commands at your fingertips
+3. **Test on physical device** - Offline mode only works in dev builds
+4. **Document as you go** - Others will thank you
+5. **Don't rush Sprint 6** - Payment integration requires careful testing
+
+---
+
+## 🏢 For the Product Owner (PO)
+
+**Date:** 2025-10-30
+**Project Status:** 82% Complete (251/304 story points)
+**Current Phase:** MVP Development - Sprint 5 Complete, Sprint 6 Next
+
+### Executive Summary
+
+RightFit Services is on track for MVP launch. We've completed 5 of 6 planned sprints, with the final sprint (Payments & Launch) remaining. The core differentiator—offline-first mobile app—is now fully operational and tested.
+
+### What's Been Delivered
+
+#### ✅ Sprint 1-3: Foundation (153 points - 100% COMPLETE)
+- Multi-tenant property management platform
+- User authentication and authorization
+- Web dashboard with property, work order, and contractor management
+- Mobile app with complete navigation and screens
+- AWS infrastructure (S3 for photos)
+
+#### ✅ Sprint 4: Offline Mode (56 points - 100% COMPLETE)
+- **Core Differentiator Delivered**
+- WatermelonDB local database integration
+- Automatic bi-directional sync
+- Network-aware sync (auto-syncs when connectivity restored)
+- Background sync every 5 minutes
+- Conflict resolution (last-write-wins)
+- **Tested and verified on physical device with airplane mode**
+
+#### ✅ Sprint 5: AI + Compliance + Notifications (42 points - 100% COMPLETE)
+- Google Vision API for photo quality analysis
+- UK compliance certificate tracking (Gas Safety, Electrical, EPC, STL)
+- Multi-channel notifications:
+  - Push notifications (Expo)
+  - Email notifications (Resend - 3,000 free emails/month)
+  - SMS notifications (Twilio)
+- Certificate expiry reminders (60, 30, 7 days)
+
+### What's Remaining
+
+#### 🔜 Sprint 6: Payments & Launch (53 points - NEXT)
+**Estimated Timeline:** 2-3 weeks
+
+**User Stories:**
+1. Stripe Integration (8 points) - Accept subscription payments
+2. Pricing Page (4 points) - Display pricing tiers
+3. Free 30-Day Trial (3 points) - No credit card required
+4. Subscription Management (5 points) - Upgrade/downgrade/cancel
+5. Bug Fixes from Beta Testing (10 points) - Buffer for issues
+6. CI/CD Pipeline (8 points) - Automated deployments
+7. Error Monitoring (4 points) - Sentry integration
+8. Uptime Monitoring (3 points) - UptimeRobot alerts
+9. App Store Submission (6 points) - iOS App Store + Google Play
+
+### Business Value Delivered
+
+**Competitive Advantages:**
+1. **Offline-First** - Works in rural areas (competitors don't)
+2. **Multi-Channel Notifications** - More reliable than competitors
+3. **AI Photo Quality** - Ensures certificate photos are usable
+4. **UK Compliance Focus** - Built for UK landlord regulations
+5. **Mobile-First Design** - Better UX for on-site work
+
+**Cost Optimizations:**
+- Email: Migrated SendGrid → Resend (£0 vs £15/month for 3K emails)
+- SMS: Pay-per-use Twilio (~£0.04/SMS) - No monthly fees
+- Photos: AWS S3 (pennies per month at MVP scale)
+- Push: Expo (free)
+
+### Production Readiness
+
+**Ready for Production:**
+- ✅ Multi-tenancy with strict data isolation
+- ✅ JWT authentication with refresh tokens
+- ✅ Password hashing (bcrypt, 10 rounds)
+- ✅ Input validation (Zod schemas)
+- ✅ Rate limiting on auth endpoints
+- ✅ Offline mode fully operational
+- ✅ Multi-channel notifications working
+- ✅ Stable tech stack (React 18.3.1 + Node 20 LTS)
+
+**Needs Before Launch:**
+- ⚠️ Stripe payment integration
+- ⚠️ Higher test coverage (currently 14.94%, target 50%+)
+- ⚠️ Error monitoring (Sentry)
+- ⚠️ CI/CD pipeline
+- ⚠️ App Store approval (1-2 week process)
+
+### MVP Launch Timeline
+
+**Week 1-2:** Sprint 6 Development
+- Stripe integration + pricing page
+- CI/CD setup
+- Error monitoring (Sentry)
+- Bug fixes
+
+**Week 3:** App Store Submission
+- Build production apps
+- Submit to Apple App Store
+- Submit to Google Play Store
+- Setup beta testing groups
+
+**Week 4:** Beta Testing & Approval
+- Onboard 10-20 beta users
+- Monitor for critical bugs
+- Wait for App Store approval
+- Final production deployment
+
+**Week 5:** MVP Launch 🚀
+- Public launch
+- Marketing push
+- User onboarding
+- Monitor metrics
+
+### Success Metrics (MVP)
+
+**Target Metrics:**
+- [ ] 10-20 beta users onboarded
+- [ ] >10 work orders created
+- [ ] 99%+ uptime (UptimeRobot)
+- [ ] <3 critical bugs (Sentry)
+- [ ] Positive feedback vs competitors
+- [ ] Offline mode reliability >95%
+- [ ] Average response time <500ms
+
+### Investment Summary
+
+**Development Progress:**
+- 5/6 sprints complete (82%)
+- Core differentiator delivered and tested
+- Stable tech stack (zero peer warnings)
+- Comprehensive documentation
+
+**Remaining Investment:**
+- ~3 weeks of development
+- App Store fees ($99/year iOS + $25 one-time Android)
+- Hosting costs during beta (<$50/month)
+
+### Risks & Mitigations
+
+| Risk | Impact | Probability | Mitigation |
+|------|--------|-------------|------------|
+| App Store rejection | High | Medium | Submit early, follow guidelines strictly |
+| Payment integration issues | High | Low | Stripe well-documented, use test mode first |
+| Low test coverage causes bugs | Medium | Medium | Expand test coverage before launch |
+| Offline sync edge cases | Medium | Low | Comprehensive device testing completed |
+
+### Recommendations
+
+1. **Proceed with Sprint 6** - All prerequisites met
+2. **Start App Store submission early** - Approval process unpredictable
+3. **Recruit beta testers now** - Need 10-20 for launch week
+4. **Plan marketing materials** - App Store screenshots, description
+5. **Setup customer support** - Email/chat for beta users
+
+---
+
+## 📊 For the Product Manager (PM)
+
+**Date:** 2025-10-30
+**Technical Status:** Production-Ready with Sprint 6 Remaining
+**Sprint Velocity:** ~50 points/2 weeks
+
+### Technical Summary
+
+**Architecture:** Turborepo monorepo with 3 apps (API, Web, Mobile)
+
+**Tech Stack:**
+- Backend: Node.js 20 LTS + Express + PostgreSQL + Prisma
+- Web: React 18.3.1 + Vite + Material-UI
+- Mobile: React Native + Expo SDK 52 + WatermelonDB
+- Infrastructure: AWS (S3) + Twilio (SMS) + Resend (Email) + Google Vision API
+
+**Migration Complete:** Successfully migrated from React 19 RC + Node 24 to stable LTS stack (2025-10-28)
+
+### Sprint Progress
+
+| Sprint | Points | Status | Completion Date |
+|--------|--------|--------|-----------------|
+| Sprint 1: Foundation | 50 | ✅ Complete | 2025-10-26 |
+| Sprint 2: Core Workflows | 50 | ✅ Complete | 2025-10-27 |
+| Sprint 3: Mobile Foundation | 53 | ✅ Complete | 2025-10-28 |
+| Sprint 4: Offline Mode | 56 | ✅ Complete | 2025-10-30 |
+| Sprint 5: AI + Notifications | 42 | ✅ Complete | 2025-10-29 |
+| Sprint 6: Payments + Launch | 53 | 🔜 Next | TBD |
+| **Total** | **304** | **82%** | **MVP ~3 weeks** |
+
+### Technical Achievements (Last Week)
+
+1. **WSL2 Android Development Environment**
+   - Local builds working (no Expo cloud dependency)
+   - Android SDK + Gradle 8.10.2 configured
+   - Physical device testing via USB (ADB)
+   - Build time: ~1 minute for APK
+
+2. **Automatic Sync Implementation**
+   - Network-aware sync using @react-native-community/netinfo
+   - Background sync every 5 minutes
+   - Sync queue with offline operation tracking
+   - Conflict resolution: last-write-wins
+   - Verified cross-platform (mobile → web)
+
+3. **Priority Enum Bug Fixed**
+   - Mobile app was sending "EMERGENCY" priority
+   - Backend schema only accepts HIGH, MEDIUM, LOW
+   - Fixed in 2 files, tested end-to-end
+
+4. **Documentation Overhaul**
+   - 3 new comprehensive guides for Android dev
+   - Root directory organized (20+ files → 6)
+   - AI agent navigation guide created
+   - All docs updated for WSL2 + Node 20 LTS
+
+### Sprint 6 Technical Requirements
+
+**User Stories & Technical Complexity:**
+
+1. **Stripe Integration** (8 points - High Complexity)
+   - Setup Stripe account + API keys
+   - Implement webhook handlers (subscription events)
+   - Create subscription management endpoints
+   - Handle payment failures + retries
+   - Test with Stripe test mode
+   - **Risk:** Payment edge cases can be tricky
+
+2. **Pricing Page** (4 points - Low Complexity)
+   - Create web + mobile pricing screens
+   - Display tier features
+   - Link to Stripe checkout
+   - **Risk:** Low
+
+3. **Free Trial** (3 points - Medium Complexity)
+   - Trial logic in database (trial_ends_at)
+   - Middleware to check subscription status
+   - Grace period handling
+   - **Risk:** Edge cases around trial expiry
+
+4. **Subscription Management** (5 points - Medium Complexity)
+   - Upgrade/downgrade flows
+   - Cancellation handling
+   - Prorated billing
+   - **Risk:** Stripe API complexity
+
+5. **Bug Fixes** (10 points - Variable)
+   - Buffer for issues discovered during integration
+   - Beta tester feedback
+   - **Risk:** Unknown unknowns
+
+6. **CI/CD Pipeline** (8 points - High Complexity)
+   - GitHub Actions for automated tests
+   - Automated deployments to staging/production
+   - Environment variable management
+   - **Risk:** First-time setup always has issues
+
+7. **Error Monitoring** (4 points - Low Complexity)
+   - Sentry integration (backend + frontend)
+   - Alert configuration
+   - **Risk:** Low
+
+8. **Uptime Monitoring** (3 points - Low Complexity)
+   - UptimeRobot configuration
+   - Slack/email alerts
+   - **Risk:** Low
+
+9. **App Store Submission** (6 points - Medium Complexity)
+   - Build production apps
+   - Create App Store listings
+   - Submit for review
+   - **Risk:** Approval process unpredictable (1-2 weeks)
+
+### Technical Dependencies
+
+**External Services Required for Sprint 6:**
+1. Stripe account (test + production modes)
+2. Sentry account (error monitoring)
+3. UptimeRobot account (uptime monitoring)
+4. Apple Developer Account ($99/year)
+5. Google Play Developer Account ($25 one-time)
+6. GitHub Actions (included with GitHub)
+
+### Test Coverage Status
+
+**Current:** 14.94% (38 tests passing)
+- WorkOrdersService: 89.65% (22 tests) ✅
+- Multi-tenancy enforcement: Tested ✅
+- Other services: 0% ⚠️
+
+**Target for Production:** 50%+
+- PropertiesService tests needed
+- ContractorsService tests needed
+- CertificatesService tests needed
+- Integration tests needed
+
+**Recommendation:** Allocate 1 week for test coverage expansion before production launch.
+
+### Performance Metrics
+
+**API Response Times (Local):**
+- Health check: <10ms
+- Login: ~200ms (bcrypt hashing)
+- List properties: ~50ms
+- Create work order: ~100ms
+
+**Mobile App:**
+- Cold start: ~3 seconds
+- Sync cycle: ~2-5 seconds (depends on queue size)
+- Offline operation: Instant (local DB)
+
+**Database:**
+- Tables: 12
+- Indexes: Tenant_id on all tables
+- Soft deletes: All tables
+
+### Infrastructure Costs (Estimated)
+
+**MVP Phase (10-20 users):**
+- AWS RDS (PostgreSQL): $15/month (db.t3.micro)
+- AWS EC2 (API): $10/month (t3.micro)
+- AWS S3 (Photos): $1/month
+- Twilio SMS: ~$5/month (pay-per-use)
+- Resend Email: $0 (3,000 free/month)
+- Google Vision API: $0 (1,000 free/month)
+- Sentry: $0 (free tier)
+- **Total: ~$30/month**
+
+**Growth Phase (100 users):**
+- Scale to t3.small instances: ~$60/month
+- S3 + SMS increases: ~$20/month
+- Email may need paid tier: ~$10/month
+- **Total: ~$90/month**
+
+### Security Audit
+
+**Implemented:**
+- ✅ JWT authentication with refresh tokens
+- ✅ Password hashing (bcrypt, 10 rounds)
+- ✅ Multi-tenancy data isolation
+- ✅ Input validation (Zod)
+- ✅ SQL injection protection (Prisma ORM)
+- ✅ Rate limiting on auth endpoints
+- ✅ CORS configuration
+- ✅ Helmet.js security headers
+- ✅ 404 responses for cross-tenant access
+
+**Needs Attention:**
+- ⚠️ Rate limiting on all endpoints (not just auth)
+- ⚠️ Input sanitization beyond validation
+- ⚠️ API versioning strategy
+- ⚠️ GDPR compliance documentation
+
+### Deployment Strategy
+
+**Environments:**
+1. Local (current) - WSL2 + Docker
+2. Staging (needed) - AWS test environment
+3. Production (needed) - AWS production environment
+
+**Deployment Process (Sprint 6):**
+1. Setup staging environment (mirror of production)
+2. Configure CI/CD for automated deployments
+3. Deploy to staging for beta testing
+4. Deploy to production after approval
+
+**Zero-Downtime Strategy:**
+- Blue-green deployments for API
+- Database migrations with backward compatibility
+- Mobile apps updated via App Store (users control timing)
+
+### Technical Debt
+
+**Low Priority:**
+- Web app needs UI polish
+- Mobile app loading states
+- Empty states for no data
+- Retry logic for failed API calls
+- Dark mode support
+
+**High Priority (Post-MVP):**
+- Expand test coverage to 70%+
+- Add integration tests
+- Add E2E tests
+- Rate limiting on all endpoints
+
+### Recommendations for Sprint 6
+
+1. **Start with Stripe Integration** - Most complex, do first
+2. **Setup staging environment early** - Test production config
+3. **Submit to App Store in Week 1** - Approval takes time
+4. **Allocate buffer days** - Payment integration always has surprises
+5. **Test payment edge cases thoroughly** - Failed payments, trial expiry, cancellations
+
+### Sprint 6 Timeline (Recommended)
+
+**Week 1: Core Development**
+- Days 1-2: Stripe integration (backend)
+- Day 3: Pricing page (web + mobile)
+- Day 4: Free trial logic
+- Day 5: Subscription management
+
+**Week 2: DevOps & Polish**
+- Days 1-2: CI/CD pipeline setup
+- Day 3: Error monitoring (Sentry)
+- Day 4: App Store submissions
+- Day 5: Bug fixes + testing
+
+**Week 3: Beta & Launch**
+- Beta testing with 10-20 users
+- Monitor for critical bugs
+- Wait for App Store approval
+- Production deployment
+
+### Risk Management
+
+**High Risk:**
+1. App Store rejection - **Mitigation:** Follow guidelines, submit early
+2. Payment integration issues - **Mitigation:** Use Stripe test mode extensively
+3. Low test coverage causes production bugs - **Mitigation:** Expand coverage before launch
+
+**Medium Risk:**
+1. CI/CD setup complexity - **Mitigation:** Use GitHub Actions templates
+2. Offline sync edge cases - **Mitigation:** Already comprehensively tested
+
+**Low Risk:**
+1. Performance issues at scale - **Mitigation:** Horizontal scaling ready
+2. Third-party service outages - **Mitigation:** Graceful degradation implemented
+
+### Success Criteria
+
+**Technical:**
+- [ ] All Sprint 6 stories complete (53 points)
+- [ ] Test coverage >50%
+- [ ] Zero critical security vulnerabilities
+- [ ] <500ms average API response time
+- [ ] Apps approved by Apple + Google
+
+**Business:**
+- [ ] Stripe payments working end-to-end
+- [ ] 10-20 beta users onboarded
+- [ ] <3 critical bugs reported
+- [ ] 99%+ uptime during beta
+- [ ] Positive user feedback
+
+---
+
 ## 📞 Questions?
 
 If you're the next developer and have questions about any of this:
