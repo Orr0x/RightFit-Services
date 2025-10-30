@@ -1,0 +1,127 @@
+/**
+ * Accessibility Styles
+ * US-UX-9: Accessibility Compliance
+ */
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focusable when navigated to via keyboard */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Skip to Main Content Link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--color-primary-500);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-base);
+  z-index: 9999;
+  transition: top var(--transition-fast);
+}
+
+.skip-to-main:focus {
+  top: var(--spacing-4);
+}
+
+/* Focus Visible (Modern browsers) */
+*:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Ensure interactive elements meet minimum size requirements (44x44px) */
+button,
+a,
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  min-height: 44px;
+}
+
+/* Indicate disabled state clearly */
+[disabled],
+[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    border-color: currentColor;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.keyboard-user *:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ARIA live regions */
+[aria-live='polite'],
+[aria-live='assertive'] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Error state for form fields */
+[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+/* Required field indicator */
+[aria-required='true']::after,
+[required]::after {
+  content: ' *';
+  color: var(--color-error);
+}
