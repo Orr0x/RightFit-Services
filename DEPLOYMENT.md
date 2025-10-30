@@ -6,11 +6,12 @@ This guide covers deployment of the RightFit Services API to development and pro
 
 ## Prerequisites
 
-- Node.js 18+ installed
+- Node.js 20 LTS installed
 - pnpm package manager
 - PM2 globally installed (`npm install -g pm2`)
 - PostgreSQL database running (Docker or standalone)
 - Environment variables configured
+- For WSL2 setup, see [DATABASE_SETUP.md](DATABASE_SETUP.md)
 
 ## Quick Start - Dev Deployment
 
@@ -176,11 +177,17 @@ From previous testing session:
 ### Port Already in Use
 
 ```bash
-# Find process using port 3001
-netstat -ano | findstr :3001
+# Find process using port 3001 (Linux/WSL2)
+lsof -i :3001
 
-# Kill process (Windows)
-taskkill //PID <process_id> //F
+# Or use ss
+ss -tlnp | grep :3001
+
+# Kill process
+kill -9 <PID>
+
+# Or use npx kill-port
+npx kill-port 3001
 
 # Restart PM2
 pm2 restart rightfit-api-dev
@@ -202,11 +209,17 @@ cat apps/api/.env
 ### Database Connection Issues
 
 ```bash
-# Test database connection
+# Test database connection (standard PostgreSQL port)
+psql -h localhost -p 5432 -U rightfit_user -d rightfit_dev
+
+# Or if using Docker on different port
 psql -h localhost -p 5433 -U rightfit_user -d rightfit_dev
 
 # Check Docker container
 docker logs rightfit-postgres
+
+# Check PostgreSQL service (WSL2/Linux)
+sudo systemctl status postgresql
 ```
 
 ## Production Deployment Notes

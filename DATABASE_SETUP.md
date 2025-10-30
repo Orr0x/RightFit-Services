@@ -1,20 +1,32 @@
 # Database Setup Instructions
 
 ## Prerequisites
-- PostgreSQL 15+ installed locally or access to AWS RDS
+- PostgreSQL 14+ installed locally or access to AWS RDS
+- Node.js 20 LTS (required for Prisma)
+- pnpm package manager installed globally
 - psql command-line tool (comes with PostgreSQL)
 
 ## Local Development Setup
 
 ### 1. Install PostgreSQL (if not already installed)
 
-**Windows:**
+**Windows (WSL2 - Recommended for Android Development):**
+
+If doing mobile development, use WSL2 (see [docs/ANDROID_DEV_SETUP.md](docs/ANDROID_DEV_SETUP.md)):
+```bash
+# In WSL2 (Ubuntu)
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
+```
+
+**Windows (Native - Alternative):**
 Download from https://www.postgresql.org/download/windows/
 
 **Mac (Homebrew):**
 ```bash
-brew install postgresql@15
-brew services start postgresql@15
+brew install postgresql@16
+brew services start postgresql@16
 ```
 
 **Linux (Ubuntu/Debian):**
@@ -22,6 +34,16 @@ brew services start postgresql@15
 sudo apt update
 sudo apt install postgresql postgresql-contrib
 sudo systemctl start postgresql
+```
+
+**Docker (Easiest - All Platforms):**
+```bash
+docker run --name rightfit-postgres \
+  -e POSTGRES_USER=rightfit_user \
+  -e POSTGRES_PASSWORD=rightfit_dev_password \
+  -e POSTGRES_DB=rightfit_dev \
+  -p 5432:5432 \
+  -d postgres:16
 ```
 
 ### 2. Create Database and User
@@ -127,6 +149,7 @@ pnpm db:migrate
 ## Next Steps
 
 After database setup is complete:
-1. Start the API server: `pnpm dev:api`
-2. Test the /health endpoint: `curl http://localhost:3000/health`
-3. Begin implementing authentication endpoints (Story 007)
+1. Start the API server: `pnpm dev:api` (runs on port 3001)
+2. Test the /health endpoint: `curl http://localhost:3001/api/health`
+3. For mobile development, see [Android Dev Setup](docs/ANDROID_DEV_SETUP.md)
+4. Begin implementing authentication endpoints (Story 007)
