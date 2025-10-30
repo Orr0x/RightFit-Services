@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "RightFit Services - Property Maintenance SaaS MVP",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=api",
@@ -27,9 +31,9 @@
     "turbo": "^1.11.2",
     "typescript": "^5.3.3"
   },
-  "packageManager": "pnpm@8.14.0",
+  "packageManager": "npm@10.0.0",
   "engines": {
     "node": ">=20.0.0",
-    "pnpm": ">=8.0.0"
+    "npm": ">=10.0.0"
   }
 }
