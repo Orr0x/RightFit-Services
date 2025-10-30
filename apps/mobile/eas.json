@@ -6,14 +6,8 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "credentialsSource": "remote",
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
-      },
-      "ios": {
-        "simulator": true,
-        "buildConfiguration": "Debug"
+        "buildType": "apk"
       }
     },
     "preview": {
@@ -23,7 +17,9 @@
       }
     },
     "production": {
-      "distribution": "store"
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {

@@ -20,8 +20,11 @@
         {
           "android": {
             "packagingOptions": {
-              "pickFirst": ["**/libc++_shared.so"]
-            }
+              "pickFirst": [
+                "**/libc++_shared.so"
+              ]
+            },
+            "usesCleartextTraffic": true
           }
         }
       ],

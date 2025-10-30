@@ -107,14 +107,17 @@ RightFit-Services/
 
 ## 🚀 Quick Start
 
+> **⚠️ Windows Users:** For optimal Android development on Windows, use WSL2. See **[WSL Development Setup Guide](docs/WSL_DEVELOPMENT_SETUP.md)** for complete instructions including Android emulator integration, networking configuration, and performance optimization.
+
 ### Prerequisites
 
-- **Node.js 20 LTS** (20.19.5 or later) ✅ **Required**
+- **Node.js 20 LTS** (20.19.5 or later) ✅ **Required** (NOT Node 23.x)
 - pnpm 8+ installed globally
 - PostgreSQL 14+
 - AWS account (for S3)
 - Twilio account (optional for SMS)
 - Google Cloud account (optional for Vision API)
+- **Windows users:** WSL2 with Ubuntu 22.04 (recommended for mobile development)
 
 ### Installation
 
@@ -350,18 +353,26 @@ pnpx prisma studio
    - See [MIGRATION_RESULTS.md](docs/MIGRATION_RESULTS.md)
 
 ### High Priority
-2. **Offline Mode Limitations** - WatermelonDB requires development build
+2. **Mobile Local Builds Blocked (WSL)** - Expo SDK 52 Gradle plugin error ⚠️ **ACTIVE BLOCKER**
+   - Error: `expo-module-gradle-plugin` not found during build
+   - Environment: WSL2, Node 20 LTS, Gradle 8.10.2
+   - Workaround: Use Expo Go for development testing
+   - See: [MOBILE_APP_BUILD_TROUBLESHOOTING.md](docs/MOBILE_APP_BUILD_TROUBLESHOOTING.md)
+   - Status: Under investigation (consider Expo SDK 51 downgrade)
+
+3. **Offline Mode Limitations** - WatermelonDB requires development build
    - Not functional in Expo Go
    - App gracefully degrades but offline features unavailable for testing
    - Requires: `npx expo prebuild` → `npx expo run:ios/android`
+   - **Currently blocked by issue #2 above**
 
-3. **Test Coverage Low** - 14.94% coverage (target: 50%+)
-4. **No Error Monitoring** - No Sentry or equivalent
-5. **No API Rate Limiting** - Only auth endpoints are rate-limited
+4. **Test Coverage Low** - 14.94% coverage (target: 50%+)
+5. **No Error Monitoring** - No Sentry or equivalent
+6. **No API Rate Limiting** - Only auth endpoints are rate-limited
 
 ### Medium Priority
-6. **Web App Polish** - Functional but could be more polished
-7. **Domain Email Setup** - Currently using Resend's onboarding@resend.dev (custom domain for production)
+7. **Web App Polish** - Functional but could be more polished
+8. **Domain Email Setup** - Currently using Resend's onboarding@resend.dev (custom domain for production)
 
 ### Recently Fixed ✅
 - ~~Mobile Auth State~~ - FIXED: AuthContext with AsyncStorage working
