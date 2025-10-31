@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState, Textarea, useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { propertiesAPI, type Property, type CreatePropertyData } from '../lib/api'
 import './Properties.css'
@@ -256,6 +256,7 @@ export default function Properties() {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="e.g., 123 Main Street Apartment"
+            helperText="A descriptive name to identify this property"
           />
 
           <div className="form-row">
@@ -304,6 +305,7 @@ export default function Properties() {
               value={formData.postcode}
               onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
               placeholder="SW1A 1AA"
+              helperText="UK postcode format (e.g., SW1A 1AA)"
             />
           </div>
 
@@ -324,16 +326,16 @@ export default function Properties() {
             />
           </div>
 
-          <div className="form-field">
-            <label className="form-label">Access Instructions</label>
-            <textarea
-              className="form-textarea"
-              rows={3}
-              value={formData.access_instructions}
-              onChange={(e) => setFormData({ ...formData, access_instructions: e.target.value })}
-              placeholder="Gate codes, parking info, etc."
-            />
-          </div>
+          <Textarea
+            label="Access Instructions"
+            rows={3}
+            value={formData.access_instructions}
+            onChange={(e) => setFormData({ ...formData, access_instructions: e.target.value })}
+            placeholder="Gate codes, parking info, etc."
+            helperText="Include gate codes, parking info, or special entry instructions"
+            maxLength={500}
+            showCount
+          />
         </div>
 
         <div className="modal-actions">
