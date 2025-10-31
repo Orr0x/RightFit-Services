@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Linking } from 'react-native'
-import { Text, Card, Title, Paragraph, Chip, Divider } from 'react-native-paper'
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Text } from 'react-native'
+import { Card, Spinner } from '../../components/ui'
+import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { WorkOrdersStackParamList, WorkOrder } from '../../types'
@@ -56,130 +57,128 @@ export default function WorkOrderDetailsScreen({ route }: Props) {
 
   if (loading || !workOrder) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
+      <View style={styles.centerContainer}>
+        <Spinner size="large" />
       </View>
     )
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title>{workOrder.title}</Title>
+      <Card variant="outlined" style={styles.card}>
+        <Text style={styles.title}>{workOrder.title}</Text>
 
-          <View style={styles.chips}>
-            <Chip mode="outlined" style={styles.chip}>
-              {workOrder.status}
-            </Chip>
-            <Chip mode="outlined" style={styles.chip}>
-              {workOrder.priority}
-            </Chip>
-            <Chip mode="outlined" style={styles.chip}>
-              {workOrder.category}
-            </Chip>
+        <View style={styles.chips}>
+          <View style={styles.chip}>
+            <Text style={styles.chipText}>{workOrder.status}</Text>
           </View>
+          <View style={styles.chip}>
+            <Text style={styles.chipText}>{workOrder.priority}</Text>
+          </View>
+          <View style={styles.chip}>
+            <Text style={styles.chipText}>{workOrder.category}</Text>
+          </View>
+        </View>
 
+        <View style={styles.section}>
+          <Text style={styles.label}>Description:</Text>
+          <Text style={styles.value}>{workOrder.description}</Text>
+        </View>
+
+        {workOrder.property && (
           <View style={styles.section}>
-            <Text style={styles.label}>Description:</Text>
-            <Paragraph>{workOrder.description}</Paragraph>
+            <Text style={styles.label}>Property:</Text>
+            <Text style={styles.value}>{workOrder.property.name || 'N/A'}</Text>
+            {(workOrder.property.address_line1 || workOrder.property.city) && (
+              <Text style={styles.value}>
+                {[workOrder.property.address_line1, workOrder.property.city].filter(Boolean).join(', ')}
+              </Text>
+            )}
           </View>
+        )}
 
-          {workOrder.property && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Property:</Text>
-              <Paragraph>{workOrder.property.name || 'N/A'}</Paragraph>
-              {(workOrder.property.address_line1 || workOrder.property.city) && (
-                <Paragraph>
-                  {[workOrder.property.address_line1, workOrder.property.city].filter(Boolean).join(', ')}
-                </Paragraph>
-              )}
-            </View>
-          )}
+        {workOrder.contractor && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Assigned Contractor:</Text>
+            <Text style={styles.value}>{workOrder.contractor.name || 'N/A'}</Text>
+            {workOrder.contractor.company_name && (
+              <Text style={styles.value}>{workOrder.contractor.company_name}</Text>
+            )}
+            {workOrder.contractor.phone && (
+              <Text style={styles.value}>{workOrder.contractor.phone}</Text>
+            )}
+          </View>
+        )}
 
-          {workOrder.contractor && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Assigned Contractor:</Text>
-              <Paragraph>{workOrder.contractor.name || 'N/A'}</Paragraph>
-              {workOrder.contractor.company_name && (
-                <Paragraph>{workOrder.contractor.company_name}</Paragraph>
-              )}
-              {workOrder.contractor.phone && (
-                <Paragraph>{workOrder.contractor.phone}</Paragraph>
-              )}
-            </View>
-          )}
+        {workOrder.estimated_cost != null && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Estimated Cost:</Text>
+            <Text style={styles.value}>£{Number(workOrder.estimated_cost).toFixed(2)}</Text>
+          </View>
+        )}
 
-          {workOrder.estimated_cost != null && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Estimated Cost:</Text>
-              <Paragraph>£{Number(workOrder.estimated_cost).toFixed(2)}</Paragraph>
-            </View>
-          )}
-
-          {workOrder.due_date && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Due Date & Time:</Text>
-              <Paragraph>
-                {new Date(workOrder.due_date).toLocaleString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </Paragraph>
-            </View>
-          )}
-        </Card.Content>
+        {workOrder.due_date && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Due Date & Time:</Text>
+            <Text style={styles.value}>
+              {new Date(workOrder.due_date).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </Text>
+          </View>
+        )}
       </Card>
 
       {/* Photo Upload & Gallery */}
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title>Photos</Title>
+      <Card variant="outlined" style={styles.card}>
+        <Text style={styles.title}>Photos</Text>
 
-          <PhotoUploadButton
-            workOrderId={workOrderId}
-            onPhotoUploaded={handlePhotoUploaded}
-            label="Add Photo"
-          />
+        <PhotoUploadButton
+          workOrderId={workOrderId}
+          onPhotoUploaded={handlePhotoUploaded}
+          label="Add Photo"
+        />
 
-          {loadingPhotos ? (
-            <Text style={styles.loadingText}>Loading photos...</Text>
-          ) : photos.length === 0 ? (
-            <Text style={styles.emptyText}>No photos yet. Add your first photo above.</Text>
-          ) : (
-            <View style={styles.photoGrid}>
-              {photos.map((photo) => (
-                <TouchableOpacity
-                  key={photo.id}
-                  onPress={() => {
-                    // Open full size image in browser or external viewer
-                    if (photo.s3_url) {
-                      Linking.openURL(photo.s3_url)
-                    }
-                  }}
-                  style={styles.photoContainer}
-                >
-                  <Image
-                    source={{ uri: photo.thumbnail_url || photo.s3_url }}
-                    style={styles.thumbnail}
-                    resizeMode="cover"
-                  />
-                  {photo.caption && (
-                    <Text style={styles.photoCaption} numberOfLines={2}>
-                      {photo.caption}
-                    </Text>
-                  )}
-                  <Text style={styles.photoDate}>
-                    {new Date(photo.created_at).toLocaleDateString('en-GB')}
+        {loadingPhotos ? (
+          <View style={styles.centerContent}>
+            <Spinner size="medium" />
+          </View>
+        ) : photos.length === 0 ? (
+          <Text style={styles.emptyText}>No photos yet. Add your first photo above.</Text>
+        ) : (
+          <View style={styles.photoGrid}>
+            {photos.map((photo) => (
+              <TouchableOpacity
+                key={photo.id}
+                onPress={() => {
+                  // Open full size image in browser or external viewer
+                  if (photo.s3_url) {
+                    Linking.openURL(photo.s3_url)
+                  }
+                }}
+                style={styles.photoContainer}
+              >
+                <Image
+                  source={{ uri: photo.thumbnail_url || photo.s3_url }}
+                  style={styles.thumbnail}
+                  resizeMode="cover"
+                />
+                {photo.caption && (
+                  <Text style={styles.photoCaption} numberOfLines={2}>
+                    {photo.caption}
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </Card.Content>
+                )}
+                <Text style={styles.photoDate}>
+                  {new Date(photo.created_at).toLocaleDateString('en-GB')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </Card>
     </ScrollView>
   )
@@ -188,61 +187,90 @@ export default function WorkOrderDetailsScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+  },
+  centerContent: {
+    marginTop: spacing.md,
+    alignItems: 'center',
   },
   card: {
-    margin: 16,
+    margin: spacing.md,
+  },
+  title: {
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
   },
   section: {
-    marginTop: 16,
+    marginTop: spacing.md,
   },
   label: {
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  value: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    marginBottom: spacing.xxs,
   },
   chips: {
     flexDirection: 'row',
-    marginTop: 12,
-    gap: 8,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    gap: spacing.xs,
   },
   chip: {
-    marginRight: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.xs,
   },
-  loadingText: {
-    marginTop: 16,
-    textAlign: 'center',
-    color: '#666',
+  chipText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
   },
   emptyText: {
-    marginTop: 16,
+    marginTop: spacing.md,
     textAlign: 'center',
-    color: '#999',
+    fontSize: typography.fontSize.sm,
+    color: colors.text.tertiary,
     fontStyle: 'italic',
   },
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 16,
-    gap: 12,
+    marginTop: spacing.md,
+    gap: spacing.sm,
   },
   photoContainer: {
     width: '47%',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   thumbnail: {
     width: '100%',
     height: 150,
-    borderRadius: 8,
-    backgroundColor: '#e0e0e0',
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background.tertiary,
   },
   photoCaption: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#666',
+    marginTop: spacing.xs,
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
   },
   photoDate: {
-    marginTop: 2,
-    fontSize: 10,
-    color: '#999',
+    marginTop: spacing.xxs,
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
   },
 })
