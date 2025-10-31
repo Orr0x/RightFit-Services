@@ -198,9 +198,9 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
         <Spinner size="large" />
       ) : workOrders.length === 0 ? (
         <EmptyState
-          icon="🔧"
+          icon={<Text style={{ fontSize: 48 }}>🔧</Text>}
           title="No work orders yet"
-          message="Create your first work order to get started"
+          description="Create your first work order to get started"
         />
       ) : (
         <FlatList

@@ -146,9 +146,9 @@ export default function PropertiesListScreen({ navigation }: Props) {
         <Spinner size="large" />
       ) : properties.length === 0 ? (
         <EmptyState
-          icon="🏠"
+          icon={<Text style={{ fontSize: 48 }}>🏠</Text>}
           title="No properties yet"
-          message="Add your first property to get started"
+          description="Add your first property to get started"
         />
       ) : (
         <FlatList
