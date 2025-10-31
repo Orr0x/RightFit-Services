@@ -1,6 +1,5 @@
 import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
-import { Provider as PaperProvider } from 'react-native-paper'
 import { StatusBar } from 'expo-status-bar'
 import { AuthProvider } from './src/contexts/AuthContext'
 import { DatabaseProvider } from './src/database/DatabaseProvider'
@@ -12,12 +11,10 @@ export default function App() {
     <DatabaseProvider>
       <NetworkProvider>
         <AuthProvider>
-          <PaperProvider>
-            <NavigationContainer>
-              <RootNavigator />
-              <StatusBar style="auto" />
-            </NavigationContainer>
-          </PaperProvider>
+          <NavigationContainer>
+            <RootNavigator />
+            <StatusBar style="auto" />
+          </NavigationContainer>
         </AuthProvider>
       </NetworkProvider>
     </DatabaseProvider>
