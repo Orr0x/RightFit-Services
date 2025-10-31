@@ -2,11 +2,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -14,15 +15,14 @@
 
 .theme-toggle:hover {
   background-color: var(--color-hover);
-  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
 }
 
 .theme-toggle:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 .theme-toggle svg {
   width: 20px;
   height: 20px;
-  stroke-width: 2;
 }
