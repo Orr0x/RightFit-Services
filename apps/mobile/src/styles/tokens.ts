@@ -49,6 +49,7 @@ export const colors = {
 }
 
 export const spacing = {
+  // Numeric spacing (for Button component)
   1: 4,
   2: 8,
   3: 12,
@@ -59,6 +60,13 @@ export const spacing = {
   12: 48,
   16: 64,
   20: 80,
+  // Named spacing aliases (for migrated screens)
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  '2xl': 48,
 }
 
 export const typography = {
@@ -89,6 +97,25 @@ export const typography = {
     normal: 1.5,
     tight: 1.25,
     relaxed: 1.75,
+  },
+  // Aliases for migrated screens
+  sizes: {
+    xs: 12,
+    sm: 14,
+    base: 16,
+    md: 16,
+    lg: 18,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 30,
+    '4xl': 36,
+    '5xl': 48,
+  },
+  weights: {
+    normal: '400' as '400',
+    medium: '500' as '500',
+    semibold: '600' as '600',
+    bold: '700' as '700',
   },
 }
 
