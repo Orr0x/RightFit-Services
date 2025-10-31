@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, Alert } from 'react-native'
-import { Button, Menu, ActivityIndicator } from 'react-native-paper'
+import { View, StyleSheet, Alert, Modal, TouchableOpacity, Text } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import api from '../services/api'
+import { Button, Spinner } from './ui'
+import { colors, spacing, typography, borderRadius } from '../styles/tokens'
 
 interface PhotoUploadButtonProps {
   workOrderId?: string
@@ -136,53 +137,85 @@ export default function PhotoUploadButton({
   if (uploading) {
     return (
       <View style={styles.uploadingContainer}>
-        <ActivityIndicator size="small" />
-        <Button mode="text" disabled style={styles.uploadingButton}>
-          Uploading...
-        </Button>
+        <Spinner size="small" />
+        <Text style={styles.uploadingText}>Uploading...</Text>
       </View>
     )
   }
 
   return (
-    <Menu
-      visible={menuVisible}
-      onDismiss={() => setMenuVisible(false)}
-      anchor={
-        <Button
-          mode="contained"
-          icon="camera"
-          onPress={() => setMenuVisible(true)}
-          style={styles.button}
+    <View>
+      <Button
+        variant="primary"
+        onPress={() => setMenuVisible(true)}
+        style={styles.button}
+      >
+        {label}
+      </Button>
+
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}
         >
-          {label}
-        </Button>
-      }
-    >
-      <Menu.Item
-        leadingIcon="camera"
-        onPress={handleTakePhoto}
-        title="Take Photo"
-      />
-      <Menu.Item
-        leadingIcon="image"
-        onPress={handleSelectPhoto}
-        title="Choose from Gallery"
-      />
-    </Menu>
+          <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleTakePhoto}>
+              <Text style={styles.menuItemText}>📷 Take Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={handleSelectPhoto}>
+              <Text style={styles.menuItemText}>🖼️ Choose from Gallery</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   button: {
-    marginVertical: 8,
+    marginVertical: spacing.sm,
   },
   uploadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: spacing.sm,
+    padding: spacing.md,
   },
-  uploadingButton: {
-    marginLeft: 8,
+  uploadingText: {
+    marginLeft: spacing.sm,
+    fontSize: typography.sizes.md,
+    color: colors.neutral700,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
+    minWidth: 250,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  menuItem: {
+    padding: spacing.md,
+    borderRadius: borderRadius.sm,
+  },
+  menuItemText: {
+    fontSize: typography.sizes.md,
+    color: colors.neutral900,
   },
 })

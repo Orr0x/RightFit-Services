@@ -1,6 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Banner, Text } from 'react-native-paper'
+import { View, Text, StyleSheet } from 'react-native'
 import { useNetwork } from '../contexts/NetworkContext'
 
 export default function OfflineIndicator() {
@@ -12,15 +11,11 @@ export default function OfflineIndicator() {
 
   return (
     <View style={styles.container}>
-      <Banner
-        visible={!isOnline}
-        icon="wifi-off"
-        style={styles.banner}
-      >
+      <View style={styles.banner}>
         <Text style={styles.text}>
-          You're offline. Changes will be synced when you're back online.
+          ⚠️ You're offline. Changes will be synced when you're back online.
         </Text>
-      </Banner>
+      </View>
     </View>
   )
 }
@@ -31,9 +26,11 @@ const styles = StyleSheet.create({
   },
   banner: {
     backgroundColor: '#FF9800',
+    padding: 16,
   },
   text: {
     color: '#fff',
     fontWeight: '500',
+    fontSize: 14,
   },
 })

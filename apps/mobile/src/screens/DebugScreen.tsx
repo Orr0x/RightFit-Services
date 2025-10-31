@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView, Share } from 'react-native'
-import { Text, Button, Card, Chip, ActivityIndicator } from 'react-native-paper'
+import { View, StyleSheet, ScrollView, Share, Text, TouchableOpacity } from 'react-native'
 import logger, { LogEntry, LogLevel } from '../services/logger'
+import { Button, Card, Spinner } from '../components/ui'
+import { colors, spacing, typography, borderRadius } from '../styles/tokens'
 
 export default function DebugScreen() {
   const [logs, setLogs] = useState<LogEntry[]>([])
@@ -60,7 +61,7 @@ export default function DebugScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
+        <Spinner size="large" />
         <Text style={styles.loadingText}>Loading logs...</Text>
       </View>
     )
@@ -71,46 +72,56 @@ export default function DebugScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Debug Logs ({filteredLogs.length})</Text>
         <View style={styles.filterRow}>
-          <Chip
-            selected={filter === 'ALL'}
+          <TouchableOpacity
             onPress={() => setFilter('ALL')}
-            style={styles.filterChip}
+            style={[styles.filterChip, filter === 'ALL' && styles.filterChipSelected]}
           >
-            All
-          </Chip>
-          <Chip
-            selected={filter === LogLevel.ERROR}
+            <Text style={[styles.filterChipText, filter === 'ALL' && styles.filterChipTextSelected]}>
+              All
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => setFilter(LogLevel.ERROR)}
-            style={[styles.filterChip, { backgroundColor: filter === LogLevel.ERROR ? '#f44336' : undefined }]}
-            textStyle={{ color: filter === LogLevel.ERROR ? 'white' : undefined }}
+            style={[
+              styles.filterChip,
+              filter === LogLevel.ERROR && { backgroundColor: '#f44336' }
+            ]}
           >
-            Errors
-          </Chip>
-          <Chip
-            selected={filter === LogLevel.WARN}
+            <Text style={[styles.filterChipText, filter === LogLevel.ERROR && { color: 'white' }]}>
+              Errors
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => setFilter(LogLevel.WARN)}
-            style={[styles.filterChip, { backgroundColor: filter === LogLevel.WARN ? '#ff9800' : undefined }]}
-            textStyle={{ color: filter === LogLevel.WARN ? 'white' : undefined }}
+            style={[
+              styles.filterChip,
+              filter === LogLevel.WARN && { backgroundColor: '#ff9800' }
+            ]}
           >
-            Warnings
-          </Chip>
-          <Chip
-            selected={filter === LogLevel.INFO}
+            <Text style={[styles.filterChipText, filter === LogLevel.WARN && { color: 'white' }]}>
+              Warnings
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => setFilter(LogLevel.INFO)}
-            style={[styles.filterChip, { backgroundColor: filter === LogLevel.INFO ? '#2196f3' : undefined }]}
-            textStyle={{ color: filter === LogLevel.INFO ? 'white' : undefined }}
+            style={[
+              styles.filterChip,
+              filter === LogLevel.INFO && { backgroundColor: '#2196f3' }
+            ]}
           >
-            Info
-          </Chip>
+            <Text style={[styles.filterChipText, filter === LogLevel.INFO && { color: 'white' }]}>
+              Info
+            </Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.buttonRow}>
-          <Button mode="outlined" onPress={loadLogs} style={styles.button}>
+          <Button variant="outlined" onPress={loadLogs} style={styles.button}>
             Refresh
           </Button>
-          <Button mode="outlined" onPress={handleExportLogs} style={styles.button}>
+          <Button variant="outlined" onPress={handleExportLogs} style={styles.button}>
             Export
           </Button>
-          <Button mode="outlined" onPress={handleClearLogs} style={styles.button}>
+          <Button variant="outlined" onPress={handleClearLogs} style={styles.button}>
             Clear
           </Button>
         </View>
@@ -123,15 +134,12 @@ export default function DebugScreen() {
           </View>
         ) : (
           filteredLogs.map((log, index) => (
-            <Card key={index} style={[styles.logCard, { borderLeftColor: getColorForLevel(log.level) }]}>
-              <Card.Content>
+            <Card key={index} variant="outlined" style={[styles.logCard, { borderLeftColor: getColorForLevel(log.level), borderLeftWidth: 4 }]}>
+              <View style={styles.cardContent}>
                 <View style={styles.logHeader}>
-                  <Chip
-                    style={[styles.levelChip, { backgroundColor: getColorForLevel(log.level) }]}
-                    textStyle={styles.levelText}
-                  >
-                    {log.level}
-                  </Chip>
+                  <View style={[styles.levelChip, { backgroundColor: getColorForLevel(log.level) }]}>
+                    <Text style={styles.levelText}>{log.level}</Text>
+                  </View>
                   <Text style={styles.timestamp}>{new Date(log.timestamp).toLocaleTimeString()}</Text>
                 </View>
                 <Text style={styles.category}>[{log.category}]</Text>
@@ -148,7 +156,7 @@ export default function DebugScreen() {
                     <Text style={styles.stackText}>{log.stack}</Text>
                   </View>
                 )}
-              </Card.Content>
+              </View>
             </Card>
           ))
         )}
@@ -160,7 +168,7 @@ export default function DebugScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral100,
   },
   centerContainer: {
     flex: 1,
@@ -168,29 +176,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
+    marginTop: spacing.md,
+    fontSize: typography.sizes.md,
+    color: colors.neutral600,
   },
   header: {
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: spacing.md,
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: colors.neutral300,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.sm,
+    color: colors.neutral900,
   },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
   filterChip: {
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: spacing.sm,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.neutral200,
+  },
+  filterChipSelected: {
+    backgroundColor: colors.primary,
+  },
+  filterChipText: {
+    fontSize: typography.sizes.sm,
+    color: colors.neutral700,
+  },
+  filterChipTextSelected: {
+    color: colors.white,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -198,84 +221,88 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: spacing.xs,
   },
   logContainer: {
     flex: 1,
-    padding: 16,
+    padding: spacing.md,
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: spacing.xl * 2,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: typography.sizes.md,
+    color: colors.neutral500,
   },
   logCard: {
-    marginBottom: 12,
-    borderLeftWidth: 4,
+    marginBottom: spacing.sm,
+  },
+  cardContent: {
+    padding: spacing.md,
   },
   logHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   levelChip: {
-    height: 24,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
   },
   levelText: {
     color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
   },
   timestamp: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: typography.sizes.xs,
+    color: colors.neutral600,
   },
   category: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: typography.sizes.xs,
+    color: colors.neutral600,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.xs,
   },
   message: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 8,
+    fontSize: typography.sizes.sm,
+    color: colors.neutral900,
+    marginBottom: spacing.sm,
   },
   dataContainer: {
-    backgroundColor: '#f0f0f0',
-    padding: 8,
-    borderRadius: 4,
-    marginTop: 8,
+    backgroundColor: colors.neutral100,
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
   },
   dataLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#666',
-    marginBottom: 4,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.neutral600,
+    marginBottom: spacing.xs,
   },
   dataText: {
-    fontSize: 11,
+    fontSize: typography.sizes.xs,
     fontFamily: 'monospace',
-    color: '#333',
+    color: colors.neutral900,
   },
   stackContainer: {
     backgroundColor: '#fff3cd',
-    padding: 8,
-    borderRadius: 4,
-    marginTop: 8,
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
   },
   stackLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
     color: '#856404',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   stackText: {
-    fontSize: 10,
+    fontSize: typography.sizes.xs,
     fontFamily: 'monospace',
     color: '#856404',
   },
