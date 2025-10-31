@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.neutral[300],
+    borderColor: colors.neutral300,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   modalItem: {
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
+    borderBottomColor: colors.neutral200,
   },
   modalItemText: {
     fontSize: typography.fontSize.md,

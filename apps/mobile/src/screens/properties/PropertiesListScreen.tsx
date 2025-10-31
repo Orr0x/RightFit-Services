@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     right: spacing.md,
   },
   fab: {
-    shadowColor: colors.neutral[900],
+    shadowColor: colors.neutral900,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
