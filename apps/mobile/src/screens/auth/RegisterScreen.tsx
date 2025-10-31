@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import { TextInput, Button, Text, HelperText } from 'react-native-paper'
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity } from 'react-native'
+import { Input, Button } from '../../components/ui'
+import { colors, spacing, typography } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from '../../types'
 import { useAuth } from '../../contexts/AuthContext'
@@ -72,82 +73,87 @@ export default function RegisterScreen({ navigation }: Props) {
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join RightFit Services</Text>
 
-          <TextInput
-            label="Full Name *"
+          <Input
+            label="Full Name"
             value={fullName}
             onChangeText={setFullName}
-            mode="outlined"
+            placeholder="Enter your full name"
             autoCapitalize="words"
             autoComplete="name"
+            required
             style={styles.input}
           />
 
-          <TextInput
-            label="Email *"
+          <Input
+            label="Email"
             value={email}
             onChangeText={setEmail}
-            mode="outlined"
+            placeholder="Enter your email"
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
-            style={styles.input}
             error={!!error && !validateEmail(email) && email.length > 0}
+            required
+            style={styles.input}
           />
 
-          <TextInput
+          <Input
             label="Company Name (Optional)"
             value={companyName}
             onChangeText={setCompanyName}
-            mode="outlined"
+            placeholder="Enter company name"
             autoCapitalize="words"
             style={styles.input}
           />
 
-          <TextInput
-            label="Password *"
-            value={password}
-            onChangeText={setPassword}
-            mode="outlined"
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            autoComplete="password"
-            style={styles.input}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowPassword(!showPassword)}
-              />
-            }
-          />
-          <HelperText type="info" visible={true}>
-            Password must be at least 8 characters long
-          </HelperText>
+          <View style={styles.passwordContainer}>
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="password"
+              required
+              style={styles.input}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.helperText}>Password must be at least 8 characters long</Text>
 
-          <TextInput
-            label="Confirm Password *"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            mode="outlined"
-            secureTextEntry={!showConfirmPassword}
-            autoCapitalize="none"
-            autoComplete="password"
-            style={styles.input}
-            right={
-              <TextInput.Icon
-                icon={showConfirmPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              />
-            }
-          />
+          <View style={styles.passwordContainer}>
+            <Input
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your password"
+              secureTextEntry={!showConfirmPassword}
+              autoCapitalize="none"
+              autoComplete="password"
+              required
+              style={styles.input}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <Text style={styles.eyeText}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
+            </TouchableOpacity>
+          </View>
 
           {error ? (
-            <HelperText type="error" visible={!!error} style={styles.error}>
-              {error}
-            </HelperText>
+            <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
           <Button
-            mode="contained"
+            variant="primary"
+            size="lg"
             onPress={handleRegister}
             loading={loading}
             disabled={loading}
@@ -156,13 +162,12 @@ export default function RegisterScreen({ navigation }: Props) {
             Register
           </Button>
 
-          <Button
-            mode="text"
+          <TouchableOpacity
             onPress={() => navigation.navigate('Login')}
             style={styles.linkButton}
           >
-            Already have an account? Login
-          </Button>
+            <Text style={styles.linkText}>Already have an account? Login</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -172,39 +177,66 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
   },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#6200EE',
+    marginBottom: spacing.xs,
+    color: colors.primary,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: typography.fontSize.md,
     textAlign: 'center',
-    marginBottom: 32,
-    color: '#666',
+    marginBottom: spacing.xl,
+    color: colors.text.secondary,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
-  error: {
-    marginBottom: 12,
+  passwordContainer: {
+    position: 'relative',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: spacing.md,
+    top: 40,
+    padding: spacing.xs,
+  },
+  eyeText: {
+    fontSize: typography.fontSize.lg,
+  },
+  helperText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.fontSize.sm,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   button: {
-    marginTop: 8,
-    paddingVertical: 6,
+    marginTop: spacing.md,
   },
   linkButton: {
-    marginTop: 12,
+    marginTop: spacing.md,
+    alignItems: 'center',
+    padding: spacing.sm,
+  },
+  linkText: {
+    fontSize: typography.fontSize.md,
+    color: colors.primary,
+    textAlign: 'center',
   },
 })
