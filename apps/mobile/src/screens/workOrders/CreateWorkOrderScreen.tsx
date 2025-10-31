@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
-import { TextInput, Button, HelperText, Menu } from 'react-native-paper'
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Text, TouchableOpacity, Modal } from 'react-native'
+import { Input, Button } from '../../components/ui'
+import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { WorkOrdersStackParamList, Property } from '../../types'
@@ -106,132 +107,85 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <TextInput
-            label="Title *"
+          <Input
+            label="Title"
             value={title}
             onChangeText={setTitle}
-            mode="outlined"
+            placeholder="Enter work order title"
+            required
             style={styles.input}
           />
 
-          <TextInput
-            label="Description *"
+          <Input
+            label="Description"
             value={description}
             onChangeText={setDescription}
-            mode="outlined"
+            placeholder="Describe the work order"
             multiline
             numberOfLines={4}
+            required
             style={styles.input}
           />
 
-          <Menu
-            visible={propertyMenuVisible}
-            onDismiss={() => setPropertyMenuVisible(false)}
-            anchor={
-              <TextInput
-                label="Property *"
-                value={selectedProperty?.name || ''}
-                mode="outlined"
-                editable={false}
-                right={<TextInput.Icon icon="chevron-down" onPress={() => setPropertyMenuVisible(true)} />}
-                onPressIn={() => setPropertyMenuVisible(true)}
-                style={styles.input}
-              />
-            }
-          >
-            {properties.map((property) => (
-              <Menu.Item
-                key={property.id}
-                onPress={() => {
-                  setPropertyId(property.id)
-                  setPropertyMenuVisible(false)
-                }}
-                title={property.name}
-              />
-            ))}
-          </Menu>
+          <View style={styles.input}>
+            <Text style={styles.inputLabel}>Property *</Text>
+            <TouchableOpacity
+              onPress={() => setPropertyMenuVisible(true)}
+              style={styles.dropdown}
+            >
+              <Text style={selectedProperty ? styles.dropdownText : styles.dropdownPlaceholder}>
+                {selectedProperty?.name || 'Select property'}
+              </Text>
+              <Text style={styles.dropdownIcon}>▼</Text>
+            </TouchableOpacity>
+          </View>
 
-          <Menu
-            visible={priorityMenuVisible}
-            onDismiss={() => setPriorityMenuVisible(false)}
-            anchor={
-              <TextInput
-                label="Priority"
-                value={priority}
-                mode="outlined"
-                editable={false}
-                right={<TextInput.Icon icon="chevron-down" onPress={() => setPriorityMenuVisible(true)} />}
-                onPressIn={() => setPriorityMenuVisible(true)}
-                style={styles.input}
-              />
-            }
-          >
-            {['HIGH', 'MEDIUM', 'LOW'].map((p) => (
-              <Menu.Item
-                key={p}
-                onPress={() => {
-                  setPriority(p)
-                  setPriorityMenuVisible(false)
-                }}
-                title={p}
-              />
-            ))}
-          </Menu>
+          <View style={styles.input}>
+            <Text style={styles.inputLabel}>Priority</Text>
+            <TouchableOpacity
+              onPress={() => setPriorityMenuVisible(true)}
+              style={styles.dropdown}
+            >
+              <Text style={styles.dropdownText}>{priority}</Text>
+              <Text style={styles.dropdownIcon}>▼</Text>
+            </TouchableOpacity>
+          </View>
 
-          <Menu
-            visible={categoryMenuVisible}
-            onDismiss={() => setCategoryMenuVisible(false)}
-            anchor={
-              <TextInput
-                label="Category"
-                value={category}
-                mode="outlined"
-                editable={false}
-                right={<TextInput.Icon icon="chevron-down" onPress={() => setCategoryMenuVisible(true)} />}
-                onPressIn={() => setCategoryMenuVisible(true)}
-                style={styles.input}
-              />
-            }
-          >
-            {['PLUMBING', 'ELECTRICAL', 'HEATING', 'APPLIANCES', 'EXTERIOR', 'INTERIOR', 'OTHER'].map((c) => (
-              <Menu.Item
-                key={c}
-                onPress={() => {
-                  setCategory(c)
-                  setCategoryMenuVisible(false)
-                }}
-                title={c}
-              />
-            ))}
-          </Menu>
+          <View style={styles.input}>
+            <Text style={styles.inputLabel}>Category</Text>
+            <TouchableOpacity
+              onPress={() => setCategoryMenuVisible(true)}
+              style={styles.dropdown}
+            >
+              <Text style={styles.dropdownText}>{category}</Text>
+              <Text style={styles.dropdownIcon}>▼</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TextInput
+          <Input
             label="Due Date & Time (YYYY-MM-DD HH:MM)"
             value={dueDate}
             onChangeText={setDueDate}
-            mode="outlined"
             placeholder="2025-01-15 14:30"
             style={styles.input}
           />
 
-          <TextInput
+          <Input
             label="Estimated Cost (£)"
             value={estimatedCost}
             onChangeText={setEstimatedCost}
-            mode="outlined"
-            keyboardType="decimal-pad"
             placeholder="0.00"
+            keyboardType="decimal-pad"
             style={styles.input}
           />
 
           {error ? (
-            <HelperText type="error" visible={!!error}>
-              {error}
-            </HelperText>
+            <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
           <Button
-            mode="contained"
+            variant="primary"
+            size="lg"
             onPress={handleCreate}
             loading={loading}
             disabled={loading}
@@ -241,6 +195,102 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
           </Button>
         </View>
       </ScrollView>
+
+      {/* Property Selection Modal */}
+      <Modal
+        visible={propertyMenuVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPropertyMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setPropertyMenuVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Property</Text>
+            <ScrollView style={styles.modalList}>
+              {properties.map((property) => (
+                <TouchableOpacity
+                  key={property.id}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setPropertyId(property.id)
+                    setPropertyMenuVisible(false)
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{property.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Priority Selection Modal */}
+      <Modal
+        visible={priorityMenuVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPriorityMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setPriorityMenuVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Priority</Text>
+            <ScrollView style={styles.modalList}>
+              {['HIGH', 'MEDIUM', 'LOW'].map((p) => (
+                <TouchableOpacity
+                  key={p}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setPriority(p)
+                    setPriorityMenuVisible(false)
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{p}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Category Selection Modal */}
+      <Modal
+        visible={categoryMenuVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCategoryMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setCategoryMenuVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Category</Text>
+            <ScrollView style={styles.modalList}>
+              {['PLUMBING', 'ELECTRICAL', 'HEATING', 'APPLIANCES', 'EXTERIOR', 'INTERIOR', 'OTHER'].map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setCategory(c)
+                    setCategoryMenuVisible(false)
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{c}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   )
 }
@@ -248,19 +298,85 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
     flexGrow: 1,
   },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
+  },
+  inputLabel: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.background.primary,
+  },
+  dropdownText: {
+    fontSize: typography.fontSize.md,
+    color: colors.text.primary,
+  },
+  dropdownPlaceholder: {
+    fontSize: typography.fontSize.md,
+    color: colors.text.tertiary,
+  },
+  dropdownIcon: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.fontSize.sm,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   button: {
-    marginTop: 20,
-    paddingVertical: 6,
+    marginTop: spacing.lg,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.background.primary,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    paddingTop: spacing.lg,
+    maxHeight: '70%',
+  },
+  modalTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  modalList: {
+    paddingHorizontal: spacing.lg,
+  },
+  modalItem: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[200],
+  },
+  modalItemText: {
+    fontSize: typography.fontSize.md,
+    color: colors.text.primary,
   },
 })
