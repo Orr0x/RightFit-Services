@@ -229,7 +229,7 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   list: {
     padding: spacing.md,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
     lineHeight: 20,
   },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   fabContainer: {

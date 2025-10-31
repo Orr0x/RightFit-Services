@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: spacing.lg,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   title: {
     fontSize: typography.fontSize['2xl'],
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: typography.fontSize.md,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     marginBottom: spacing.xl,
   },
   button: {

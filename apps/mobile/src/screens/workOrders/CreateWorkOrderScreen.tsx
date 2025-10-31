@@ -298,7 +298,7 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   scrollContent: {
     flexGrow: 1,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   dropdownIcon: {
     fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
   },
   errorText: {
     color: colors.error,

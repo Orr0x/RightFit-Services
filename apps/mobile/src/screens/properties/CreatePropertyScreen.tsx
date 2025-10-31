@@ -145,7 +145,7 @@ export default function CreatePropertyScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   scrollContent: {
     flexGrow: 1,

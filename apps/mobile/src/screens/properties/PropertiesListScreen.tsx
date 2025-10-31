@@ -177,7 +177,7 @@ export default function PropertiesListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   list: {
     padding: spacing.md,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     marginBottom: spacing.xxs,
   },
   chips: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   fabContainer: {

@@ -120,7 +120,7 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   scrollContent: {
     flexGrow: 1,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     textAlign: 'center',
     marginBottom: spacing.xl,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
   },
   input: {
     marginBottom: spacing.md,

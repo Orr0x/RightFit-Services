@@ -81,11 +81,11 @@ export default function PropertyDetailsScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   card: {
     margin: spacing.md,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   badges: {
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   section: {
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     lineHeight: 22,
   },
 })

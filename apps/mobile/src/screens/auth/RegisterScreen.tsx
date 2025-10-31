@@ -177,7 +177,7 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   scrollContent: {
     flexGrow: 1,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     textAlign: 'center',
     marginBottom: spacing.xl,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
   },
   input: {
     marginBottom: spacing.md,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
   },

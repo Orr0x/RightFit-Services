@@ -187,13 +187,13 @@ export default function WorkOrderDetailsScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceElevated,
   },
   centerContent: {
     marginTop: spacing.md,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     marginBottom: spacing.xxs,
   },
   chips: {
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
   },
   emptyText: {
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   photoCaption: {
     marginTop: spacing.xs,
     fontSize: typography.fontSize.xs,
-    color: colors.text.secondary,
+    color: colors.textSecondary,
   },
   photoDate: {
     marginTop: spacing.xxs,
