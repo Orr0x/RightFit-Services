@@ -115,13 +115,13 @@ export default function DebugScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.buttonRow}>
-          <Button variant="outlined" onPress={loadLogs} style={styles.button}>
+          <Button variant="secondary" onPress={loadLogs} style={styles.button}>
             Refresh
           </Button>
-          <Button variant="outlined" onPress={handleExportLogs} style={styles.button}>
+          <Button variant="secondary" onPress={handleExportLogs} style={styles.button}>
             Export
           </Button>
-          <Button variant="outlined" onPress={handleClearLogs} style={styles.button}>
+          <Button variant="secondary" onPress={handleClearLogs} style={styles.button}>
             Clear
           </Button>
         </View>
