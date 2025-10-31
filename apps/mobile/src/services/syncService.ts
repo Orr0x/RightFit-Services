@@ -8,6 +8,8 @@ class SyncService {
   private isSyncing = false
   private syncInterval: NodeJS.Timeout | null = null
   private netInfoUnsubscribe: (() => void) | null = null
+  private networkDebounceTimer: NodeJS.Timeout | null = null
+  private lastNetworkState: boolean | null = null
 
   // Initialize sync service with network listener
   initialize() {
@@ -16,18 +18,32 @@ class SyncService {
     // Start automatic sync every 5 minutes
     this.startAutoSync()
 
-    // Listen for network connectivity changes
+    // Listen for network connectivity changes with debouncing
     this.netInfoUnsubscribe = NetInfo.addEventListener(state => {
-      console.log('[SYNC] Network state changed:', {
-        isConnected: state.isConnected,
-        isInternetReachable: state.isInternetReachable,
-        type: state.type
-      })
+      const isOnline = state.isConnected && state.isInternetReachable !== false
 
-      if (state.isConnected && state.isInternetReachable !== false) {
-        console.log('[SYNC] Device back online, triggering sync')
-        this.syncAll()
+      // Clear any pending network updates
+      if (this.networkDebounceTimer) {
+        clearTimeout(this.networkDebounceTimer)
       }
+
+      // Debounce network state changes to prevent rapid-fire sync triggers
+      this.networkDebounceTimer = setTimeout(() => {
+        // Only log and trigger sync if state actually changed
+        if (this.lastNetworkState !== isOnline) {
+          console.log('[SYNC] Network state changed:', {
+            isOnline,
+            type: state.type
+          })
+
+          this.lastNetworkState = isOnline
+
+          if (isOnline) {
+            console.log('[SYNC] Device back online, triggering sync')
+            this.syncAll()
+          }
+        }
+      }, 500) // Wait 500ms for network events to settle
     })
 
     console.log('[SYNC] Network listener registered')
@@ -37,6 +53,14 @@ class SyncService {
   cleanup() {
     console.log('[SYNC] Cleaning up sync service')
     this.stopAutoSync()
+
+    // Clear network debounce timer
+    if (this.networkDebounceTimer) {
+      clearTimeout(this.networkDebounceTimer)
+      this.networkDebounceTimer = null
+    }
+
+    // Unsubscribe from network events
     if (this.netInfoUnsubscribe) {
       this.netInfoUnsubscribe()
       this.netInfoUnsubscribe = null

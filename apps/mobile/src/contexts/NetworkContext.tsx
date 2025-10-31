@@ -24,19 +24,33 @@ export function NetworkProvider({ children }: NetworkProviderProps) {
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    // Subscribe to network state updates
+    let debounceTimer: NodeJS.Timeout | null = null
+
+    // Subscribe to network state updates with debouncing
     const unsubscribe = NetInfo.addEventListener(state => {
-      setIsOnline(state.isConnected && state.isInternetReachable !== false)
-      setIsChecking(false)
+      // Clear any pending updates
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+
+      // Debounce network state changes to prevent rapid-fire events
+      debounceTimer = setTimeout(() => {
+        const online = state.isConnected && state.isInternetReachable !== false
+        setIsOnline(online)
+        setIsChecking(false)
+      }, 300) // Wait 300ms for events to settle
     })
 
-    // Initial check
+    // Initial check (no debounce needed)
     NetInfo.fetch().then(state => {
       setIsOnline(state.isConnected && state.isInternetReachable !== false)
       setIsChecking(false)
     })
 
     return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
       unsubscribe()
     }
   }, [])
