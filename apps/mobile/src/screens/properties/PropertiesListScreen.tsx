@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native'
-import { Text, Card, Title, Paragraph, FAB, Chip } from 'react-native-paper'
+import { View, StyleSheet, FlatList, RefreshControl, Text, TouchableOpacity } from 'react-native'
+import { Card, Button, EmptyState, Spinner } from '../../components/ui'
+import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { PropertiesStackParamList, Property } from '../../types'
 import { Q } from '@nozbe/watermelondb'
@@ -111,41 +112,44 @@ export default function PropertiesListScreen({ navigation }: Props) {
   }, [])
 
   const renderProperty = ({ item }: { item: Property }) => (
-    <Card
-      style={styles.card}
+    <TouchableOpacity
       onPress={() => navigation.navigate('PropertyDetails', { propertyId: item.id })}
+      activeOpacity={0.7}
     >
-      <Card.Content>
-        <Title>{item.name}</Title>
-        <Paragraph>
+      <Card variant="outlined" style={styles.card}>
+        <Text style={styles.propertyName}>{item.name}</Text>
+        <Text style={styles.address}>
           {item.address_line1}
           {item.address_line2 ? `, ${item.address_line2}` : ''}
-        </Paragraph>
-        <Paragraph>
+        </Text>
+        <Text style={styles.address}>
           {item.city}, {item.postcode}
-        </Paragraph>
+        </Text>
         <View style={styles.chips}>
-          <Chip mode="outlined" style={styles.chip}>
-            {item.property_type}
-          </Chip>
-          <Chip mode="outlined" style={styles.chip}>
-            {item.bedrooms} bed
-          </Chip>
-          <Chip mode="outlined" style={styles.chip}>
-            {item.bathrooms} bath
-          </Chip>
+          <View style={styles.chip}>
+            <Text style={styles.chipText}>{item.property_type}</Text>
+          </View>
+          <View style={styles.chip}>
+            <Text style={styles.chipText}>{item.bedrooms} bed</Text>
+          </View>
+          <View style={styles.chip}>
+            <Text style={styles.chipText}>{item.bathrooms} bath</Text>
+          </View>
         </View>
-      </Card.Content>
-    </Card>
+      </Card>
+    </TouchableOpacity>
   )
 
   return (
     <View style={styles.container}>
-      {properties.length === 0 && !loading ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No properties yet</Text>
-          <Text style={styles.emptySubtext}>Add your first property to get started</Text>
-        </View>
+      {loading && properties.length === 0 ? (
+        <Spinner size="large" />
+      ) : properties.length === 0 ? (
+        <EmptyState
+          icon="🏠"
+          title="No properties yet"
+          message="Add your first property to get started"
+        />
       ) : (
         <FlatList
           data={properties}
@@ -156,11 +160,16 @@ export default function PropertiesListScreen({ navigation }: Props) {
         />
       )}
 
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => navigation.navigate('CreateProperty')}
-      />
+      <View style={styles.fabContainer}>
+        <Button
+          variant="primary"
+          size="lg"
+          onPress={() => navigation.navigate('CreateProperty')}
+          style={styles.fab}
+        >
+          + Add Property
+        </Button>
+      </View>
     </View>
   )
 }
@@ -168,42 +177,54 @@ export default function PropertiesListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   list: {
-    padding: 16,
+    padding: spacing.md,
+    paddingBottom: 80, // Space for FAB
   },
   card: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
+  },
+  propertyName: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  address: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    marginBottom: spacing.xxs,
   },
   chips: {
     flexDirection: 'row',
-    marginTop: 8,
-    gap: 8,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
   },
   chip: {
-    marginRight: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.xs,
+  },
+  chipText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    textTransform: 'capitalize',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    left: spacing.md,
+    right: spacing.md,
   },
   fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#6200EE',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#666',
+    shadowColor: colors.neutral[900],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 })
