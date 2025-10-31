@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
   address: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.neutral100,
     borderRadius: borderRadius.full,
     marginRight: spacing.xs,
   },
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   value: {

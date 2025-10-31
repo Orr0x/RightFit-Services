@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   propertyName: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   address: {
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.neutral100,
     borderRadius: borderRadius.full,
     marginRight: spacing.xs,
   },

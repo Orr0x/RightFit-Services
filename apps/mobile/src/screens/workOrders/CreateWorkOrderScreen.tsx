@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   dropdown: {
@@ -324,15 +324,15 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background,
   },
   dropdownText: {
     fontSize: typography.fontSize.md,
-    color: colors.text.primary,
+    color: colors.textPrimary,
   },
   dropdownPlaceholder: {
     fontSize: typography.fontSize.md,
-    color: colors.text.tertiary,
+    color: colors.textTertiary,
   },
   dropdownIcon: {
     fontSize: typography.fontSize.xs,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.background,
     borderTopLeftRadius: borderRadius.lg,
     borderTopRightRadius: borderRadius.lg,
     paddingTop: spacing.lg,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.md,
     paddingHorizontal: spacing.lg,
@@ -377,6 +377,6 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: typography.fontSize.md,
-    color: colors.text.primary,
+    color: colors.textPrimary,
   },
 })

@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginRight: spacing.sm,
   },
   description: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
   property: {
     fontSize: typography.fontSize.sm,
-    color: colors.text.tertiary,
+    color: colors.textTertiary,
     fontStyle: 'italic',
     marginTop: spacing.xs,
   },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   categoryBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.neutral100,
     borderRadius: borderRadius.full,
   },
   categoryText: {

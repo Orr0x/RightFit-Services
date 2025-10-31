@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
   section: {
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   value: {
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.neutral100,
     borderRadius: borderRadius.full,
     marginRight: spacing.xs,
   },
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     textAlign: 'center',
     fontSize: typography.fontSize.sm,
-    color: colors.text.tertiary,
+    color: colors.textTertiary,
     fontStyle: 'italic',
   },
   photoGrid: {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 150,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.neutral100,
   },
   photoCaption: {
     marginTop: spacing.xs,
@@ -271,6 +271,6 @@ const styles = StyleSheet.create({
   photoDate: {
     marginTop: spacing.xxs,
     fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
+    color: colors.textTertiary,
   },
 })
