@@ -100,6 +100,18 @@
   }
 }
 
+/* Dark mode via class (STORY-005: Dark Mode) */
+.dark {
+  --color-background: var(--color-neutral-950);
+  --color-surface: var(--color-neutral-900);
+  --color-surface-elevated: var(--color-neutral-800);
+  --color-border: var(--color-neutral-700);
+  --color-border-hover: var(--color-neutral-600);
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-300);
+  --color-text-tertiary: var(--color-neutral-400);
+}
+
 * {
   box-sizing: border-box;
 }

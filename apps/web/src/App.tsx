@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { ToastProvider } from './components/ui/Toast'
 import { AppLayout } from './components/layout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -14,9 +15,10 @@ import Tenants from './pages/Tenants'
 
 function App() {
   return (
-    <ToastProvider position="top-right">
-      <AuthProvider>
-        <BrowserRouter>
+    <ThemeProvider>
+      <ToastProvider position="top-right">
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -85,6 +87,7 @@ function App() {
         </BrowserRouter>
       </AuthProvider>
     </ToastProvider>
+  </ThemeProvider>
   )
 }
 

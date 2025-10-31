@@ -5,7 +5,7 @@
 **Week:** Week 5
 **Story Points:** 14 points
 **Estimated Duration:** 5-7 days
-**Status:** 📋 Ready to Start
+**Status:** 🟡 Partially Complete (70%)
 
 **Git Branch:** `feature/story-001-week-5-web-ux`
 
@@ -75,22 +75,25 @@ Complete the remaining Week 5 work for web UX polish. This includes finishing fo
 
 #### 1.2 Field Hints and Helper Text
 
-- [ ] Add `helperText` prop to Input component
+- [x] Add `helperText` prop to Input component
   - File: [apps/web/src/components/ui/Input.tsx](../../apps/web/src/components/ui/Input.tsx)
   - Show helper text below input (gray color)
   - Show error text in red when validation fails
 
-- [ ] Add helpful examples to forms
-  - Properties: "e.g., SW1A 1AA" for postcode
-  - Contractors: "e.g., 07700 900000" for phone
-  - Certificates: "Certificate number from official document"
+- [x] Add helpful examples to forms (PARTIALLY COMPLETE)
+  - [x] Properties: "e.g., SW1A 1AA" for postcode ✅
+  - [x] Properties: Helper text for property name ✅
+  - [x] Properties: Helper text for access instructions ✅
+  - [ ] Contractors: "e.g., 07700 900000" for phone
+  - [ ] Certificates: "Certificate number from official document"
+  - [ ] WorkOrders, Financial, Tenants pages
 
-- [ ] Add character counters to Textarea
+- [x] Add character counters to Textarea
   - File: [apps/web/src/components/ui/Textarea.tsx](../../apps/web/src/components/ui/Textarea.tsx)
-  - Show "123/500 characters" below textarea
+  - Show "123/500 characters" below textarea ✅
   - Optional: Turn red when approaching limit
 
-**Commit:** `feat: add field hints and helper text to forms (STORY-001)`
+**Commit:** `feat: add field hints and helper text to Properties form (STORY-001)` ✅ DONE
 
 #### 1.3 Improve Date/Time Pickers (Optional)
 
