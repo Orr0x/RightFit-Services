@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
-import { Text, Card, Title, Paragraph, Chip } from 'react-native-paper'
+import { View, StyleSheet, ScrollView, Text } from 'react-native'
+import { Card, Spinner } from '../../components/ui'
+import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { PropertiesStackParamList, Property } from '../../types'
@@ -36,44 +37,42 @@ export default function PropertyDetailsScreen({ route }: Props) {
 
   if (loading || !property) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
+      <View style={styles.loadingContainer}>
+        <Spinner size="large" />
       </View>
     )
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title>{property.name}</Title>
-          <Paragraph style={styles.section}>
-            {property.address_line1}
-            {property.address_line2 ? `, ${property.address_line2}` : ''}
-          </Paragraph>
-          <Paragraph>
-            {property.city}, {property.postcode}
-          </Paragraph>
+      <Card variant="outlined" style={styles.card}>
+        <Text style={styles.title}>{property.name}</Text>
+        <Text style={styles.address}>
+          {property.address_line1}
+          {property.address_line2 ? `, ${property.address_line2}` : ''}
+        </Text>
+        <Text style={styles.address}>
+          {property.city}, {property.postcode}
+        </Text>
 
-          <View style={styles.chips}>
-            <Chip mode="outlined" style={styles.chip}>
-              {property.property_type}
-            </Chip>
-            <Chip mode="outlined" style={styles.chip}>
-              {property.bedrooms} bed
-            </Chip>
-            <Chip mode="outlined" style={styles.chip}>
-              {property.bathrooms} bath
-            </Chip>
+        <View style={styles.badges}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{property.property_type}</Text>
           </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{property.bedrooms} bed</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{property.bathrooms} bath</Text>
+          </View>
+        </View>
 
-          {property.access_instructions && (
-            <View style={styles.section}>
-              <Text style={styles.label}>Access Instructions:</Text>
-              <Paragraph>{property.access_instructions}</Paragraph>
-            </View>
-          )}
-        </Card.Content>
+        {property.access_instructions && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Access Instructions:</Text>
+            <Text style={styles.value}>{property.access_instructions}</Text>
+          </View>
+        )}
       </Card>
     </ScrollView>
   )
@@ -82,24 +81,55 @@ export default function PropertyDetailsScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.background.secondary,
   },
   card: {
-    margin: 16,
+    margin: spacing.md,
+  },
+  title: {
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  address: {
+    fontSize: typography.fontSize.base,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
+  },
+  badges: {
+    flexDirection: 'row',
+    marginTop: spacing.md,
+    gap: spacing.xs,
+  },
+  badge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.xs,
+  },
+  badgeText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    textTransform: 'capitalize',
   },
   section: {
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
   label: {
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
   },
-  chips: {
-    flexDirection: 'row',
-    marginTop: 12,
-    gap: 8,
-  },
-  chip: {
-    marginRight: 8,
+  value: {
+    fontSize: typography.fontSize.base,
+    color: colors.text.secondary,
+    lineHeight: 22,
   },
 })

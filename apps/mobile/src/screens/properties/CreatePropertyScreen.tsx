@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
-import { TextInput, Button, HelperText } from 'react-native-paper'
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Text } from 'react-native'
+import { Input, Button } from '../../components/ui'
+import { colors, spacing, typography } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { PropertiesStackParamList } from '../../types'
 import api from '../../services/api'
@@ -57,72 +58,77 @@ export default function CreatePropertyScreen({ navigation }: Props) {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <TextInput
-            label="Property Name *"
+          <Input
+            label="Property Name"
             value={name}
             onChangeText={setName}
-            mode="outlined"
+            placeholder="e.g., 123 Main Street"
+            required
             style={styles.input}
           />
 
-          <TextInput
-            label="Address Line 1 *"
+          <Input
+            label="Address Line 1"
             value={addressLine1}
             onChangeText={setAddressLine1}
-            mode="outlined"
+            placeholder="Street address"
+            required
             style={styles.input}
           />
 
-          <TextInput
+          <Input
             label="Address Line 2"
             value={addressLine2}
             onChangeText={setAddressLine2}
-            mode="outlined"
+            placeholder="Apartment, suite, etc. (optional)"
             style={styles.input}
           />
 
-          <TextInput
-            label="City *"
+          <Input
+            label="City"
             value={city}
             onChangeText={setCity}
-            mode="outlined"
+            placeholder="City"
+            required
             style={styles.input}
           />
 
-          <TextInput
-            label="Postcode *"
+          <Input
+            label="Postcode"
             value={postcode}
             onChangeText={setPostcode}
-            mode="outlined"
+            placeholder="SW1A 1AA"
+            required
             style={styles.input}
           />
 
-          <TextInput
-            label="Bedrooms *"
+          <Input
+            label="Bedrooms"
             value={bedrooms}
             onChangeText={setBedrooms}
-            mode="outlined"
+            placeholder="Number of bedrooms"
             keyboardType="numeric"
+            required
             style={styles.input}
           />
 
-          <TextInput
-            label="Bathrooms *"
+          <Input
+            label="Bathrooms"
             value={bathrooms}
             onChangeText={setBathrooms}
-            mode="outlined"
+            placeholder="Number of bathrooms"
             keyboardType="numeric"
+            required
             style={styles.input}
           />
 
           {error ? (
-            <HelperText type="error" visible={!!error}>
-              {error}
-            </HelperText>
+            <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
           <Button
-            mode="contained"
+            variant="primary"
+            size="lg"
             onPress={handleCreate}
             loading={loading}
             disabled={loading}
@@ -139,19 +145,24 @@ export default function CreatePropertyScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
     flexGrow: 1,
   },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.fontSize.sm,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   button: {
-    marginTop: 20,
-    paddingVertical: 6,
+    marginTop: spacing.lg,
   },
 })
