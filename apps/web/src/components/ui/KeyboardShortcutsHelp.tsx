@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { Modal } from './Modal'
-import { KeyboardShortcut, useKeyboardShortcutsHelp } from '../../hooks/useKeyboardShortcuts'
+import { type KeyboardShortcut, useKeyboardShortcutsHelp } from '../../hooks/useKeyboardShortcuts'
 import './KeyboardShortcutsHelp.css'
 
 interface KeyboardShortcutsHelpProps {

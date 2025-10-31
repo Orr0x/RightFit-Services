@@ -1,46 +1,23 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert,
-  CircularProgress,
-  AppBar,
-  Toolbar,
-  Chip,
-} from '@mui/material'
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Logout as LogoutIcon,
-} from '@mui/icons-material'
-import { useAuth } from '../contexts/AuthContext'
+import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { useLoading } from '../hooks/useLoading'
 import { propertiesAPI, type Property, type CreatePropertyData } from '../lib/api'
+import './Properties.css'
+
+const PROPERTY_TYPES = [
+  { value: 'HOUSE', label: 'House' },
+  { value: 'FLAT', label: 'Flat' },
+  { value: 'COTTAGE', label: 'Cottage' },
+  { value: 'COMMERCIAL', label: 'Commercial' },
+]
 
 export default function Properties() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
   const [properties, setProperties] = useState<Property[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { isLoading, withLoading } = useLoading()
+  const toast = useToast()
   const [openDialog, setOpenDialog] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [formData, setFormData] = useState<CreatePropertyData>({
     name: '',
     address_line1: '',
@@ -57,18 +34,16 @@ export default function Properties() {
     loadProperties()
   }, [])
 
-  const loadProperties = async () => {
-    try {
-      setIsLoading(true)
-      const data = await propertiesAPI.list()
-      setProperties(data)
-      setError('')
-    } catch (err: any) {
-      setError('Failed to load properties')
-      console.error('Load properties error:', err)
-    } finally {
-      setIsLoading(false)
-    }
+  const loadProperties = () => {
+    withLoading(async () => {
+      try {
+        const data = await propertiesAPI.list()
+        setProperties(data)
+      } catch (err: any) {
+        toast.error('Failed to load properties')
+        console.error('Load properties error:', err)
+      }
+    })
   }
 
   const handleOpenDialog = (property?: Property) => {
@@ -105,276 +80,271 @@ export default function Properties() {
   const handleCloseDialog = () => {
     setOpenDialog(false)
     setEditingProperty(null)
-    setFormData({
-      name: '',
-      address_line1: '',
-      address_line2: '',
-      city: '',
-      postcode: '',
-      property_type: 'HOUSE',
-      bedrooms: 0,
-      bathrooms: 0,
-      access_instructions: '',
-    })
   }
 
   const handleSubmit = async () => {
     try {
       if (editingProperty) {
         await propertiesAPI.update(editingProperty.id, formData)
+        toast.success('Property updated successfully')
       } else {
         await propertiesAPI.create(formData)
+        toast.success('Property created successfully')
       }
       handleCloseDialog()
       loadProperties()
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save property')
+      toast.error(err.response?.data?.message || 'Failed to save property')
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this property?')) {
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) {
       return
     }
 
     try {
       await propertiesAPI.delete(id)
+      toast.success('Property deleted successfully')
       loadProperties()
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete property')
+      toast.error(err.response?.data?.message || 'Failed to delete property')
     }
-  }
-
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
   }
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
+      <div className="page-loading">
+        <Spinner size="lg" />
+      </div>
     )
   }
 
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            RightFit Services - Properties
-          </Typography>
-          {user && (
-            <>
-              <Button color="inherit" onClick={() => navigate('/work-orders')}>
-                Work Orders
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/tenants')}>
-                Tenants
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/financial')}>
-                Financial
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/contractors')}>
-                Contractors
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/certificates')}>
-                Certificates
-              </Button>
-              <Chip
-                label={user.tenant_name}
-                color="secondary"
-                sx={{ mr: 2 }}
-              />
-              <Chip
-                label={user.role}
-                variant="outlined"
-                sx={{ mr: 2, color: 'white', borderColor: 'white' }}
-              />
-              <Typography variant="body2" sx={{ mr: 2 }}>
-                {user.email}
-              </Typography>
-              <IconButton color="inherit" onClick={handleLogout}>
-                <LogoutIcon />
-              </IconButton>
-            </>
-          )}
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-            {error}
-          </Alert>
-        )}
-
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4">Properties</Typography>
+    <div className="properties-page">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Properties</h1>
+          <p className="page-subtitle">Manage your property portfolio</p>
+        </div>
+        <div className="page-header-actions">
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              aria-label="Grid view"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="11" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="3" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="11" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              aria-label="List view"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
           <Button
-            variant="contained"
-            startIcon={<AddIcon />}
+            variant="primary"
+            leftIcon={
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            }
             onClick={() => handleOpenDialog()}
           >
             Add Property
           </Button>
-        </Box>
+        </div>
+      </div>
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>City</TableCell>
-                <TableCell>Postcode</TableCell>
-                <TableCell>Beds/Baths</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {properties.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-                      No properties found. Click "Add Property" to create your first property.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                properties.map((property) => (
-                  <TableRow key={property.id}>
-                    <TableCell>{property.name}</TableCell>
-                    <TableCell>{property.property_type}</TableCell>
-                    <TableCell>{property.address_line1}</TableCell>
-                    <TableCell>{property.city}</TableCell>
-                    <TableCell>{property.postcode}</TableCell>
-                    <TableCell>{property.bedrooms}/{property.bathrooms}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleOpenDialog(property)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(property.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Container>
+      {properties.length === 0 ? (
+        <EmptyState
+          title="No properties yet"
+          description="Get started by adding your first property to your portfolio"
+          primaryAction={{
+            label: 'Add Property',
+            onClick: () => handleOpenDialog(),
+            icon: (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            ),
+          }}
+        />
+      ) : (
+        <div className={`properties-${viewMode}`}>
+          {properties.map((property) => (
+            <Card key={property.id} variant="elevated" className="property-card">
+              <div className="property-card-header">
+                <div>
+                  <h3 className="property-name">{property.name}</h3>
+                  <p className="property-address">{property.address_line1}, {property.city}</p>
+                </div>
+                <span className="property-type-badge">{property.property_type}</span>
+              </div>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingProperty ? 'Edit Property' : 'Add New Property'}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
+              <div className="property-details">
+                <div className="property-detail-item">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 6l6-4 6 4v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  <span>{property.bedrooms} bed</span>
+                </div>
+                <div className="property-detail-item">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M14 10h-1V6a1 1 0 0 0-1-1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v1H4a1 1 0 0 0-1 1v4H2" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  <span>{property.bathrooms} bath</span>
+                </div>
+                <div className="property-detail-item">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 14l-4-4h2.5V2h3v8H12l-4 4z" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  <span>{property.postcode}</span>
+                </div>
+              </div>
+
+              <div className="property-actions">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M11.5 2L14 4.5l-8.5 8.5H3v-2.5L11.5 2z" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  }
+                  onClick={() => handleOpenDialog(property)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 4h12M5.5 4V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1M13 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  }
+                  onClick={() => handleDelete(property.id, property.name)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal
+        isOpen={openDialog}
+        onClose={handleCloseDialog}
+        title={editingProperty ? 'Edit Property' : 'Add New Property'}
+        size="lg"
+      >
+        <div className="property-form">
+          <Input
             label="Property Name"
-            fullWidth
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g., 123 Main Street Apartment"
           />
-          <TextField
-            margin="dense"
-            label="Property Type"
-            fullWidth
-            required
-            select
-            value={formData.property_type}
-            onChange={(e) => setFormData({ ...formData, property_type: e.target.value as any })}
-            SelectProps={{ native: true }}
-          >
-            <option value="HOUSE">House</option>
-            <option value="FLAT">Flat</option>
-            <option value="COTTAGE">Cottage</option>
-            <option value="COMMERCIAL">Commercial</option>
-          </TextField>
-          <TextField
-            margin="dense"
+
+          <div className="form-row">
+            <div className="form-field">
+              <label className="form-label">Property Type <span className="required">*</span></label>
+              <select
+                className="form-select"
+                value={formData.property_type}
+                onChange={(e) => setFormData({ ...formData, property_type: e.target.value as any })}
+              >
+                {PROPERTY_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <Input
             label="Address Line 1"
-            fullWidth
             required
             value={formData.address_line1}
             onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
+            placeholder="Street address"
           />
-          <TextField
-            margin="dense"
-            label="Address Line 2 (Optional)"
-            fullWidth
+
+          <Input
+            label="Address Line 2"
             value={formData.address_line2}
             onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
+            placeholder="Apartment, suite, etc. (optional)"
           />
-          <Box display="flex" gap={2}>
-            <TextField
-              margin="dense"
+
+          <div className="form-row">
+            <Input
               label="City"
-              fullWidth
               required
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              placeholder="City"
             />
-            <TextField
-              margin="dense"
+            <Input
               label="Postcode"
-              fullWidth
               required
               value={formData.postcode}
               onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-              helperText="UK format (e.g. SW1A 1AA)"
+              placeholder="SW1A 1AA"
             />
-          </Box>
-          <Box display="flex" gap={2}>
-            <TextField
-              margin="dense"
+          </div>
+
+          <div className="form-row">
+            <Input
               label="Bedrooms"
               type="number"
-              fullWidth
               required
-              value={formData.bedrooms}
+              value={formData.bedrooms.toString()}
               onChange={(e) => setFormData({ ...formData, bedrooms: parseInt(e.target.value) || 0 })}
             />
-            <TextField
-              margin="dense"
+            <Input
               label="Bathrooms"
               type="number"
-              fullWidth
               required
-              value={formData.bathrooms}
+              value={formData.bathrooms.toString()}
               onChange={(e) => setFormData({ ...formData, bathrooms: parseInt(e.target.value) || 0 })}
             />
-          </Box>
-          <TextField
-            margin="dense"
-            label="Access Instructions (Optional)"
-            fullWidth
-            multiline
-            rows={3}
-            value={formData.access_instructions}
-            onChange={(e) => setFormData({ ...formData, access_instructions: e.target.value })}
-            helperText="Gate codes, parking info, etc."
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {editingProperty ? 'Update' : 'Create'}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">Access Instructions</label>
+            <textarea
+              className="form-textarea"
+              rows={3}
+              value={formData.access_instructions}
+              onChange={(e) => setFormData({ ...formData, access_instructions: e.target.value })}
+              placeholder="Gate codes, parking info, etc."
+            />
+          </div>
+        </div>
+
+        <div className="modal-actions">
+          <Button variant="ghost" onClick={handleCloseDialog}>
+            Cancel
           </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+          <Button variant="primary" onClick={handleSubmit}>
+            {editingProperty ? 'Update Property' : 'Create Property'}
+          </Button>
+        </div>
+      </Modal>
+    </div>
   )
 }

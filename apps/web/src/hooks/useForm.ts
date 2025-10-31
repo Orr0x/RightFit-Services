@@ -3,8 +3,8 @@
  * US-UX-7: Form UX Improvements
  */
 
-import { useState, useCallback, FormEvent } from 'react'
-import { validateField, FieldValidation } from '../utils/validation'
+import { useState, useCallback, type FormEvent } from 'react'
+import { validateField, type FieldValidation } from '../utils/validation'
 
 export type FormValues = Record<string, any>
 export type FormErrors = Record<string, string | null>

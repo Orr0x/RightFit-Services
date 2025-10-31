@@ -146,7 +146,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           </span>
         )}
 
-        {!loading && <span className="search-shortcut">{shortcut}</span>}
+        {!loading && shortcut && <span className="search-shortcut">{shortcut}</span>}
       </div>
 
       {isOpen && results.length > 0 && (

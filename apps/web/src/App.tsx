@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './components/ui/Toast'
+import { AppLayout } from './components/layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -11,21 +12,9 @@ import Certificates from './pages/Certificates'
 import Financial from './pages/Financial'
 import Tenants from './pages/Tenants'
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-})
-
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ToastProvider position="top-right">
       <AuthProvider>
         <BrowserRouter>
           <Routes>
@@ -35,7 +24,9 @@ function App() {
               path="/properties"
               element={
                 <ProtectedRoute>
-                  <Properties />
+                  <AppLayout>
+                    <Properties />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -43,7 +34,9 @@ function App() {
               path="/work-orders"
               element={
                 <ProtectedRoute>
-                  <WorkOrders />
+                  <AppLayout>
+                    <WorkOrders />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -51,7 +44,9 @@ function App() {
               path="/contractors"
               element={
                 <ProtectedRoute>
-                  <Contractors />
+                  <AppLayout>
+                    <Contractors />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -59,7 +54,9 @@ function App() {
               path="/certificates"
               element={
                 <ProtectedRoute>
-                  <Certificates />
+                  <AppLayout>
+                    <Certificates />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -67,7 +64,9 @@ function App() {
               path="/financial"
               element={
                 <ProtectedRoute>
-                  <Financial />
+                  <AppLayout>
+                    <Financial />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -75,7 +74,9 @@ function App() {
               path="/tenants"
               element={
                 <ProtectedRoute>
-                  <Tenants />
+                  <AppLayout>
+                    <Tenants />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -83,7 +84,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
-    </ThemeProvider>
+    </ToastProvider>
   )
 }
 

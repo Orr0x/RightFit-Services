@@ -1,41 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert,
-  CircularProgress,
-  AppBar,
-  Toolbar,
-  Chip,
-  FormControlLabel,
-  Checkbox,
-} from '@mui/material'
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Logout as LogoutIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon,
-} from '@mui/icons-material'
-import { useAuth } from '../contexts/AuthContext'
+import { Button, Input, Card, Modal, Spinner, EmptyState, Checkbox, useToast } from '../components/ui'
+import { useLoading } from '../hooks/useLoading'
 import { contractorsAPI } from '../lib/api'
+import './Properties.css'
 
 interface Contractor {
   id: string
@@ -46,338 +13,142 @@ interface Contractor {
   email?: string
   notes?: string
   sms_opt_out: boolean
-  created_at: string
-  work_orders?: any[]
-}
-
-interface CreateContractorData {
-  name: string
-  trade: string
-  company_name?: string
-  phone: string
-  email?: string
-  notes?: string
-  sms_opt_out: boolean
 }
 
 export default function Contractors() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
   const [contractors, setContractors] = useState<Contractor[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { isLoading, withLoading } = useLoading()
+  const toast = useToast()
   const [openDialog, setOpenDialog] = useState(false)
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null)
-  const [formData, setFormData] = useState<CreateContractorData>({
-    name: '',
-    trade: '',
-    company_name: '',
-    phone: '',
-    email: '',
-    notes: '',
-    sms_opt_out: false,
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [formData, setFormData] = useState({
+    name: '', trade: '', company_name: '', phone: '', email: '', notes: '', sms_opt_out: false
   })
 
-  useEffect(() => {
-    loadContractors()
-  }, [])
+  useEffect(() => { loadContractors() }, [])
 
-  const loadContractors = async () => {
-    try {
-      setIsLoading(true)
-      const data = await contractorsAPI.list()
-      setContractors(data)
-      setError('')
-    } catch (err: any) {
-      setError('Failed to load contractors')
-      console.error('Load contractors error:', err)
-    } finally {
-      setIsLoading(false)
-    }
+  const loadContractors = () => {
+    withLoading(async () => {
+      try {
+        const data = await contractorsAPI.list()
+        setContractors(data)
+      } catch (err: any) {
+        toast.error('Failed to load contractors')
+      }
+    })
   }
 
   const handleOpenDialog = (contractor?: Contractor) => {
     if (contractor) {
       setEditingContractor(contractor)
-      setFormData({
-        name: contractor.name,
-        trade: contractor.trade,
-        company_name: contractor.company_name || '',
-        phone: contractor.phone,
-        email: contractor.email || '',
-        notes: contractor.notes || '',
-        sms_opt_out: contractor.sms_opt_out,
-      })
+      setFormData({ name: contractor.name, trade: contractor.trade, company_name: contractor.company_name || '', phone: contractor.phone, email: contractor.email || '', notes: contractor.notes || '', sms_opt_out: contractor.sms_opt_out })
     } else {
       setEditingContractor(null)
-      setFormData({
-        name: '',
-        trade: '',
-        company_name: '',
-        phone: '',
-        email: '',
-        notes: '',
-        sms_opt_out: false,
-      })
+      setFormData({ name: '', trade: '', company_name: '', phone: '', email: '', notes: '', sms_opt_out: false })
     }
     setOpenDialog(true)
   }
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false)
-    setEditingContractor(null)
-  }
-
   const handleSubmit = async () => {
     try {
-      // Clean up form data - remove empty strings for optional fields
-      const cleanedData: any = { ...formData }
-      if (!cleanedData.company_name) {
-        delete cleanedData.company_name
-      }
-      if (!cleanedData.email) {
-        delete cleanedData.email
-      }
-      if (!cleanedData.notes) {
-        delete cleanedData.notes
-      }
-
       if (editingContractor) {
-        await contractorsAPI.update(editingContractor.id, cleanedData)
+        await contractorsAPI.update(editingContractor.id, formData)
+        toast.success('Contractor updated')
       } else {
-        await contractorsAPI.create(cleanedData)
+        await contractorsAPI.create(formData)
+        toast.success('Contractor created')
       }
-      handleCloseDialog()
+      setOpenDialog(false)
       loadContractors()
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to save contractor')
+      toast.error('Failed to save contractor')
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this contractor?')) {
-      return
-    }
-
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Delete contractor "${name}"?`)) return
     try {
       await contractorsAPI.delete(id)
+      toast.success('Contractor deleted')
       loadContractors()
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete contractor')
+      toast.error('Failed to delete contractor')
     }
   }
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
-    )
-  }
+  if (isLoading) return <div className="page-loading"><Spinner size="lg" /></div>
 
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            RightFit Services - Contractors
-          </Typography>
-          {user && (
-            <>
-              <Button color="inherit" onClick={() => navigate('/properties')}>
-                Properties
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/work-orders')}>
-                Work Orders
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/tenants')}>
-                Tenants
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/financial')}>
-                Financial
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/certificates')}>
-                Certificates
-              </Button>
-              <Chip label={user.tenant_name} color="secondary" sx={{ mr: 2 }} />
-              <Chip
-                label={user.role}
-                variant="outlined"
-                sx={{ mr: 2, color: 'white', borderColor: 'white' }}
-              />
-              <Typography variant="body2" sx={{ mr: 2 }}>
-                {user.email}
-              </Typography>
-              <IconButton color="inherit" onClick={handleLogout}>
-                <LogoutIcon />
-              </IconButton>
-            </>
-          )}
-        </Toolbar>
-      </AppBar>
+    <div className="properties-page">
+      <div className="page-header">
+        <div><h1 className="page-title">Contractors</h1><p className="page-subtitle">Manage your contractors</p></div>
+        <div className="page-header-actions">
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              aria-label="Grid view"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="11" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="3" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+                <rect x="11" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              aria-label="List view"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+          <Button variant="primary" onClick={() => handleOpenDialog()}>Add Contractor</Button>
+        </div>
+      </div>
 
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-            {error}
-          </Alert>
-        )}
+      {contractors.length === 0 ? (
+        <EmptyState title="No contractors yet" description="Add contractors to assign to work orders" primaryAction={{ label: 'Add Contractor', onClick: () => handleOpenDialog() }} />
+      ) : (
+        <div className={`properties-${viewMode}`}>
+          {contractors.map((c) => (
+            <Card key={c.id} variant="elevated" className="property-card">
+              <div className="property-card-header">
+                <div><h3 className="property-name">{c.name}</h3><p className="property-address">{c.trade}</p></div>
+                {c.company_name && <span className="property-type-badge">{c.company_name}</span>}
+              </div>
+              <div className="property-details">
+                <div className="property-detail-item"><span>{c.phone}</span></div>
+                {c.email && <div className="property-detail-item"><span>{c.email}</span></div>}
+              </div>
+              <div className="property-actions">
+                <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(c)}>Edit</Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id, c.name)}>Delete</Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4">Contractors</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            Add Contractor
-          </Button>
-        </Box>
-
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Trade</TableCell>
-                <TableCell>Company</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Active Jobs</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {contractors.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-                      No contractors found. Click "Add Contractor" to create your first contractor.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                contractors.map((contractor) => (
-                  <TableRow key={contractor.id}>
-                    <TableCell>{contractor.name}</TableCell>
-                    <TableCell>
-                      <Chip label={contractor.trade} size="small" color="primary" />
-                    </TableCell>
-                    <TableCell>{contractor.company_name || '-'}</TableCell>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        <PhoneIcon fontSize="small" sx={{ mr: 1 }} />
-                        {contractor.phone}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      {contractor.email ? (
-                        <Box display="flex" alignItems="center">
-                          <EmailIcon fontSize="small" sx={{ mr: 1 }} />
-                          {contractor.email}
-                        </Box>
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {contractor.work_orders?.filter((wo: any) => wo.status === 'OPEN' || wo.status === 'IN_PROGRESS').length || 0}
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton color="primary" onClick={() => handleOpenDialog(contractor)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton color="error" onClick={() => handleDelete(contractor.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Container>
-
-      {/* Create/Edit Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingContractor ? 'Edit Contractor' : 'Add New Contractor'}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Name"
-            fullWidth
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Trade"
-            fullWidth
-            required
-            value={formData.trade}
-            onChange={(e) => setFormData({ ...formData, trade: e.target.value })}
-            helperText="e.g., Plumber, Electrician, Carpenter"
-          />
-          <TextField
-            margin="dense"
-            label="Company Name (Optional)"
-            fullWidth
-            value={formData.company_name}
-            onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Phone"
-            fullWidth
-            required
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Email (Optional)"
-            type="email"
-            fullWidth
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Notes (Optional)"
-            fullWidth
-            multiline
-            rows={3}
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            helperText="Any additional information about this contractor"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.sms_opt_out}
-                onChange={(e) => setFormData({ ...formData, sms_opt_out: e.target.checked })}
-              />
-            }
-            label="SMS Opt-out"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {editingContractor ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+      <Modal isOpen={openDialog} onClose={() => setOpenDialog(false)} title={editingContractor ? 'Edit Contractor' : 'Add Contractor'} size="lg">
+        <div className="property-form">
+          <Input label="Name" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          <Input label="Trade" required value={formData.trade} onChange={(e) => setFormData({ ...formData, trade: e.target.value })} />
+          <Input label="Company Name" value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} />
+          <Input label="Phone" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+          <Input label="Email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <div className="form-field"><label className="form-label">Notes</label><textarea className="form-textarea" rows={3} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} /></div>
+          <Checkbox label="Opt out of SMS notifications" checked={formData.sms_opt_out} onChange={(e) => setFormData({ ...formData, sms_opt_out: e.target.checked })} />
+        </div>
+        <div className="modal-actions">
+          <Button variant="ghost" onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit}>{editingContractor ? 'Update' : 'Create'}</Button>
+        </div>
+      </Modal>
+    </div>
   )
 }

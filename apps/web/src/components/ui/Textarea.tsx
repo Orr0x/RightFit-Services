@@ -10,7 +10,7 @@ import './Textarea.css'
 
 export type TextareaSize = 'sm' | 'md' | 'lg'
 
-export interface TextareaProps extends React.TextAreaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Textarea label text */
   label?: string
   /** Error message to display */

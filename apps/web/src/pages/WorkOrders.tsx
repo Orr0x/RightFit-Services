@@ -1,709 +1,235 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert,
-  CircularProgress,
-  AppBar,
-  Toolbar,
-  Chip,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-} from '@mui/material'
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Logout as LogoutIcon,
-  PhotoCamera as PhotoCameraIcon,
-  Image as ImageIcon,
-} from '@mui/icons-material'
-import { useAuth } from '../contexts/AuthContext'
+import { useState, useEffect } from 'react'
+import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { useLoading } from '../hooks/useLoading'
 import { workOrdersAPI, propertiesAPI, contractorsAPI, photosAPI } from '../lib/api'
+import './Properties.css'
 
-interface WorkOrder {
-  id: string
-  property_id: string
-  contractor_id?: string
-  title: string
-  description?: string
-  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-  priority: 'HIGH' | 'MEDIUM' | 'LOW'
-  category: 'PLUMBING' | 'ELECTRICAL' | 'HEATING' | 'APPLIANCES' | 'EXTERIOR' | 'INTERIOR' | 'OTHER'
-  due_date?: string
-  estimated_cost?: number
-  actual_cost?: number
-  completion_note?: string
-  cancellation_reason?: string
-  created_at: string
-  property?: any
-  contractor?: any
-}
+interface WorkOrder { id: string; property_id: string; contractor_id?: string; title: string; description?: string; status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'; priority: 'HIGH' | 'MEDIUM' | 'LOW'; category: string; due_date?: string; estimated_cost?: number; actual_cost?: number; property?: any; contractor?: any }
 
-interface CreateWorkOrderData {
-  property_id: string
-  contractor_id?: string
-  title: string
-  description?: string
-  priority: 'HIGH' | 'MEDIUM' | 'LOW'
-  category: 'PLUMBING' | 'ELECTRICAL' | 'HEATING' | 'APPLIANCES' | 'EXTERIOR' | 'INTERIOR' | 'OTHER'
-  due_date?: string
-  estimated_cost?: number
-}
+const PRIORITIES = ['HIGH', 'MEDIUM', 'LOW']
+const STATUSES = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
+const CATEGORIES = ['PLUMBING', 'ELECTRICAL', 'HEATING', 'APPLIANCES', 'EXTERIOR', 'INTERIOR', 'OTHER']
+
+const statusColors: any = { OPEN: '#3b82f6', IN_PROGRESS: '#f59e0b', COMPLETED: '#22c55e', CANCELLED: '#ef4444' }
+const priorityColors: any = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#3b82f6' }
 
 export default function WorkOrders() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
   const [properties, setProperties] = useState<any[]>([])
   const [contractors, setContractors] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { isLoading, withLoading } = useLoading()
+  const toast = useToast()
   const [openDialog, setOpenDialog] = useState(false)
   const [openStatusDialog, setOpenStatusDialog] = useState(false)
-  const [editingWorkOrder, setEditingWorkOrder] = useState<WorkOrder | null>(null)
-  const [statusChangeWorkOrder, setStatusChangeWorkOrder] = useState<WorkOrder | null>(null)
-  const [newStatus, setNewStatus] = useState<string>('')
-  const [statusNote, setStatusNote] = useState('')
   const [openPhotoDialog, setOpenPhotoDialog] = useState(false)
-  const [photoWorkOrder, setPhotoWorkOrder] = useState<WorkOrder | null>(null)
+  const [editing, setEditing] = useState<WorkOrder | null>(null)
+  const [statusChangeWO, setStatusChangeWO] = useState<WorkOrder | null>(null)
+  const [photoWO, setPhotoWO] = useState<WorkOrder | null>(null)
   const [photos, setPhotos] = useState<any[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [photoCaption, setPhotoCaption] = useState('')
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
-  const [formData, setFormData] = useState<CreateWorkOrderData>({
-    property_id: '',
-    contractor_id: '',
-    title: '',
-    description: '',
-    priority: 'MEDIUM',
-    category: 'OTHER',
-    due_date: '',
-    estimated_cost: 0,
-  })
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [formData, setFormData] = useState({ property_id: '', contractor_id: '', title: '', description: '', priority: 'MEDIUM', category: 'OTHER', due_date: '', estimated_cost: 0 })
+  const [statusNote, setStatusNote] = useState('')
+  const [newStatus, setNewStatus] = useState('')
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  useEffect(() => { loadData() }, [])
 
-  const loadData = async () => {
-    try {
-      setIsLoading(true)
-      const [workOrdersData, propertiesData, contractorsData] = await Promise.all([
-        workOrdersAPI.list(),
-        propertiesAPI.list(),
-        contractorsAPI.list(),
-      ])
-      setWorkOrders(workOrdersData)
-      setProperties(propertiesData)
-      setContractors(contractorsData)
-      setError('')
-    } catch (err: any) {
-      setError('Failed to load data')
-      console.error('Load data error:', err)
-    } finally {
-      setIsLoading(false)
-    }
+  const loadData = () => {
+    withLoading(async () => {
+      try {
+        const [wos, props, cons] = await Promise.all([workOrdersAPI.list(), propertiesAPI.list(), contractorsAPI.list()])
+        setWorkOrders(wos)
+        setProperties(props)
+        setContractors(cons)
+      } catch (err) {
+        toast.error('Failed to load data')
+      }
+    })
   }
 
-  const handleOpenDialog = (workOrder?: WorkOrder) => {
-    if (workOrder) {
-      setEditingWorkOrder(workOrder)
-      // Format datetime for datetime-local input (yyyy-MM-ddTHH:mm)
-      let formattedDueDate = ''
-      if (workOrder.due_date) {
-        const date = new Date(workOrder.due_date)
-        formattedDueDate = date.toISOString().slice(0, 16) // Get yyyy-MM-ddTHH:mm
-      }
-      setFormData({
-        property_id: workOrder.property_id,
-        contractor_id: workOrder.contractor_id || '',
-        title: workOrder.title,
-        description: workOrder.description || '',
-        priority: workOrder.priority,
-        category: workOrder.category,
-        due_date: formattedDueDate,
-        estimated_cost: workOrder.estimated_cost || 0,
-      })
+  const handleOpenDialog = (wo?: WorkOrder) => {
+    if (wo) {
+      setEditing(wo)
+      setFormData({ property_id: wo.property_id, contractor_id: wo.contractor_id || '', title: wo.title, description: wo.description || '', priority: wo.priority, category: wo.category, due_date: wo.due_date ? new Date(wo.due_date).toISOString().slice(0, 16) : '', estimated_cost: wo.estimated_cost || 0 })
     } else {
-      setEditingWorkOrder(null)
-      setFormData({
-        property_id: '',
-        contractor_id: '',
-        title: '',
-        description: '',
-        priority: 'MEDIUM',
-        category: 'OTHER',
-        due_date: '',
-        estimated_cost: 0,
-      })
+      setEditing(null)
+      setFormData({ property_id: '', contractor_id: '', title: '', description: '', priority: 'MEDIUM', category: 'OTHER', due_date: '', estimated_cost: 0 })
     }
     setOpenDialog(true)
   }
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false)
-    setEditingWorkOrder(null)
-  }
-
   const handleSubmit = async () => {
     try {
-      // Clean up form data - remove empty strings
-      const cleanedData: any = { ...formData }
-      if (!cleanedData.contractor_id) {
-        delete cleanedData.contractor_id
-      }
-      if (!cleanedData.description) {
-        delete cleanedData.description
-      }
-      if (!cleanedData.due_date) {
-        delete cleanedData.due_date
-      }
-      if (!cleanedData.estimated_cost || cleanedData.estimated_cost === 0) {
-        delete cleanedData.estimated_cost
-      }
-
-      if (editingWorkOrder) {
-        await workOrdersAPI.update(editingWorkOrder.id, cleanedData)
+      const data: any = { ...formData }
+      if (!data.contractor_id) delete data.contractor_id
+      if (!data.description) delete data.description
+      if (!data.due_date) delete data.due_date
+      if (!data.estimated_cost || data.estimated_cost === 0) delete data.estimated_cost
+      
+      if (editing) {
+        await workOrdersAPI.update(editing.id, data)
+        toast.success('Work order updated')
       } else {
-        await workOrdersAPI.create(cleanedData)
+        await workOrdersAPI.create(data)
+        toast.success('Work order created')
       }
-      handleCloseDialog()
+      setOpenDialog(false)
       loadData()
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to save work order')
+      toast.error(err.response?.data?.error || 'Failed to save')
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this work order?')) {
-      return
-    }
-
+    if (!confirm('Delete work order?')) return
     try {
       await workOrdersAPI.delete(id)
+      toast.success('Work order deleted')
       loadData()
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete work order')
+    } catch (err) {
+      toast.error('Failed to delete')
     }
   }
 
-  const handleOpenStatusDialog = (workOrder: WorkOrder) => {
-    setStatusChangeWorkOrder(workOrder)
-    setNewStatus(workOrder.status)
+  const handleOpenStatusDialog = (wo: WorkOrder) => {
+    setStatusChangeWO(wo)
+    setNewStatus(wo.status)
     setStatusNote('')
     setOpenStatusDialog(true)
   }
 
   const handleStatusChange = async () => {
-    if (!statusChangeWorkOrder) return
-
+    if (!statusChangeWO) return
     try {
-      await workOrdersAPI.updateStatus(statusChangeWorkOrder.id, newStatus, statusNote)
+      await workOrdersAPI.updateStatus(statusChangeWO.id, newStatus, statusNote)
+      toast.success('Status updated')
       setOpenStatusDialog(false)
-      setStatusChangeWorkOrder(null)
-      setStatusNote('')
       loadData()
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update status')
+    } catch (err) {
+      toast.error('Failed to update status')
     }
   }
 
-  const handleOpenPhotoDialog = async (workOrder: WorkOrder) => {
-    setPhotoWorkOrder(workOrder)
+  const handleOpenPhotoDialog = async (wo: WorkOrder) => {
+    setPhotoWO(wo)
     setOpenPhotoDialog(true)
     setSelectedFile(null)
-    setPhotoCaption('')
-
-    // Load photos for this work order
     try {
-      const photosData = await photosAPI.list({ work_order_id: workOrder.id })
+      const photosData = await photosAPI.list({ work_order_id: wo.id })
       setPhotos(photosData)
-    } catch (err: any) {
-      console.error('Failed to load photos:', err)
+    } catch (err) {
       setPhotos([])
     }
   }
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0])
-    }
-  }
-
   const handlePhotoUpload = async () => {
-    if (!selectedFile || !photoWorkOrder) return
-
+    if (!selectedFile || !photoWO) return
     try {
-      setUploadingPhoto(true)
-      await photosAPI.upload(selectedFile, {
-        work_order_id: photoWorkOrder.id,
-        caption: photoCaption,
-        label: 'DURING',
-      })
-
-      // Reload photos
-      const photosData = await photosAPI.list({ work_order_id: photoWorkOrder.id })
+      await photosAPI.upload(selectedFile, { work_order_id: photoWO.id, label: 'DURING' })
+      toast.success('Photo uploaded')
+      const photosData = await photosAPI.list({ work_order_id: photoWO.id })
       setPhotos(photosData)
       setSelectedFile(null)
-      setPhotoCaption('')
-      setError('')
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to upload photo')
-    } finally {
-      setUploadingPhoto(false)
+    } catch (err) {
+      toast.error('Failed to upload')
     }
   }
 
-  const handleDeletePhoto = async (photoId: string) => {
-    if (!confirm('Are you sure you want to delete this photo?')) return
-
-    try {
-      await photosAPI.delete(photoId)
-      const photosData = await photosAPI.list({ work_order_id: photoWorkOrder!.id })
-      setPhotos(photosData)
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete photo')
-    }
-  }
-
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'OPEN':
-        return 'primary'
-      case 'IN_PROGRESS':
-        return 'warning'
-      case 'COMPLETED':
-        return 'success'
-      case 'CANCELLED':
-        return 'error'
-      default:
-        return 'default'
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'HIGH':
-        return 'error'
-      case 'MEDIUM':
-        return 'warning'
-      case 'LOW':
-        return 'info'
-      default:
-        return 'default'
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
-    )
-  }
+  if (isLoading) return <div className="page-loading"><Spinner size="lg" /></div>
 
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            RightFit Services - Work Orders
-          </Typography>
-          {user && (
-            <>
-              <Button color="inherit" onClick={() => navigate('/properties')}>
-                Properties
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/tenants')}>
-                Tenants
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/financial')}>
-                Financial
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/contractors')}>
-                Contractors
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/certificates')}>
-                Certificates
-              </Button>
-              <Chip label={user.tenant_name} color="secondary" sx={{ mr: 2 }} />
-              <Chip
-                label={user.role}
-                variant="outlined"
-                sx={{ mr: 2, color: 'white', borderColor: 'white' }}
-              />
-              <Typography variant="body2" sx={{ mr: 2 }}>
-                {user.email}
-              </Typography>
-              <IconButton color="inherit" onClick={handleLogout}>
-                <LogoutIcon />
-              </IconButton>
-            </>
+    <div className="properties-page">
+      <div className="page-header">
+        <div><h1 className="page-title">Work Orders</h1><p className="page-subtitle">Manage maintenance and repairs</p></div>
+        <div className="page-header-actions">
+          <div className="view-toggle">
+            <button className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')} aria-label="Grid view">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" /><rect x="11" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" /><rect x="3" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" /><rect x="11" y="11" width="6" height="6" stroke="currentColor" strokeWidth="1.5" /></svg>
+            </button>
+            <button className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} aria-label="List view">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+            </button>
+          </div>
+          <Button variant="primary" onClick={() => handleOpenDialog()}>Create Work Order</Button>
+        </div>
+      </div>
+
+      {workOrders.length === 0 ? (
+        <EmptyState title="No work orders" description="Create work orders to track maintenance" primaryAction={{ label: 'Create Work Order', onClick: () => handleOpenDialog() }} />
+      ) : (
+        <div className={`properties-${viewMode}`}>
+          {workOrders.map((wo) => (
+            <Card key={wo.id} variant="elevated" className="property-card">
+              <div className="property-card-header">
+                <div><h3 className="property-name">{wo.title}</h3><p className="property-address">{wo.property?.name || 'N/A'}</p></div>
+                <span style={{background: statusColors[wo.status] + '20', color: statusColors[wo.status], padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer'}} onClick={() => handleOpenStatusDialog(wo)}>{wo.status.replace('_', ' ')}</span>
+              </div>
+              <div className="property-details">
+                <div className="property-detail-item"><span style={{background: priorityColors[wo.priority] + '20', color: priorityColors[wo.priority], padding: '2px 8px', borderRadius: '8px', fontSize: '12px'}}>{wo.priority}</span></div>
+                <div className="property-detail-item"><span>{wo.category}</span></div>
+                {wo.contractor && <div className="property-detail-item"><span>{wo.contractor.name}</span></div>}
+                {wo.due_date && <div className="property-detail-item"><span>Due: {new Date(wo.due_date).toLocaleDateString()}</span></div>}
+              </div>
+              <div className="property-actions">
+                <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(wo)}>Edit</Button>
+                <Button variant="ghost" size="sm" onClick={() => handleOpenPhotoDialog(wo)}>Photos</Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(wo.id)}>Delete</Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal isOpen={openDialog} onClose={() => setOpenDialog(false)} title={editing ? 'Edit Work Order' : 'Create Work Order'} size="lg">
+        <div className="property-form">
+          <Input label="Title" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+          <div className="form-field"><label className="form-label">Property *</label><select className="form-select" value={formData.property_id} onChange={(e) => setFormData({ ...formData, property_id: e.target.value })}><option value="">Select property</option>{properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+          <div className="form-field"><label className="form-label">Contractor</label><select className="form-select" value={formData.contractor_id} onChange={(e) => setFormData({ ...formData, contractor_id: e.target.value })}><option value="">None</option>{contractors.map(c => <option key={c.id} value={c.id}>{c.name} - {c.trade}</option>)}</select></div>
+          <div className="form-field"><label className="form-label">Description</label><textarea className="form-textarea" rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+          <div className="form-row">
+            <div className="form-field"><label className="form-label">Priority *</label><select className="form-select" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}>{PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+            <div className="form-field"><label className="form-label">Category *</label><select className="form-select" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+          </div>
+          <div className="form-row">
+            <Input label="Due Date & Time" type="datetime-local" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} />
+            <Input label="Estimated Cost" type="number" value={formData.estimated_cost.toString()} onChange={(e) => setFormData({ ...formData, estimated_cost: parseFloat(e.target.value) || 0 })} />
+          </div>
+        </div>
+        <div className="modal-actions">
+          <Button variant="ghost" onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit}>{editing ? 'Update' : 'Create'}</Button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={openStatusDialog} onClose={() => setOpenStatusDialog(false)} title="Update Status">
+        <div className="property-form">
+          <div className="form-field"><label className="form-label">Status *</label><select className="form-select" value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>{STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}</select></div>
+          {(newStatus === 'COMPLETED' || newStatus === 'CANCELLED') && <div className="form-field"><label className="form-label">{newStatus === 'COMPLETED' ? 'Completion Note' : 'Cancellation Reason'}</label><textarea className="form-textarea" rows={3} value={statusNote} onChange={(e) => setStatusNote(e.target.value)} /></div>}
+        </div>
+        <div className="modal-actions">
+          <Button variant="ghost" onClick={() => setOpenStatusDialog(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleStatusChange}>Update Status</Button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={openPhotoDialog} onClose={() => setOpenPhotoDialog(false)} title={`Photos for: ${photoWO?.title}`} size="lg">
+        <div className="property-form">
+          <div style={{padding: '16px', border: '2px dashed var(--color-border)', borderRadius: '8px', marginBottom: '24px'}}>
+            <h3 style={{fontSize: '16px', fontWeight: 600, marginBottom: '12px'}}>Upload Photo</h3>
+            <input type="file" accept="image/*" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} style={{marginBottom: '12px'}} />
+            {selectedFile && <Button variant="primary" onClick={handlePhotoUpload}>Upload Photo</Button>}
+          </div>
+          <h3 style={{fontSize: '16px', fontWeight: 600, marginBottom: '12px'}}>Photos ({photos.length})</h3>
+          {photos.length === 0 ? <p style={{textAlign: 'center', color: 'var(--color-text-secondary)', padding: '24px'}}>No photos uploaded</p> : (
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px'}}>
+              {photos.map((p) => <img key={p.id} src={p.thumbnail_url} alt={p.caption} style={{width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer'}} onClick={() => window.open(p.s3_url, '_blank')} />)}
+            </div>
           )}
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-            {error}
-          </Alert>
-        )}
-
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4">Work Orders</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            Create Work Order
-          </Button>
-        </Box>
-
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Property</TableCell>
-                <TableCell>Contractor</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>Due Date</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {workOrders.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-                      No work orders found. Click "Create Work Order" to create your first work order.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                workOrders.map((workOrder) => (
-                  <TableRow key={workOrder.id}>
-                    <TableCell>{workOrder.title}</TableCell>
-                    <TableCell>{workOrder.property?.name || 'N/A'}</TableCell>
-                    <TableCell>{workOrder.contractor?.name || 'Unassigned'}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={workOrder.status}
-                        color={getStatusColor(workOrder.status) as any}
-                        size="small"
-                        onClick={() => handleOpenStatusDialog(workOrder)}
-                        sx={{ cursor: 'pointer' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={workOrder.priority}
-                        color={getPriorityColor(workOrder.priority) as any}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{workOrder.category}</TableCell>
-                    <TableCell>
-                      {workOrder.due_date
-                        ? new Date(workOrder.due_date).toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : 'N/A'}
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton color="primary" onClick={() => handleOpenDialog(workOrder)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton color="secondary" onClick={() => handleOpenPhotoDialog(workOrder)}>
-                        <PhotoCameraIcon />
-                      </IconButton>
-                      <IconButton color="error" onClick={() => handleDelete(workOrder.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Container>
-
-      {/* Create/Edit Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingWorkOrder ? 'Edit Work Order' : 'Create New Work Order'}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            fullWidth
-            required
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          />
-          <FormControl fullWidth margin="dense" required>
-            <InputLabel>Property</InputLabel>
-            <Select
-              value={formData.property_id}
-              label="Property"
-              onChange={(e) => setFormData({ ...formData, property_id: e.target.value })}
-            >
-              {properties.map((property) => (
-                <MenuItem key={property.id} value={property.id}>
-                  {property.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Contractor (Optional)</InputLabel>
-            <Select
-              value={formData.contractor_id}
-              label="Contractor (Optional)"
-              onChange={(e) => setFormData({ ...formData, contractor_id: e.target.value })}
-            >
-              <MenuItem value="">None</MenuItem>
-              {contractors.map((contractor) => (
-                <MenuItem key={contractor.id} value={contractor.id}>
-                  {contractor.name} - {contractor.trade}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <FormControl fullWidth margin="dense" required>
-            <InputLabel>Priority</InputLabel>
-            <Select
-              value={formData.priority}
-              label="Priority"
-              onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-            >
-              <MenuItem value="HIGH">High</MenuItem>
-              <MenuItem value="MEDIUM">Medium</MenuItem>
-              <MenuItem value="LOW">Low</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense" required>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={formData.category}
-              label="Category"
-              onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-            >
-              <MenuItem value="PLUMBING">Plumbing</MenuItem>
-              <MenuItem value="ELECTRICAL">Electrical</MenuItem>
-              <MenuItem value="HEATING">Heating</MenuItem>
-              <MenuItem value="APPLIANCES">Appliances</MenuItem>
-              <MenuItem value="EXTERIOR">Exterior</MenuItem>
-              <MenuItem value="INTERIOR">Interior</MenuItem>
-              <MenuItem value="OTHER">Other</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Due Date & Time"
-            type="datetime-local"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={formData.due_date}
-            onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Estimated Cost"
-            type="number"
-            fullWidth
-            value={formData.estimated_cost}
-            onChange={(e) => setFormData({ ...formData, estimated_cost: parseFloat(e.target.value) || 0 })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {editingWorkOrder ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Status Change Dialog */}
-      <Dialog open={openStatusDialog} onClose={() => setOpenStatusDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Update Work Order Status</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={newStatus}
-              label="Status"
-              onChange={(e) => setNewStatus(e.target.value)}
-            >
-              <MenuItem value="OPEN">Open</MenuItem>
-              <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
-              <MenuItem value="COMPLETED">Completed</MenuItem>
-              <MenuItem value="CANCELLED">Cancelled</MenuItem>
-            </Select>
-          </FormControl>
-          {(newStatus === 'COMPLETED' || newStatus === 'CANCELLED') && (
-            <TextField
-              margin="dense"
-              label={newStatus === 'COMPLETED' ? 'Completion Note' : 'Cancellation Reason'}
-              fullWidth
-              multiline
-              rows={3}
-              value={statusNote}
-              onChange={(e) => setStatusNote(e.target.value)}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenStatusDialog(false)}>Cancel</Button>
-          <Button onClick={handleStatusChange} variant="contained">
-            Update Status
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Photo Upload Dialog */}
-      <Dialog open={openPhotoDialog} onClose={() => setOpenPhotoDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Photos for: {photoWorkOrder?.title}
-        </DialogTitle>
-        <DialogContent>
-          {/* Upload Section */}
-          <Box sx={{ mb: 3, p: 2, border: '2px dashed #ccc', borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Upload New Photo
-            </Typography>
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="photo-upload-file"
-              type="file"
-              onChange={handleFileSelect}
-            />
-            <label htmlFor="photo-upload-file">
-              <Button variant="contained" component="span" startIcon={<PhotoCameraIcon />}>
-                Select Photo
-              </Button>
-            </label>
-            {selectedFile && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" gutterBottom>
-                  Selected: {selectedFile.name}
-                </Typography>
-                <TextField
-                  fullWidth
-                  label="Caption (Optional)"
-                  value={photoCaption}
-                  onChange={(e) => setPhotoCaption(e.target.value)}
-                  sx={{ mt: 1, mb: 2 }}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handlePhotoUpload}
-                  disabled={uploadingPhoto}
-                  startIcon={uploadingPhoto ? <CircularProgress size={20} /> : <ImageIcon />}
-                >
-                  {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
-                </Button>
-              </Box>
-            )}
-          </Box>
-
-          {/* Photos Gallery */}
-          <Typography variant="h6" gutterBottom>
-            Photos ({photos.length})
-          </Typography>
-          {photos.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
-              No photos uploaded yet. Upload your first photo above.
-            </Typography>
-          ) : (
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2 }}>
-              {photos.map((photo) => (
-                <Paper key={photo.id} sx={{ p: 1 }}>
-                  <Box
-                    component="img"
-                    src={photo.thumbnail_url}
-                    alt={photo.caption || 'Work order photo'}
-                    sx={{
-                      width: '100%',
-                      height: 200,
-                      objectFit: 'cover',
-                      borderRadius: 1,
-                      mb: 1,
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => window.open(photo.s3_url, '_blank')}
-                  />
-                  {photo.caption && (
-                    <Typography variant="caption" display="block" gutterBottom>
-                      {photo.caption}
-                    </Typography>
-                  )}
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    Uploaded: {new Date(photo.created_at).toLocaleDateString()}
-                  </Typography>
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => handleDeletePhoto(photo.id)}
-                    sx={{ mt: 1 }}
-                  >
-                    Delete
-                  </Button>
-                </Paper>
-              ))}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenPhotoDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    </>
+        </div>
+        <div className="modal-actions">
+          <Button variant="ghost" onClick={() => setOpenPhotoDialog(false)}>Close</Button>
+        </div>
+      </Modal>
+    </div>
   )
 }

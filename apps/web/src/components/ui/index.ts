@@ -43,3 +43,7 @@ export type { SpinnerProps, LoadingOverlayProps, SpinnerSize, SpinnerVariant } f
 
 export { Skeleton, SkeletonText, SkeletonCard, SkeletonTable } from './Skeleton'
 export type { SkeletonProps, SkeletonTextProps, SkeletonCardProps, SkeletonTableProps, SkeletonVariant } from './Skeleton'
+
+// Empty States
+export { EmptyState } from './EmptyState'
+export type { EmptyStateProps } from './EmptyState'
