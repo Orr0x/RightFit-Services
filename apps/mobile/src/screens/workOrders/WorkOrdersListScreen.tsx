@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native'
-import { Text, Card, Title, Paragraph, FAB, Chip } from 'react-native-paper'
+import { View, StyleSheet, FlatList, RefreshControl, Text, TouchableOpacity } from 'react-native'
+import { Card, Button, EmptyState, Spinner } from '../../components/ui'
+import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { WorkOrdersStackParamList, WorkOrder } from '../../types'
 import { Q } from '@nozbe/watermelondb'
@@ -130,76 +131,77 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'HIGH':
-        return '#D32F2F'
+        return colors.error
       case 'MEDIUM':
-        return '#FBC02D'
+        return colors.warning
       case 'LOW':
-        return '#388E3C'
+        return colors.success
       default:
-        return '#757575'
+        return colors.neutral500
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'OPEN':
-        return '#2196F3'
+        return colors.info
       case 'ASSIGNED':
-        return '#FF9800'
+        return colors.warning
       case 'IN_PROGRESS':
-        return '#9C27B0'
+        return colors.primary
       case 'COMPLETED':
-        return '#4CAF50'
+        return colors.success
       case 'CANCELLED':
-        return '#757575'
+        return colors.neutral500
       default:
-        return '#757575'
+        return colors.neutral500
     }
   }
 
   const renderWorkOrder = ({ item }: { item: WorkOrder }) => (
-    <Card
-      style={styles.card}
+    <TouchableOpacity
       onPress={() => navigation.navigate('WorkOrderDetails', { workOrderId: item.id })}
+      activeOpacity={0.7}
     >
-      <Card.Content>
+      <Card variant="outlined" style={styles.card}>
         <View style={styles.header}>
-          <Title style={styles.title}>{item.title}</Title>
-          <Chip
-            mode="flat"
-            style={[styles.priorityChip, { backgroundColor: getPriorityColor(item.priority) }]}
-            textStyle={styles.chipText}
-          >
-            {item.priority}
-          </Chip>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
+            <Text style={styles.priorityText}>{item.priority}</Text>
+          </View>
         </View>
-        <Paragraph numberOfLines={2}>{item.description}</Paragraph>
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description}
+        </Text>
         {item.property && (
-          <Paragraph style={styles.property}>{item.property.name}</Paragraph>
+          <Text style={styles.property}>{item.property.name}</Text>
         )}
-        <View style={styles.chips}>
-          <Chip
-            mode="outlined"
-            style={[styles.statusChip, { borderColor: getStatusColor(item.status) }]}
-            textStyle={{ color: getStatusColor(item.status) }}
-          >
-            {item.status}
-          </Chip>
-          <Chip mode="outlined" style={styles.chip}>
-            {item.category}
-          </Chip>
+        <View style={styles.badges}>
+          <View style={[styles.statusBadge, { borderColor: getStatusColor(item.status) }]}>
+            <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+              {item.status.replace('_', ' ')}
+            </Text>
+          </View>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{item.category}</Text>
+          </View>
         </View>
-      </Card.Content>
-    </Card>
+      </Card>
+    </TouchableOpacity>
   )
 
   return (
     <View style={styles.container}>
-      {workOrders.length === 0 && !loading ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No work orders yet</Text>
-          <Text style={styles.emptySubtext}>Create your first work order to get started</Text>
-        </View>
+      {loading && workOrders.length === 0 ? (
+        <Spinner size="large" />
+      ) : workOrders.length === 0 ? (
+        <EmptyState
+          icon="🔧"
+          title="No work orders yet"
+          message="Create your first work order to get started"
+        />
       ) : (
         <FlatList
           data={workOrders}
@@ -210,11 +212,16 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
         />
       )}
 
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => navigation.navigate('CreateWorkOrder', {})}
-      />
+      <View style={styles.fabContainer}>
+        <Button
+          variant="primary"
+          size="lg"
+          onPress={() => navigation.navigate('CreateWorkOrder', {})}
+          style={styles.fab}
+        >
+          + New Work Order
+        </Button>
+      </View>
     </View>
   )
 }
@@ -222,67 +229,91 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   list: {
-    padding: 16,
+    padding: spacing.md,
+    paddingBottom: 80,
   },
   card: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   title: {
     flex: 1,
-    marginRight: 8,
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    marginRight: spacing.sm,
+  },
+  description: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
+    lineHeight: 20,
   },
   property: {
-    marginTop: 4,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.tertiary,
     fontStyle: 'italic',
-    color: '#666',
+    marginTop: spacing.xs,
   },
-  chips: {
+  badges: {
     flexDirection: 'row',
-    marginTop: 8,
-    gap: 8,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
   },
-  chip: {
-    marginRight: 8,
+  priorityBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+    minWidth: 60,
+    alignItems: 'center',
   },
-  priorityChip: {
-    height: 28,
+  priorityText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.white,
   },
-  statusChip: {
-    marginRight: 8,
+  statusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    marginRight: spacing.xs,
   },
-  chipText: {
-    color: '#fff',
-    fontSize: 12,
+  statusText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    textTransform: 'capitalize',
+  },
+  categoryBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+  },
+  categoryText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    textTransform: 'capitalize',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    left: spacing.md,
+    right: spacing.md,
   },
   fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#6200EE',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#666',
+    shadowColor: colors.neutral900,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 })
