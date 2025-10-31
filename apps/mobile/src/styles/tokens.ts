@@ -61,6 +61,7 @@ export const spacing = {
   16: 64,
   20: 80,
   // Named spacing aliases (for migrated screens)
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 16,
