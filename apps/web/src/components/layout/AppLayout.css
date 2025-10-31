@@ -44,6 +44,11 @@
   }
 }
 
+/* Dark mode via class */
+.dark .app-header {
+  background-color: rgba(10, 10, 10, 0.8);
+}
+
 .app-header-search {
   flex: 1;
   max-width: 100%;

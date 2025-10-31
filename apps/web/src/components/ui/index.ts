@@ -47,3 +47,6 @@ export type { SkeletonProps, SkeletonTextProps, SkeletonCardProps, SkeletonTable
 // Empty States
 export { EmptyState } from './EmptyState'
 export type { EmptyStateProps } from './EmptyState'
+
+// Theme Toggle
+export { ThemeToggle } from './ThemeToggle'
