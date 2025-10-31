@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import { TextInput, Button, Text, HelperText } from 'react-native-paper'
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity } from 'react-native'
+import { Input, Button } from '../../components/ui'
+import { colors, spacing, typography } from '../../styles/tokens'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from '../../types'
 import { useAuth } from '../../contexts/AuthContext'
@@ -58,43 +59,44 @@ export default function LoginScreen({ navigation }: Props) {
           <Text style={styles.title}>RightFit Services</Text>
           <Text style={styles.subtitle}>Property Management Made Simple</Text>
 
-          <TextInput
+          <Input
             label="Email"
             value={email}
             onChangeText={setEmail}
-            mode="outlined"
+            placeholder="Enter your email"
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
-            style={styles.input}
             error={!!error && !validateEmail(email) && email.length > 0}
+            style={styles.input}
           />
 
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            mode="outlined"
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            autoComplete="password"
-            style={styles.input}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowPassword(!showPassword)}
-              />
-            }
-          />
+          <View style={styles.passwordContainer}>
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="password"
+              style={styles.input}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+            </TouchableOpacity>
+          </View>
 
           {error ? (
-            <HelperText type="error" visible={!!error} style={styles.error}>
-              {error}
-            </HelperText>
+            <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
           <Button
-            mode="contained"
+            variant="primary"
+            size="lg"
             onPress={handleLogin}
             loading={loading}
             disabled={loading}
@@ -103,13 +105,12 @@ export default function LoginScreen({ navigation }: Props) {
             Login
           </Button>
 
-          <Button
-            mode="text"
+          <TouchableOpacity
             onPress={() => navigation.navigate('Register')}
             style={styles.linkButton}
           >
-            Don't have an account? Register
-          </Button>
+            <Text style={styles.linkText}>Don't have an account? Register</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -119,39 +120,60 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
   },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#6200EE',
+    marginBottom: spacing.xs,
+    color: colors.primary,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: typography.fontSize.md,
     textAlign: 'center',
-    marginBottom: 32,
-    color: '#666',
+    marginBottom: spacing.xl,
+    color: colors.text.secondary,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
-  error: {
-    marginBottom: 12,
+  passwordContainer: {
+    position: 'relative',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: spacing.md,
+    top: 40,
+    padding: spacing.xs,
+  },
+  eyeText: {
+    fontSize: typography.fontSize.lg,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.fontSize.sm,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   button: {
-    marginTop: 8,
-    paddingVertical: 6,
+    marginTop: spacing.md,
   },
   linkButton: {
-    marginTop: 12,
+    marginTop: spacing.md,
+    alignItems: 'center',
+    padding: spacing.sm,
+  },
+  linkText: {
+    fontSize: typography.fontSize.md,
+    color: colors.primary,
+    textAlign: 'center',
   },
 })
