@@ -1,6 +1,7 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text, Button } from 'react-native-paper'
+import { View, StyleSheet, Text } from 'react-native'
+import { Button } from '../../components/ui'
+import { colors, spacing, typography } from '../../styles/tokens'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function ProfileScreen() {
@@ -21,7 +22,12 @@ export default function ProfileScreen() {
       <Text style={styles.title}>Profile</Text>
       <Text style={styles.subtitle}>User profile and settings</Text>
 
-      <Button mode="contained" onPress={handleLogout} style={styles.button}>
+      <Button
+        variant="primary"
+        size="lg"
+        onPress={handleLogout}
+        style={styles.button}
+      >
         Logout
       </Button>
     </View>
@@ -31,20 +37,21 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    padding: spacing.lg,
+    backgroundColor: colors.background.secondary,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
+    fontSize: typography.fontSize.md,
+    color: colors.text.secondary,
+    marginBottom: spacing.xl,
   },
   button: {
-    marginTop: 20,
+    marginTop: spacing.lg,
   },
 })
