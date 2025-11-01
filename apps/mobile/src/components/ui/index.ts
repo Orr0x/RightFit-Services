@@ -19,3 +19,6 @@ export type { SpinnerProps, SpinnerSize } from './Spinner'
 
 export { EmptyState } from './EmptyState'
 export type { EmptyStateProps } from './EmptyState'
+
+export { PhotoGallery } from './PhotoGallery'
+export type { PhotoGalleryProps, Photo } from './PhotoGallery'
