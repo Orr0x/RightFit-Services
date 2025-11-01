@@ -179,11 +179,24 @@ export const zIndex = {
 // Dark mode colors
 export const darkColors = {
   ...colors,
+  // Darker, more muted primary for dark mode
+  primary: '#0c4a6e',
+  primary500: '#0c4a6e',
+  primary600: '#075985',
+  primary700: '#0369a1',
+  // Dark backgrounds and surfaces
   background: '#0a0a0a',
   surface: '#171717',
   surfaceElevated: '#262626',
+  // Override neutral colors for dark mode (tags/chips)
+  neutral50: '#404040',
+  neutral100: '#525252',
+  neutral200: '#737373',
+  neutral300: '#a3a3a3',
+  // Dark borders
   border: '#404040',
   borderHover: '#525252',
+  // Dark mode text colors
   textPrimary: '#fafafa',
   textSecondary: '#d4d4d4',
   textTertiary: '#a3a3a3',

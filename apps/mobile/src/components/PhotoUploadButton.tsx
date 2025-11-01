@@ -3,7 +3,8 @@ import { View, StyleSheet, Alert, Modal, TouchableOpacity, Text } from 'react-na
 import * as ImagePicker from 'expo-image-picker'
 import api from '../services/api'
 import { Button, Spinner } from './ui'
-import { colors, spacing, typography, borderRadius } from '../styles/tokens'
+import { spacing, typography, borderRadius } from '../styles/tokens'
+import { useThemeColors } from '../hooks/useThemeColors'
 
 interface PhotoUploadButtonProps {
   workOrderId?: string
@@ -12,12 +13,18 @@ interface PhotoUploadButtonProps {
   label?: string
 }
 
+/**
+ * PhotoUploadButton - Component for uploading photos
+ * STORY-005: Dark Mode Support
+ */
 export default function PhotoUploadButton({
   workOrderId,
   propertyId,
   onPhotoUploaded,
   label = 'Add Photo',
 }: PhotoUploadButtonProps) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const [menuVisible, setMenuVisible] = useState(false)
   const [uploading, setUploading] = useState(false)
 
@@ -178,44 +185,45 @@ export default function PhotoUploadButton({
   )
 }
 
-const styles = StyleSheet.create({
-  button: {
-    marginVertical: spacing.sm,
-  },
-  uploadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.sm,
-    padding: spacing.md,
-  },
-  uploadingText: {
-    marginLeft: spacing.sm,
-    fontSize: typography.sizes.md,
-    color: colors.neutral700,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuContainer: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    padding: spacing.xs,
-    minWidth: 250,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  menuItem: {
-    padding: spacing.md,
-    borderRadius: borderRadius.sm,
-  },
-  menuItemText: {
-    fontSize: typography.sizes.md,
-    color: colors.neutral900,
-  },
-})
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    button: {
+      marginVertical: spacing.sm,
+    },
+    uploadingContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: spacing.sm,
+      padding: spacing.md,
+    },
+    uploadingText: {
+      marginLeft: spacing.sm,
+      fontSize: typography.sizes.md,
+      color: colors.neutral700,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    menuContainer: {
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.md,
+      padding: spacing.xs,
+      minWidth: 250,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+    },
+    menuItem: {
+      padding: spacing.md,
+      borderRadius: borderRadius.sm,
+    },
+    menuItemText: {
+      fontSize: typography.sizes.md,
+      color: colors.neutral900,
+    },
+  })

@@ -1,5 +1,5 @@
 import { prisma } from '@rightfit/database'
-import { RegisterInput, LoginInput, AuthResponse } from '@rightfit/shared'
+import { RegisterInput, LoginInput, AuthResponse, ChangePasswordInput } from '@rightfit/shared'
 import { hashPassword, comparePassword } from '../utils/hash'
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt'
 import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors'
@@ -200,5 +200,31 @@ export class AuthService {
         data: { used_at: new Date() },
       }),
     ])
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user || user.deleted_at) {
+      throw new NotFoundError('User not found')
+    }
+
+    // Verify current password
+    const isValid = await comparePassword(input.current_password, user.password_hash)
+    if (!isValid) {
+      throw new UnauthorizedError('Current password is incorrect')
+    }
+
+    // Hash new password
+    const password_hash = await hashPassword(input.new_password)
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password_hash },
+    })
   }
 }

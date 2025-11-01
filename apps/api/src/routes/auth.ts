@@ -5,12 +5,14 @@ import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } from '@rightfit/shared'
 import {
   loginRateLimiter,
   registerRateLimiter,
   passwordResetRateLimiter,
 } from '../middleware/rateLimiter'
+import { authenticate } from '../middleware/auth'
 
 const router: Router = Router()
 const authService = new AuthService()
@@ -70,6 +72,17 @@ router.post('/reset-password', async (req: Request, res: Response, next: NextFun
     const input = resetPasswordSchema.parse(req.body)
     await authService.resetPassword(input.token, input.new_password)
     res.json({ message: 'Password reset successfully. Please log in.' })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// POST /api/auth/change-password
+router.post('/change-password', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const input = changePasswordSchema.parse(req.body)
+    await authService.changePassword(req.user!.user_id, input)
+    res.json({ message: 'Password changed successfully' })
   } catch (error) {
     next(error)
   }

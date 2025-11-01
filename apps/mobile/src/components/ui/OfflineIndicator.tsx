@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import offlineDataService from '../../services/offlineDataService'
 
 /**
  * OfflineIndicator Component
  * STORY-004: Mobile UX Polish
+ * STORY-005: Dark Mode Support
  *
  * Shows offline status, sync status, and queued operations
  */
@@ -14,7 +16,74 @@ export interface OfflineIndicatorProps {
   onManualSync?: () => void
 }
 
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.warning,
+      zIndex: 1000,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+    },
+    containerOffline: {
+      backgroundColor: colors.error,
+    },
+    containerQueued: {
+      backgroundColor: colors.primary,
+    },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing[4],
+      paddingVertical: spacing[2],
+      minHeight: 40,
+    },
+    statusContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing[2],
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.success,
+    },
+    dotOffline: {
+      backgroundColor: colors.white,
+    },
+    statusText: {
+      fontSize: typography.fontSize.sm,
+      fontWeight: typography.fontWeight.medium,
+      color: colors.white,
+    },
+    syncButton: {
+      paddingHorizontal: spacing[3],
+      paddingVertical: spacing[1],
+      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+      borderRadius: borderRadius.sm,
+    },
+    syncButtonText: {
+      fontSize: typography.fontSize.xs,
+      fontWeight: typography.fontWeight.bold,
+      color: colors.white,
+    },
+    lastSyncedText: {
+      fontSize: typography.fontSize.xs,
+      color: 'rgba(255, 255, 255, 0.8)',
+    },
+  })
+
 export const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({ onManualSync }) => {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const [isOnline, setIsOnline] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
   const [queuedCount, setQueuedCount] = useState(0)
@@ -122,69 +191,5 @@ export const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({ onManualSync
     </Animated.View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.warning,
-    zIndex: 1000,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  containerOffline: {
-    backgroundColor: colors.error,
-  },
-  containerQueued: {
-    backgroundColor: colors.primary,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    minHeight: 40,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-  },
-  dotOffline: {
-    backgroundColor: colors.white,
-  },
-  statusText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.white,
-  },
-  syncButton: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: borderRadius.sm,
-  },
-  syncButtonText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.white,
-  },
-  lastSyncedText: {
-    fontSize: typography.fontSize.xs,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-})
 
 export default OfflineIndicator

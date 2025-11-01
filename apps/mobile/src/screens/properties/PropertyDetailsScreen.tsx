@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { View, StyleSheet, ScrollView, Text } from 'react-native'
-import { Card, Spinner } from '../../components/ui'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native'
+import { Card, Spinner, Button } from '../../components/ui'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { PropertiesStackParamList, Property } from '../../types'
@@ -15,7 +16,13 @@ interface Props {
   route: PropertyDetailsScreenRouteProp
 }
 
-export default function PropertyDetailsScreen({ route }: Props) {
+/**
+ * PropertyDetailsScreen - Screen displaying property details
+ * STORY-005: Dark Mode Support
+ */
+export default function PropertyDetailsScreen({ route, navigation }: Props) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const { propertyId } = route.params
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
@@ -73,63 +80,76 @@ export default function PropertyDetailsScreen({ route }: Props) {
             <Text style={styles.value}>{property.access_instructions}</Text>
           </View>
         )}
+
+        <View style={styles.buttonContainer}>
+          <Button
+            variant="primary"
+            onPress={() => navigation.navigate('CreateProperty', { propertyId: property.id })}
+          >
+            Edit Property
+          </Button>
+        </View>
       </Card>
     </ScrollView>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
-  card: {
-    margin: spacing.md,
-  },
-  title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
-  },
-  address: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  badges: {
-    flexDirection: 'row',
-    marginTop: spacing.md,
-    gap: spacing.xs,
-  },
-  badge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.neutral100,
-    borderRadius: borderRadius.full,
-    marginRight: spacing.xs,
-  },
-  badgeText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    textTransform: 'capitalize',
-  },
-  section: {
-    marginTop: spacing.lg,
-  },
-  label: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  value: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    lineHeight: 22,
-  },
-})
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
+    loadingContainer: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
+    card: {
+      margin: spacing.md,
+    },
+    title: {
+      fontSize: typography.fontSize['2xl'],
+      fontWeight: typography.fontWeight.bold,
+      color: colors.textPrimary,
+      marginBottom: spacing.sm,
+    },
+    address: {
+      fontSize: typography.fontSize.base,
+      color: colors.textSecondary,
+      marginBottom: spacing.xs,
+    },
+    badges: {
+      flexDirection: 'row',
+      marginTop: spacing.md,
+      gap: spacing.xs,
+    },
+    badge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      backgroundColor: colors.neutral100,
+      borderRadius: borderRadius.full,
+      marginRight: spacing.xs,
+    },
+    badgeText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      textTransform: 'capitalize',
+    },
+    section: {
+      marginTop: spacing.lg,
+    },
+    label: {
+      fontSize: typography.fontSize.sm,
+      fontWeight: typography.fontWeight.semibold,
+      color: colors.textPrimary,
+      marginBottom: spacing.xs,
+    },
+    value: {
+      fontSize: typography.fontSize.base,
+      color: colors.textSecondary,
+      lineHeight: 22,
+    },
+    buttonContainer: {
+      marginTop: spacing.lg,
+    },
+  })

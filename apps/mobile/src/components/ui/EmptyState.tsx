@@ -1,11 +1,13 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { colors, spacing, typography } from '../../styles/tokens'
+import { spacing, typography } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { Button, ButtonProps } from './Button'
 
 /**
  * EmptyState Component - React Native
  * STORY-002: Mobile Component Library
+ * STORY-005: Dark Mode Support
  */
 
 export interface EmptyStateProps {
@@ -23,6 +25,38 @@ export interface EmptyStateProps {
   } & Partial<ButtonProps>
 }
 
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing[8],
+    },
+    icon: {
+      marginBottom: spacing[4],
+      opacity: 0.5,
+    },
+    title: {
+      fontSize: typography.fontSize.xl,
+      fontWeight: typography.fontWeight.semibold,
+      color: colors.textPrimary,
+      textAlign: 'center',
+      marginBottom: spacing[2],
+    },
+    description: {
+      fontSize: typography.fontSize.base,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: spacing[6],
+      maxWidth: 300,
+    },
+    actions: {
+      width: '100%',
+      gap: spacing[2],
+    },
+  })
+
 export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
@@ -30,6 +64,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   primaryAction,
   secondaryAction,
 }) => {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
+
   return (
     <View style={styles.container}>
       {icon && <View style={styles.icon}>{icon}</View>}
@@ -65,36 +102,5 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing[8],
-  },
-  icon: {
-    marginBottom: spacing[4],
-    opacity: 0.5,
-  },
-  title: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing[2],
-  },
-  description: {
-    fontSize: typography.fontSize.base,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: spacing[6],
-    maxWidth: 300,
-  },
-  actions: {
-    width: '100%',
-    gap: spacing[2],
-  },
-})
 
 export default EmptyState

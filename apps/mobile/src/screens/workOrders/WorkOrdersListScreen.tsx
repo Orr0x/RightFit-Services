@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { View, StyleSheet, FlatList, RefreshControl, Text, TouchableOpacity } from 'react-native'
-import { Card, Button, EmptyState, Spinner } from '../../components/ui'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { Card, EmptyState, Spinner } from '../../components/ui'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { useFocusEffect } from '@react-navigation/native'
 import { WorkOrdersStackParamList, WorkOrder } from '../../types'
 import { Q } from '@nozbe/watermelondb'
 import api from '../../services/api'
 import offlineDataService from '../../services/offlineDataService'
 import { database } from '../../database'
+import * as Haptics from 'expo-haptics'
 
 type WorkOrdersListScreenNavigationProp = StackNavigationProp<WorkOrdersStackParamList, 'WorkOrdersList'>
 
@@ -15,7 +18,13 @@ interface Props {
   navigation: WorkOrdersListScreenNavigationProp
 }
 
+/**
+ * WorkOrdersListScreen - Screen displaying list of work orders
+ * STORY-005: Dark Mode Support
+ */
 export default function WorkOrdersListScreen({ navigation }: Props) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -119,9 +128,11 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
     }
   }
 
-  useEffect(() => {
-    fetchWorkOrders()
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkOrders()
+    }, [])
+  )
 
   const onRefresh = useCallback(() => {
     setRefreshing(true)
@@ -212,28 +223,29 @@ export default function WorkOrdersListScreen({ navigation }: Props) {
         />
       )}
 
-      <View style={styles.fabContainer}>
-        <Button
-          variant="primary"
-          size="lg"
-          onPress={() => navigation.navigate('CreateWorkOrder', {})}
-          style={styles.fab}
-        >
-          + New Work Order
-        </Button>
-      </View>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
+          navigation.navigate('CreateWorkOrder', {})
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
   list: {
     padding: spacing.md,
-    paddingBottom: 80,
+    paddingBottom: 100, // Space for FAB
   },
   card: {
     marginBottom: spacing.md,
@@ -303,17 +315,26 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textTransform: 'capitalize',
   },
-  fabContainer: {
+  fab: {
     position: 'absolute',
     bottom: spacing.lg,
-    left: spacing.md,
     right: spacing.md,
-  },
-  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: colors.neutral900,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  fabText: {
+    fontSize: 32,
+    color: colors.white,
+    fontWeight: '300',
+    lineHeight: 32,
   },
 })

@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity } from 'react-native'
 import { Input, Button } from '../../components/ui'
-import { colors, spacing, typography } from '../../styles/tokens'
+import { spacing, typography } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from '../../types'
 import { useAuth } from '../../contexts/AuthContext'
@@ -12,7 +13,13 @@ interface Props {
   navigation: RegisterScreenNavigationProp
 }
 
+/**
+ * RegisterScreen - User registration screen
+ * STORY-005: Dark Mode Support
+ */
 export default function RegisterScreen({ navigation }: Props) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const { register } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -174,11 +181,12 @@ export default function RegisterScreen({ navigation }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -234,9 +242,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.sm,
   },
-  linkText: {
-    fontSize: typography.fontSize.md,
-    color: colors.primary,
-    textAlign: 'center',
-  },
-})
+    linkText: {
+      fontSize: typography.fontSize.md,
+      color: colors.primary,
+      textAlign: 'center',
+    },
+  })

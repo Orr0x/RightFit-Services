@@ -256,6 +256,19 @@ class ApiClient {
     }
   }
 
+  async changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
+    return this.wrapApiCall(async () => {
+      logger.info('API_CLIENT', 'Attempting to change password')
+      const response = await this.client.post('/api/auth/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      })
+      logger.info('API_CLIENT', 'Password changed successfully')
+      return response.data
+    }, 'Change Password')
+  }
+
   // Properties API
   async getProperties(filters?: { property_id?: string }) {
     return this.wrapApiCall(async () => {
@@ -411,6 +424,27 @@ class ApiClient {
       const response = await this.client.get('/api/certificates', { params: filters })
       return response.data.data
     }, 'Get Certificates')
+  }
+
+  async getCertificate(id: string) {
+    return this.wrapApiCall(async () => {
+      const response = await this.client.get(`/api/certificates/${id}`)
+      return response.data.data
+    }, 'Get Certificate')
+  }
+
+  async createCertificate(data: any) {
+    return this.wrapApiCall(async () => {
+      const response = await this.client.post('/api/certificates', data)
+      return response.data.data
+    }, 'Create Certificate')
+  }
+
+  async updateCertificate(id: string, data: any) {
+    return this.wrapApiCall(async () => {
+      const response = await this.client.patch(`/api/certificates/${id}`, data)
+      return response.data.data
+    }, 'Update Certificate')
   }
 
   async uploadCertificate(file: FormData) {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Text, TouchableOpacity, Modal } from 'react-native'
-import { Input, Button } from '../../components/ui'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { Input, Button, Spinner } from '../../components/ui'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { WorkOrdersStackParamList, Property } from '../../types'
@@ -17,8 +18,17 @@ interface Props {
   route: CreateWorkOrderScreenRouteProp
 }
 
+/**
+ * CreateWorkOrderScreen - Screen for creating work orders
+ * STORY-005: Dark Mode Support
+ */
 export default function CreateWorkOrderScreen({ navigation, route }: Props) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const haptics = useHaptics()
+  const workOrderId = route.params?.workOrderId
+  const isEditMode = !!workOrderId
+
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [propertyId, setPropertyId] = useState(route.params?.propertyId || '')
@@ -28,10 +38,23 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
   const [estimatedCost, setEstimatedCost] = useState('')
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(false)
+  const [fetchingWorkOrder, setFetchingWorkOrder] = useState(false)
   const [error, setError] = useState('')
   const [propertyMenuVisible, setPropertyMenuVisible] = useState(false)
   const [priorityMenuVisible, setPriorityMenuVisible] = useState(false)
   const [categoryMenuVisible, setCategoryMenuVisible] = useState(false)
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: isEditMode ? 'Edit Work Order' : 'Create Work Order',
+    })
+  }, [navigation, isEditMode])
+
+  useEffect(() => {
+    if (isEditMode && workOrderId) {
+      loadWorkOrder()
+    }
+  }, [isEditMode, workOrderId])
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -63,6 +86,33 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
     fetchProperties()
   }, [])
 
+  const loadWorkOrder = async () => {
+    try {
+      setFetchingWorkOrder(true)
+      setError('')
+      const workOrder = await api.getWorkOrder(workOrderId!)
+      setTitle(workOrder.title)
+      setDescription(workOrder.description)
+      setPropertyId(workOrder.property_id || '')
+      setPriority(workOrder.priority || 'MEDIUM')
+      setCategory(workOrder.category || 'OTHER')
+      if (workOrder.due_date) {
+        // Format date for display in input field
+        const date = new Date(workOrder.due_date)
+        const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+        setDueDate(formattedDate)
+      }
+      if (workOrder.estimated_cost != null) {
+        setEstimatedCost(workOrder.estimated_cost.toString())
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load work order')
+      haptics.error()
+    } finally {
+      setFetchingWorkOrder(false)
+    }
+  }
+
   const handleCreate = async () => {
     setError('')
 
@@ -91,12 +141,18 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
         workOrderData.estimated_cost = parseFloat(estimatedCost)
       }
 
-      // Use offline-aware service for work order creation
-      await offlineDataService.createWorkOrder(workOrderData)
+      if (isEditMode && workOrderId) {
+        // Update existing work order
+        await api.updateWorkOrder(workOrderId, workOrderData)
+      } else {
+        // Use offline-aware service for work order creation
+        await offlineDataService.createWorkOrder(workOrderData)
+      }
+
       haptics.success()
       navigation.goBack()
     } catch (err: any) {
-      setError(err.message || 'Failed to create work order')
+      setError(err.message || `Failed to ${isEditMode ? 'update' : 'create'} work order`)
       haptics.error()
     } finally {
       setLoading(false)
@@ -104,6 +160,14 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
   }
 
   const selectedProperty = properties.find((p) => p.id === propertyId)
+
+  if (fetchingWorkOrder) {
+    return (
+      <View style={styles.container}>
+        <Spinner centered size="lg" color={colors.primary} />
+      </View>
+    )
+  }
 
   return (
     <KeyboardAvoidingView
@@ -196,7 +260,7 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
             disabled={loading}
             style={styles.button}
           >
-            Create Work Order
+            {isEditMode ? 'Update Work Order' : 'Create Work Order'}
           </Button>
         </View>
       </ScrollView>
@@ -300,11 +364,12 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
   scrollContent: {
     flexGrow: 1,
   },
@@ -348,40 +413,40 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     marginBottom: spacing.md,
     textAlign: 'center',
-  },
-  button: {
-    marginTop: spacing.lg,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    paddingTop: spacing.lg,
-    maxHeight: '70%',
-  },
-  modalTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  modalList: {
-    paddingHorizontal: spacing.lg,
-  },
-  modalItem: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral200,
-  },
-  modalItemText: {
-    fontSize: typography.fontSize.md,
-    color: colors.textPrimary,
-  },
-})
+    },
+    button: {
+      marginTop: spacing.lg,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: borderRadius.lg,
+      borderTopRightRadius: borderRadius.lg,
+      paddingTop: spacing.lg,
+      maxHeight: '70%',
+    },
+    modalTitle: {
+      fontSize: typography.fontSize.lg,
+      fontWeight: typography.fontWeight.bold,
+      color: colors.textPrimary,
+      textAlign: 'center',
+      marginBottom: spacing.md,
+      paddingHorizontal: spacing.lg,
+    },
+    modalList: {
+      paddingHorizontal: spacing.lg,
+    },
+    modalItem: {
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.neutral200,
+    },
+    modalItemText: {
+      fontSize: typography.fontSize.md,
+      color: colors.textPrimary,
+    },
+  })

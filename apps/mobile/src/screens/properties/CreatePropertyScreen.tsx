@@ -1,18 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Text } from 'react-native'
-import { Input, Button } from '../../components/ui'
-import { colors, spacing, typography } from '../../styles/tokens'
+import { Input, Button, Spinner } from '../../components/ui'
+import { spacing, typography } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { RouteProp } from '@react-navigation/native'
 import { PropertiesStackParamList } from '../../types'
 import api from '../../services/api'
 
 type CreatePropertyScreenNavigationProp = StackNavigationProp<PropertiesStackParamList, 'CreateProperty'>
+type CreatePropertyScreenRouteProp = RouteProp<PropertiesStackParamList, 'CreateProperty'>
 
 interface Props {
   navigation: CreatePropertyScreenNavigationProp
+  route: CreatePropertyScreenRouteProp
 }
 
-export default function CreatePropertyScreen({ navigation }: Props) {
+/**
+ * CreatePropertyScreen - Screen for creating and editing properties
+ * STORY-005: Dark Mode Support
+ */
+export default function CreatePropertyScreen({ navigation, route }: Props) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
+  const propertyId = route.params?.propertyId
+  const isEditMode = !!propertyId
+
   const [name, setName] = useState('')
   const [addressLine1, setAddressLine1] = useState('')
   const [addressLine2, setAddressLine2] = useState('')
@@ -21,9 +34,41 @@ export default function CreatePropertyScreen({ navigation }: Props) {
   const [bedrooms, setBedrooms] = useState('')
   const [bathrooms, setBathrooms] = useState('')
   const [loading, setLoading] = useState(false)
+  const [fetchingProperty, setFetchingProperty] = useState(false)
   const [error, setError] = useState('')
 
-  const handleCreate = async () => {
+  useEffect(() => {
+    navigation.setOptions({
+      title: isEditMode ? 'Edit Property' : 'Add Property',
+    })
+  }, [navigation, isEditMode])
+
+  useEffect(() => {
+    if (isEditMode && propertyId) {
+      loadProperty()
+    }
+  }, [isEditMode, propertyId])
+
+  const loadProperty = async () => {
+    try {
+      setFetchingProperty(true)
+      setError('')
+      const property = await api.getProperty(propertyId!)
+      setName(property.name)
+      setAddressLine1(property.address_line1)
+      setAddressLine2(property.address_line2 || '')
+      setCity(property.city)
+      setPostcode(property.postcode)
+      setBedrooms(property.bedrooms.toString())
+      setBathrooms(property.bathrooms.toString())
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load property')
+    } finally {
+      setFetchingProperty(false)
+    }
+  }
+
+  const handleSubmit = async () => {
     setError('')
 
     if (!name || !addressLine1 || !city || !postcode || !bedrooms || !bathrooms) {
@@ -33,7 +78,7 @@ export default function CreatePropertyScreen({ navigation }: Props) {
 
     try {
       setLoading(true)
-      await api.createProperty({
+      const data = {
         name,
         address_line1: addressLine1,
         address_line2: addressLine2 || undefined,
@@ -42,13 +87,28 @@ export default function CreatePropertyScreen({ navigation }: Props) {
         property_type: 'HOUSE',
         bedrooms: parseInt(bedrooms),
         bathrooms: parseInt(bathrooms),
-      })
+      }
+
+      if (isEditMode && propertyId) {
+        await api.updateProperty(propertyId, data)
+      } else {
+        await api.createProperty(data)
+      }
+
       navigation.goBack()
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create property')
+      setError(err.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} property`)
     } finally {
       setLoading(false)
     }
+  }
+
+  if (fetchingProperty) {
+    return (
+      <View style={styles.container}>
+        <Spinner centered size="lg" color={colors.primary} />
+      </View>
+    )
   }
 
   return (
@@ -129,12 +189,12 @@ export default function CreatePropertyScreen({ navigation }: Props) {
           <Button
             variant="primary"
             size="lg"
-            onPress={handleCreate}
+            onPress={handleSubmit}
             loading={loading}
             disabled={loading}
             style={styles.button}
           >
-            Create Property
+            {isEditMode ? 'Update Property' : 'Add Property'}
           </Button>
         </View>
       </ScrollView>
@@ -142,27 +202,28 @@ export default function CreatePropertyScreen({ navigation }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    padding: spacing.lg,
-  },
-  input: {
-    marginBottom: spacing.md,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: typography.fontSize.sm,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  button: {
-    marginTop: spacing.lg,
-  },
-})
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    content: {
+      padding: spacing.lg,
+    },
+    input: {
+      marginBottom: spacing.md,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: typography.fontSize.sm,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+    button: {
+      marginTop: spacing.lg,
+    },
+  })

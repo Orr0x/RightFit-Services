@@ -27,12 +27,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuth = async () => {
     try {
+      console.log('[AUTH_CONTEXT] Starting authentication check')
       const isAuth = await api.isAuthenticated()
+      console.log('[AUTH_CONTEXT] Authentication check result:', isAuth)
       setIsAuthenticated(isAuth)
     } catch (error) {
-      console.error('Error checking auth status:', error)
+      console.error('[AUTH_CONTEXT] Error checking auth status:', error)
       setIsAuthenticated(false)
     } finally {
+      console.log('[AUTH_CONTEXT] Setting isLoading to false')
       setIsLoading(false)
     }
   }

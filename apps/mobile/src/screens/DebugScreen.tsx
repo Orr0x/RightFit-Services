@@ -2,9 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, ScrollView, Share, Text, TouchableOpacity } from 'react-native'
 import logger, { LogEntry, LogLevel } from '../services/logger'
 import { Button, Card, Spinner } from '../components/ui'
-import { colors, spacing, typography, borderRadius } from '../styles/tokens'
+import { spacing, typography, borderRadius } from '../styles/tokens'
+import { useThemeColors } from '../hooks/useThemeColors'
 
+/**
+ * DebugScreen - Screen displaying debug logs
+ * STORY-005: Dark Mode Support
+ */
 export default function DebugScreen() {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<LogLevel | 'ALL'>('ALL')
@@ -165,11 +172,12 @@ export default function DebugScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral100,
-  },
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.neutral100,
+    },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -301,9 +309,9 @@ const styles = StyleSheet.create({
     color: '#856404',
     marginBottom: spacing.xs,
   },
-  stackText: {
-    fontSize: typography.sizes.xs,
-    fontFamily: 'monospace',
-    color: '#856404',
-  },
-})
+    stackText: {
+      fontSize: typography.sizes.xs,
+      fontFamily: 'monospace',
+      color: '#856404',
+    },
+  })

@@ -154,17 +154,36 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Properties: undefined
   WorkOrders: undefined
+  Certificates: undefined
+  Contractors: undefined
   Profile: undefined
 }
 
 export type PropertiesStackParamList = {
   PropertiesList: undefined
   PropertyDetails: { propertyId: string }
-  CreateProperty: undefined
+  CreateProperty: { propertyId?: string }
 }
 
 export type WorkOrdersStackParamList = {
   WorkOrdersList: undefined
   WorkOrderDetails: { workOrderId: string }
-  CreateWorkOrder: { propertyId?: string }
+  CreateWorkOrder: { propertyId?: string; workOrderId?: string }
+}
+
+export type CertificatesStackParamList = {
+  CertificatesList: undefined
+  CertificateDetails: { certificateId: string }
+  CreateCertificate: { certificateId?: string }
+}
+
+export type ContractorsStackParamList = {
+  ContractorsList: undefined
+  ContractorDetails: { contractorId: string }
+  CreateContractor: { contractorId?: string }
+}
+
+export type ProfileStackParamList = {
+  ProfileMain: undefined
+  ChangePassword: undefined
 }

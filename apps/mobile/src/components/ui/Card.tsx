@@ -1,10 +1,12 @@
 import React from 'react'
 import { View, StyleSheet, ViewStyle } from 'react-native'
-import { colors, spacing, borderRadius, shadows } from '../../styles/tokens'
+import { spacing, borderRadius, shadows } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 
 /**
  * Card Component - React Native
  * STORY-002: Mobile Component Library
+ * STORY-005: Dark Mode Support
  */
 
 export type CardVariant = 'outlined' | 'elevated' | 'filled'
@@ -17,6 +19,24 @@ export interface CardProps {
   testID?: string
 }
 
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    card: {
+      borderRadius: borderRadius.lg,
+      backgroundColor: colors.surface,
+    },
+    cardOutlined: {
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cardElevated: {
+      ...shadows.md,
+    },
+    cardFilled: {
+      backgroundColor: colors.surfaceElevated,
+    },
+  })
+
 export const Card: React.FC<CardProps> = ({
   children,
   variant = 'outlined',
@@ -24,6 +44,9 @@ export const Card: React.FC<CardProps> = ({
   style,
   testID,
 }) => {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
+
   const cardStyles: ViewStyle[] = [
     styles.card,
     { padding: spacing[padding] },
@@ -39,22 +62,5 @@ export const Card: React.FC<CardProps> = ({
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.surface,
-  },
-  cardOutlined: {
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardElevated: {
-    ...shadows.md,
-  },
-  cardFilled: {
-    backgroundColor: colors.surfaceElevated,
-  },
-})
 
 export default Card

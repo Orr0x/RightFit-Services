@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from 'react'
 import { View, Animated, StyleSheet, ViewStyle } from 'react-native'
-import { colors, spacing, borderRadius } from '../../styles/tokens'
+import { spacing, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 
 /**
  * Skeleton Loader Component
  * STORY-004: Mobile UX Polish
+ * STORY-005: Dark Mode Support
  *
  * Animated loading skeleton for lists and content
  */
@@ -22,6 +24,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   borderRadius: radius = borderRadius.md,
   style,
 }) => {
+  const colors = useThemeColors()
   const opacity = useRef(new Animated.Value(0.3)).current
 
   useEffect(() => {
@@ -46,8 +49,8 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <Animated.View
       style={[
-        styles.skeleton,
         {
+          backgroundColor: colors.neutral200,
           width,
           height,
           borderRadius: radius,
@@ -64,6 +67,9 @@ export interface ListSkeletonProps {
 }
 
 export const ListSkeleton: React.FC<ListSkeletonProps> = ({ count = 5 }) => {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
+
   return (
     <View style={styles.container}>
       {Array.from({ length: count }).map((_, index) => (
@@ -82,29 +88,27 @@ export const ListSkeleton: React.FC<ListSkeletonProps> = ({ count = 5 }) => {
   )
 }
 
-const styles = StyleSheet.create({
-  skeleton: {
-    backgroundColor: colors.neutral200,
-  },
-  container: {
-    padding: spacing[4],
-  },
-  listItem: {
-    marginBottom: spacing[4],
-    padding: spacing[4],
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing[3],
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-})
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      padding: spacing[4],
+    },
+    listItem: {
+      marginBottom: spacing[4],
+      padding: spacing[4],
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: spacing[3],
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+  })
 
 export default Skeleton

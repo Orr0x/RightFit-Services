@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Text } from 'react-native'
-import { Card, Spinner } from '../../components/ui'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { Card, Spinner, Button } from '../../components/ui'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RouteProp } from '@react-navigation/native'
 import { WorkOrdersStackParamList, WorkOrder } from '../../types'
@@ -16,7 +17,13 @@ interface Props {
   route: WorkOrderDetailsScreenRouteProp
 }
 
-export default function WorkOrderDetailsScreen({ route }: Props) {
+/**
+ * WorkOrderDetailsScreen - Screen displaying work order details
+ * STORY-005: Dark Mode Support
+ */
+export default function WorkOrderDetailsScreen({ navigation, route }: Props) {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const { workOrderId } = route.params
   const [workOrder, setWorkOrder] = useState<WorkOrder | null>(null)
   const [photos, setPhotos] = useState<any[]>([])
@@ -131,6 +138,16 @@ export default function WorkOrderDetailsScreen({ route }: Props) {
             </Text>
           </View>
         )}
+
+        <View style={styles.buttonContainer}>
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={() => navigation.navigate('CreateWorkOrder', { workOrderId: workOrder.id })}
+          >
+            Edit Work Order
+          </Button>
+        </View>
       </Card>
 
       {/* Photo Upload & Gallery */}
@@ -184,11 +201,12 @@ export default function WorkOrderDetailsScreen({ route }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.surfaceElevated,
-  },
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surfaceElevated,
+    },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -268,9 +286,12 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     color: colors.textSecondary,
   },
-  photoDate: {
-    marginTop: spacing.xxs,
-    fontSize: typography.fontSize.xs,
-    color: colors.textTertiary,
-  },
-})
+    photoDate: {
+      marginTop: spacing.xxs,
+      fontSize: typography.fontSize.xs,
+      color: colors.textTertiary,
+    },
+    buttonContainer: {
+      marginTop: spacing.lg,
+    },
+  })

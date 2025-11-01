@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { View, Text, TextInput, StyleSheet, TextStyle, ViewStyle, TextInputProps } from 'react-native'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 
 /**
  * Input Component - React Native
  * STORY-002: Mobile Component Library
+ * STORY-005: Dark Mode Support
  */
 
 export interface InputProps extends Omit<TextInputProps, 'style'> {
@@ -18,6 +20,64 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   containerStyle?: ViewStyle
   inputStyle?: TextStyle
 }
+
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: spacing[4],
+    },
+    containerFullWidth: {
+      width: '100%',
+    },
+    label: {
+      fontSize: typography.fontSize.sm,
+      fontWeight: typography.fontWeight.medium,
+      color: colors.textPrimary,
+      marginBottom: spacing[2],
+    },
+    required: {
+      color: colors.error,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: borderRadius.md,
+      backgroundColor: colors.surface,
+      minHeight: 44,
+    },
+    inputContainerFocused: {
+      borderColor: colors.focus,
+      borderWidth: 2,
+    },
+    inputContainerError: {
+      borderColor: colors.error,
+    },
+    input: {
+      flex: 1,
+      fontSize: typography.fontSize.base,
+      color: colors.textPrimary,
+      paddingHorizontal: spacing[3],
+      paddingVertical: spacing[3],
+    },
+    leftIcon: {
+      marginLeft: spacing[3],
+    },
+    rightIcon: {
+      marginRight: spacing[3],
+    },
+    errorText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.error,
+      marginTop: spacing[1],
+    },
+    helperText: {
+      fontSize: typography.fontSize.sm,
+      color: colors.textSecondary,
+      marginTop: spacing[1],
+    },
+  })
 
 export const Input: React.FC<InputProps> = ({
   label,
@@ -33,6 +93,8 @@ export const Input: React.FC<InputProps> = ({
   onBlur,
   ...props
 }) => {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const [isFocused, setIsFocused] = useState(false)
 
   const handleFocus = (e: any) => {
@@ -65,6 +127,7 @@ export const Input: React.FC<InputProps> = ({
 
         <TextInput
           style={[styles.input, inputStyle]}
+          color={colors.textPrimary}
           placeholderTextColor={colors.textTertiary}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -79,62 +142,5 @@ export const Input: React.FC<InputProps> = ({
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing[4],
-  },
-  containerFullWidth: {
-    width: '100%',
-  },
-  label: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.textPrimary,
-    marginBottom: spacing[2],
-  },
-  required: {
-    color: colors.error,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    minHeight: 44,
-  },
-  inputContainerFocused: {
-    borderColor: colors.focus,
-    borderWidth: 2,
-  },
-  inputContainerError: {
-    borderColor: colors.error,
-  },
-  input: {
-    flex: 1,
-    fontSize: typography.fontSize.base,
-    color: colors.textPrimary,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[3],
-  },
-  leftIcon: {
-    marginLeft: spacing[3],
-  },
-  rightIcon: {
-    marginRight: spacing[3],
-  },
-  errorText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.error,
-    marginTop: spacing[1],
-  },
-  helperText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing[1],
-  },
-})
 
 export default Input

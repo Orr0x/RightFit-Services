@@ -4,11 +4,16 @@ import { WorkOrdersStackParamList } from '../types'
 import WorkOrdersListScreen from '../screens/workOrders/WorkOrdersListScreen'
 import WorkOrderDetailsScreen from '../screens/workOrders/WorkOrderDetailsScreen'
 import CreateWorkOrderScreen from '../screens/workOrders/CreateWorkOrderScreen'
-import { defaultScreenOptions, modalScreenOptions } from './screenOptions'
+import { getDefaultScreenOptions, getModalScreenOptions } from './screenOptions'
+import { useThemeColors } from '../hooks/useThemeColors'
 
 const Stack = createStackNavigator<WorkOrdersStackParamList>()
 
 export default function WorkOrdersStack() {
+  const colors = useThemeColors()
+  const defaultScreenOptions = getDefaultScreenOptions(colors)
+  const modalScreenOptions = getModalScreenOptions(colors)
+
   return (
     <Stack.Navigator
       screenOptions={defaultScreenOptions}

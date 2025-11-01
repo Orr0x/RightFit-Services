@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { View, Image, TouchableOpacity, StyleSheet, FlatList, Dimensions } from 'react-native'
 import ImageView from 'react-native-image-viewing'
-import { colors, spacing, borderRadius } from '../../styles/tokens'
+import { spacing, borderRadius } from '../../styles/tokens'
+import { useThemeColors } from '../../hooks/useThemeColors'
 
 /**
  * PhotoGallery Component
  * STORY-004: Mobile UX Polish
+ * STORY-005: Dark Mode Support
  *
  * Displays a grid of photos with lightbox viewer
  * - Pinch to zoom
@@ -27,7 +29,31 @@ export interface PhotoGalleryProps {
   onDelete?: (photoId: string) => void
 }
 
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    grid: {
+      padding: spacing[2],
+    },
+    imageContainer: {
+      width: IMAGE_SIZE,
+      height: IMAGE_SIZE,
+      margin: spacing[1],
+      borderRadius: borderRadius.md,
+      overflow: 'hidden',
+      backgroundColor: colors.neutral100,
+    },
+    thumbnail: {
+      width: '100%',
+      height: '100%',
+    },
+  })
+
 export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onDelete }) => {
+  const colors = useThemeColors()
+  const styles = createStyles(colors)
   const [visible, setVisible] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -67,26 +93,5 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onDelete }) 
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  grid: {
-    padding: spacing[2],
-  },
-  imageContainer: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
-    margin: spacing[1],
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-    backgroundColor: colors.neutral100,
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-  },
-})
 
 export default PhotoGallery

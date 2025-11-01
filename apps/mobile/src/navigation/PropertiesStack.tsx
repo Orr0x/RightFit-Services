@@ -4,11 +4,16 @@ import { PropertiesStackParamList } from '../types'
 import PropertiesListScreen from '../screens/properties/PropertiesListScreen'
 import PropertyDetailsScreen from '../screens/properties/PropertyDetailsScreen'
 import CreatePropertyScreen from '../screens/properties/CreatePropertyScreen'
-import { defaultScreenOptions, modalScreenOptions } from './screenOptions'
+import { getDefaultScreenOptions, getModalScreenOptions } from './screenOptions'
+import { useThemeColors } from '../hooks/useThemeColors'
 
 const Stack = createStackNavigator<PropertiesStackParamList>()
 
 export default function PropertiesStack() {
+  const colors = useThemeColors()
+  const defaultScreenOptions = getDefaultScreenOptions(colors)
+  const modalScreenOptions = getModalScreenOptions(colors)
+
   return (
     <Stack.Navigator
       screenOptions={defaultScreenOptions}

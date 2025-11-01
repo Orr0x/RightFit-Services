@@ -1,12 +1,14 @@
 import React from 'react'
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View, ViewStyle, TextStyle } from 'react-native'
-import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { spacing, typography, borderRadius } from '../../styles/tokens'
 import { useHaptics } from '../../hooks/useHaptics'
+import { useThemeColors } from '../../hooks/useThemeColors'
 
 /**
  * Button Component - React Native
  * STORY-002: Mobile Component Library
  * STORY-004: Added haptic feedback
+ * STORY-005: Dark Mode Support
  * Cross-platform parity with web Button component
  */
 
@@ -29,6 +31,101 @@ export interface ButtonProps {
   haptics?: boolean
 }
 
+const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+
+    // Variants
+    buttonPrimary: {
+      backgroundColor: colors.primary,
+    },
+    buttonSecondary: {
+      backgroundColor: colors.neutral100,
+      borderColor: colors.border,
+    },
+    buttonGhost: {
+      backgroundColor: 'transparent',
+    },
+    buttonDanger: {
+      backgroundColor: colors.error,
+    },
+
+    // Sizes
+    buttonSm: {
+      paddingVertical: spacing[2],
+      paddingHorizontal: spacing[3],
+      minHeight: 36,
+    },
+    buttonMd: {
+      paddingVertical: spacing[3],
+      paddingHorizontal: spacing[4],
+      minHeight: 44,
+    },
+    buttonLg: {
+      paddingVertical: spacing[4],
+      paddingHorizontal: spacing[5],
+      minHeight: 52,
+    },
+
+    // States
+    buttonFullWidth: {
+      width: '100%',
+    },
+    buttonDisabled: {
+      opacity: 0.5,
+    },
+
+    // Text
+    text: {
+      fontWeight: typography.fontWeight.medium,
+      textAlign: 'center',
+    },
+    textPrimary: {
+      color: colors.white,
+    },
+    textSecondary: {
+      color: colors.textPrimary,
+    },
+    textGhost: {
+      color: colors.primary,
+    },
+    textDanger: {
+      color: colors.white,
+    },
+    textSm: {
+      fontSize: typography.fontSize.sm,
+    },
+    textMd: {
+      fontSize: typography.fontSize.base,
+    },
+    textLg: {
+      fontSize: typography.fontSize.lg,
+    },
+    textDisabled: {
+      opacity: 1,
+    },
+
+    // Content layout
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    leftIcon: {
+      marginRight: spacing[2],
+    },
+    rightIcon: {
+      marginLeft: spacing[2],
+    },
+  })
+
 export const Button: React.FC<ButtonProps> = ({
   children,
   variant = 'primary',
@@ -43,7 +140,9 @@ export const Button: React.FC<ButtonProps> = ({
   testID,
   haptics = true,
 }) => {
+  const colors = useThemeColors()
   const { light } = useHaptics()
+  const styles = createStyles(colors)
 
   const buttonStyles: ViewStyle[] = [
     styles.button,
@@ -91,99 +190,5 @@ export const Button: React.FC<ButtonProps> = ({
     </TouchableOpacity>
   )
 }
-
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-
-  // Variants
-  buttonPrimary: {
-    backgroundColor: colors.primary,
-  },
-  buttonSecondary: {
-    backgroundColor: colors.neutral100,
-    borderColor: colors.border,
-  },
-  buttonGhost: {
-    backgroundColor: 'transparent',
-  },
-  buttonDanger: {
-    backgroundColor: colors.error,
-  },
-
-  // Sizes
-  buttonSm: {
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[3],
-    minHeight: 36,
-  },
-  buttonMd: {
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
-    minHeight: 44,
-  },
-  buttonLg: {
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[5],
-    minHeight: 52,
-  },
-
-  // States
-  buttonFullWidth: {
-    width: '100%',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-
-  // Text
-  text: {
-    fontWeight: typography.fontWeight.medium,
-    textAlign: 'center',
-  },
-  textPrimary: {
-    color: colors.white,
-  },
-  textSecondary: {
-    color: colors.textPrimary,
-  },
-  textGhost: {
-    color: colors.primary,
-  },
-  textDanger: {
-    color: colors.white,
-  },
-  textSm: {
-    fontSize: typography.fontSize.sm,
-  },
-  textMd: {
-    fontSize: typography.fontSize.base,
-  },
-  textLg: {
-    fontSize: typography.fontSize.lg,
-  },
-  textDisabled: {
-    opacity: 1,
-  },
-
-  // Content layout
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  leftIcon: {
-    marginRight: spacing[2],
-  },
-  rightIcon: {
-    marginLeft: spacing[2],
-  },
-})
 
 export default Button
