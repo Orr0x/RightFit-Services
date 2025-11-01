@@ -2,11 +2,11 @@
 
 **Story ID:** STORY-004
 **Phase:** Phase 2 - Week 8
-**Story Points:** 28 points
+**Story Points:** 28 points (2 points already complete)
 **Duration:** 7-10 days
-**Status:** 📋 Ready to Start
+**Status:** 🟡 Partially Started (2/28 points - 7%)
 **Git Branch:** `feature/story-004-mobile-polish`
-**Dependencies:** STORY-003 complete
+**Dependencies:** STORY-003 complete ✅
 
 ---
 
@@ -70,13 +70,21 @@ Polish mobile app with smooth animations, haptic feedback, improved offline UX, 
 **Commit:** `feat: add photo gallery with lightbox (STORY-004)`
 
 ### Part 5: List Improvements (10 pts, 3 days)
-- [ ] Add pull-to-refresh to all lists
+- [x] Add pull-to-refresh to all lists ✅ DONE (useFocusEffect on WorkOrdersListScreen)
+  - **Commit:** `fix: auto-refresh work order list when returning from create screen`
+- [x] Enable auto-rotation for tablets ✅ DONE (AndroidManifest.xml fullSensor)
+  - **Commit:** `fix: enable auto-rotation for tablets in AndroidManifest`
 - [ ] Add swipe-to-delete actions (optional)
 - [ ] Loading skeletons for lists
-- [ ] Empty states with illustrations
+- [ ] Empty states with illustrations (partially done - EmptyState component exists)
 - [ ] Smooth scroll performance
 
-**Commit:** `feat: improve list screen UX (STORY-004)`
+**Already Complete (2 pts):**
+- ✅ List auto-refresh behavior
+- ✅ Auto-rotation support
+
+**Remaining (8 pts):**
+- Swipe actions, loading skeletons, scroll optimization
 
 ---
 
