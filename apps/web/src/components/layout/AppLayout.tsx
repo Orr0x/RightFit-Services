@@ -292,7 +292,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className={`app-sidebar-wrapper ${mobileMenuOpen ? 'app-sidebar-mobile-open' : ''}`}>
         <Sidebar
           items={navItems}
-          collapsed={false}
+          collapsed={sidebarCollapsed}
           onToggle={() => {
             setSidebarCollapsed(!sidebarCollapsed)
             setMobileMenuOpen(false)
