@@ -18,10 +18,10 @@
 
 ### STORY-001: Week 5 Web UX Polish
 **File:** [phase-2/STORY-001-week-5-web-ux-polish.md](phase-2/STORY-001-week-5-web-ux-polish.md)
-**Points:** 14 | **Duration:** 5-7 days | **Status:** 🟡 Partial (70%)
+**Points:** 14 | **Actual:** 1 hour | **Status:** ✅ COMPLETE
 
 **What:** Complete form UX improvements, responsive testing, accessibility audit
-**Branch:** `feature/story-001-week-5-web-ux`
+**Branch:** `main` (fast-tracked)
 
 ---
 
@@ -137,7 +137,7 @@ Before marking complete:
 | STORY-005 | 🟡 Partial (50%) | `feature/story-005-dark-mode` → **MERGED** | 50% (14/28 pts - Web only) |
 | STORY-006 | 📋 Ready | `feature/story-006-wireframes` | 0% (0/40 pts) |
 
-**Phase 2 Progress:** 80/150 points (53%)
+**Phase 2 Progress:** 70/150 points (47%)
 
 **Recently Completed:**
 - ✅ STORY-001: Web UX Polish (14 pts) - **Fast-tracked in 1 hour!**
