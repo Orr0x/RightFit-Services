@@ -597,3 +597,244 @@ export const tenantsAPI = {
     return response.data.data
   },
 }
+
+// ===== SERVICE PROVIDER PLATFORM (NEW) =====
+// Two-dashboard system: Cleaning Services + Maintenance Services
+
+// Cleaning Jobs Types
+export interface CleaningJob {
+  id: string
+  service_id: string
+  property_id: string
+  customer_id: string
+  assigned_worker_id?: string
+  scheduled_date: string
+  scheduled_start_time: string
+  scheduled_end_time: string
+  actual_start_time?: string
+  actual_end_time?: string
+  checklist_template_id?: string
+  checklist_items?: any
+  checklist_completed_items: number
+  checklist_total_items: number
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  completion_notes?: string
+  before_photos: string[]
+  after_photos: string[]
+  issue_photos: string[]
+  pricing_type: string
+  quoted_price: number
+  actual_price?: number
+  maintenance_issues_found: number
+  maintenance_quotes_generated: number
+  created_at: string
+  updated_at: string
+  property?: {
+    id: string
+    property_name: string
+    address: string
+    postcode: string
+  }
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+  }
+  assigned_worker?: {
+    id: string
+    first_name: string
+    last_name: string
+    phone: string
+  }
+}
+
+export interface CreateCleaningJobData {
+  service_id: string
+  property_id: string
+  customer_id: string
+  assigned_worker_id?: string
+  scheduled_date: string
+  scheduled_start_time: string
+  scheduled_end_time: string
+  checklist_template_id?: string
+  checklist_total_items?: number
+  pricing_type: string
+  quoted_price: number
+  service_provider_id: string
+}
+
+// Cleaning Jobs API calls
+export const cleaningJobsAPI = {
+  list: async (serviceProviderId: string, filters?: {
+    status?: string
+    worker_id?: string
+    property_id?: string
+    customer_id?: string
+    from_date?: string
+    to_date?: string
+    page?: number
+    limit?: number
+  }) => {
+    const response = await api.get<{ data: CleaningJob[]; pagination: any }>('/api/cleaning-jobs', {
+      params: { service_provider_id: serviceProviderId, ...filters },
+    })
+    return response.data
+  },
+
+  get: async (id: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: CleaningJob }>(`/api/cleaning-jobs/${id}`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
+  },
+
+  create: async (data: CreateCleaningJobData) => {
+    const response = await api.post<{ data: CleaningJob }>('/api/cleaning-jobs', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateCleaningJobData> & { service_provider_id: string }) => {
+    const response = await api.put<{ data: CleaningJob }>(`/api/cleaning-jobs/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string, serviceProviderId: string) => {
+    await api.delete(`/api/cleaning-jobs/${id}`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+  },
+}
+
+// Maintenance Jobs Types
+export interface MaintenanceJob {
+  id: string
+  service_id: string
+  property_id: string
+  customer_id: string
+  assigned_worker_id?: string
+  assigned_contractor_id?: string
+  source: 'CUSTOMER_REQUEST' | 'CLEANER_REPORT' | 'GUEST_REPORT' | 'PREVENTIVE_MAINTENANCE' | 'EMERGENCY'
+  source_cleaning_job_id?: string
+  source_guest_report_id?: string
+  category: string
+  priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+  title: string
+  description?: string
+  requested_date?: string
+  scheduled_date?: string
+  completed_date?: string
+  status: 'QUOTE_PENDING' | 'QUOTE_SENT' | 'APPROVED' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  quote_id?: string
+  estimated_hours?: number
+  estimated_parts_cost?: number
+  estimated_labor_cost?: number
+  estimated_total?: number
+  actual_total?: number
+  issue_photos: string[]
+  work_in_progress_photos: string[]
+  completion_photos: string[]
+  completion_notes?: string
+  customer_satisfaction_rating?: number
+  created_at: string
+  updated_at: string
+  property?: {
+    id: string
+    property_name: string
+    address: string
+    postcode: string
+  }
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+  }
+  assigned_worker?: {
+    id: string
+    first_name: string
+    last_name: string
+    phone: string
+  }
+  quote?: {
+    id: string
+    quote_number: string
+    total: number
+    status: string
+  }
+}
+
+export interface CreateMaintenanceJobData {
+  service_id: string
+  property_id: string
+  customer_id: string
+  assigned_worker_id?: string
+  assigned_contractor_id?: string
+  source: 'CUSTOMER_REQUEST' | 'CLEANER_REPORT' | 'GUEST_REPORT' | 'PREVENTIVE_MAINTENANCE' | 'EMERGENCY'
+  source_cleaning_job_id?: string
+  source_guest_report_id?: string
+  category: string
+  priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+  title: string
+  description?: string
+  requested_date?: string
+  scheduled_date?: string
+  service_provider_id: string
+}
+
+// Maintenance Jobs API calls
+export const maintenanceJobsAPI = {
+  list: async (serviceProviderId: string, filters?: {
+    status?: string
+    priority?: string
+    worker_id?: string
+    contractor_id?: string
+    property_id?: string
+    customer_id?: string
+    from_date?: string
+    to_date?: string
+    page?: number
+    limit?: number
+  }) => {
+    const response = await api.get<{ data: MaintenanceJob[]; pagination: any }>('/api/maintenance-jobs', {
+      params: { service_provider_id: serviceProviderId, ...filters },
+    })
+    return response.data
+  },
+
+  get: async (id: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: MaintenanceJob }>(`/api/maintenance-jobs/${id}`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
+  },
+
+  create: async (data: CreateMaintenanceJobData) => {
+    const response = await api.post<{ data: MaintenanceJob }>('/api/maintenance-jobs', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateMaintenanceJobData> & { service_provider_id: string }) => {
+    const response = await api.put<{ data: MaintenanceJob }>(`/api/maintenance-jobs/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string, serviceProviderId: string) => {
+    await api.delete(`/api/maintenance-jobs/${id}`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+  },
+
+  createFromCleaningIssue: async (cleaningJobId: string, issueData: {
+    title: string
+    description: string
+    category: string
+    priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+    issue_photos?: string[]
+    service_provider_id: string
+  }) => {
+    const response = await api.post<{ data: MaintenanceJob }>('/api/maintenance-jobs/from-cleaning-issue', {
+      cleaning_job_id: cleaningJobId,
+      ...issueData,
+    })
+    return response.data.data
+  },
+}
