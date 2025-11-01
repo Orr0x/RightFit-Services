@@ -17,6 +17,11 @@ import notificationsRoutes from './routes/notifications'
 import adminRoutes from './routes/admin'
 import financialRoutes from './routes/financial'
 import propertyTenantsRoutes from './routes/property-tenants'
+import cleaningJobsRoutes from './routes/cleaning-jobs'
+import maintenanceJobsRoutes from './routes/maintenance-jobs'
+import workersRoutes from './routes/workers'
+import quotesRoutes from './routes/quotes'
+import guestIssuesRoutes from './routes/guest-issues'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -107,6 +112,12 @@ app.use('/api/notifications', notificationsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/financial', financialRoutes)
 app.use('/api/tenants', propertyTenantsRoutes)
+// NEW: Service Provider Platform routes
+app.use('/api/cleaning-jobs', cleaningJobsRoutes)
+app.use('/api/maintenance-jobs', maintenanceJobsRoutes)
+app.use('/api/workers', workersRoutes)
+app.use('/api/quotes', quotesRoutes)
+app.use('/api/guest-issues', guestIssuesRoutes)
 
 // Apply general rate limiting to all other API routes
 app.use('/api', generalApiRateLimiter)
