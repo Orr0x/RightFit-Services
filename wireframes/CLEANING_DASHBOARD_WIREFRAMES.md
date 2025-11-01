@@ -6,6 +6,28 @@
 
 ---
 
+## 🚨 IMPORTANT: THIS IS A NEW FEATURE
+
+**⚠️ For Developers:**
+
+This Cleaning Dashboard is **NEW functionality** being added to RightFit Services. It does NOT replace the existing landlord platform.
+
+**Existing Landlord Platform (Use as Reference):**
+- See `apps/web/src/pages/*` for page structure patterns
+- See `apps/web/src/components/ui/*` for reusable components
+- See `apps/api/src/services/*` for service layer patterns
+- The existing work orders system is similar - use it as a code reference!
+
+**This Cleaning Dashboard:**
+- Will be built in NEW files/routes alongside existing code
+- Will reuse existing UI components and design system
+- Will share the same database, auth, and multi-tenancy infrastructure
+- Will be accessible via dashboard switcher (Landlord ↔ Cleaning ↔ Maintenance)
+
+See [STORY-006](../stories/phase-2/STORY-006-wireframe-implementation.md) for full implementation details.
+
+---
+
 ## Dashboard Overview
 
 ### 1. Homepage - Today's Command Center

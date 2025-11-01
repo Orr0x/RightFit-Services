@@ -7,6 +7,28 @@
 
 ---
 
+## 🚨 IMPORTANT: THIS IS A NEW FEATURE
+
+**⚠️ For Developers:**
+
+This Guest AI Dashboard is **NEW functionality** being added to RightFit Services. It does NOT replace the existing landlord platform.
+
+**Existing Landlord Platform (Use as Reference):**
+- Mobile app patterns in `apps/mobile/src/screens/*`
+- API endpoints in `apps/api/src/routes/*`
+- Authentication and multi-tenancy patterns
+- The existing mobile app structure provides excellent patterns to follow!
+
+**This Guest AI Dashboard:**
+- Will be a NEW standalone tablet app (or web app for tablets)
+- Will integrate with the NEW Maintenance Dashboard for auto-dispatch
+- Will share infrastructure (database, auth, file storage)
+- Completely new user experience for guests (not landlords)
+
+See [STORY-006](../stories/phase-2/STORY-006-wireframe-implementation.md) for full implementation details.
+
+---
+
 ## Dashboard Overview
 
 ### 1. Home/Idle Screen - Welcome & Quick Actions

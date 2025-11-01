@@ -6,6 +6,36 @@
 
 ---
 
+## 🚨 CRITICAL: THESE ARE ADDITIONAL FEATURES
+
+**⚠️ IMPORTANT FOR DEVELOPERS:**
+
+These wireframes describe **NEW service provider dashboards** that will be built **ALONGSIDE** (not replacing) the existing RightFit Services landlord platform.
+
+**Existing Landlord Platform (KEEP - Use as Reference):**
+- ✅ Web dashboard: Properties, Work Orders, Contractors, Certificates, Financial, Tenants
+- ✅ Mobile app: 12 screens with offline sync (WatermelonDB)
+- ✅ Design system and UI components (React + React Native)
+- ✅ Multi-tenancy architecture with PostgreSQL + Prisma
+- ✅ Authentication, notifications, file uploads - all working
+
+**NEW Service Provider Platform (What These Wireframes Describe):**
+- ➕ Cleaning Services dashboard (for service provider business)
+- ➕ Maintenance Services dashboard (for service provider business)
+- ➕ Customer/Guest portals
+- ➕ Cross-sell workflows
+- ➕ AI-powered features
+
+**Integration Approach:**
+- Both systems will coexist in the same codebase
+- Shared design system, components, and infrastructure
+- Dashboard switcher to toggle between Landlord/Cleaning/Maintenance views
+- Existing landlord code serves as reference for patterns and architecture
+
+See [STORY-006](../stories/phase-2/STORY-006-wireframe-implementation.md) for implementation details.
+
+---
+
 ## Overview
 
 This directory contains comprehensive wireframes for the RightFit Services platform - a dual-service ecosystem (Cleaning + Maintenance) designed for short-term rental property management in the Smoky Mountains region.
@@ -243,14 +273,21 @@ This directory contains comprehensive wireframes for the RightFit Services platf
 
 ## Implementation Priority
 
+**⚠️ BEFORE YOU START:** Review the existing landlord platform code in `apps/web` and `apps/mobile` to understand:
+- Component patterns (use `apps/web/src/components/ui/*` as reference)
+- API structure (see `apps/api/src/routes/*` and `apps/api/src/services/*`)
+- Database patterns (see `packages/database/prisma/schema.prisma`)
+- Authentication flow (see `apps/api/src/middleware/auth.ts`)
+- Multi-tenancy approach (see how `tenantId` is used throughout)
+
 ### Phase 1: Foundation (Weeks 1-8)
 **Goal:** Launch core cleaning operations + basic maintenance
 
 **Week 1-2: Cleaning Dashboard Core**
-- Dashboard homepage with today's schedule
-- Job list with basic filters
-- Cleaner contact list
-- Manual job assignment
+- Dashboard homepage with today's schedule (reference: `apps/web/src/pages/WorkOrdersPage.tsx`)
+- Job list with basic filters (reference: existing table components)
+- Cleaner contact list (reference: `apps/web/src/pages/ContractorsPage.tsx`)
+- Manual job assignment (reference: work order assignment patterns)
 
 **Week 3-4: Cleaning Real-Time Features**
 - GPS tracking integration
