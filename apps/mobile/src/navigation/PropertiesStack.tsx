@@ -4,21 +4,14 @@ import { PropertiesStackParamList } from '../types'
 import PropertiesListScreen from '../screens/properties/PropertiesListScreen'
 import PropertyDetailsScreen from '../screens/properties/PropertyDetailsScreen'
 import CreatePropertyScreen from '../screens/properties/CreatePropertyScreen'
+import { defaultScreenOptions, modalScreenOptions } from './screenOptions'
 
 const Stack = createStackNavigator<PropertiesStackParamList>()
 
 export default function PropertiesStack() {
   return (
     <Stack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#6200EE',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
+      screenOptions={defaultScreenOptions}
     >
       <Stack.Screen
         name="PropertiesList"
@@ -33,7 +26,7 @@ export default function PropertiesStack() {
       <Stack.Screen
         name="CreateProperty"
         component={CreatePropertyScreen}
-        options={{ title: 'Add Property' }}
+        options={{ title: 'Add Property', ...modalScreenOptions }}
       />
     </Stack.Navigator>
   )

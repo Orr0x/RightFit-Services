@@ -4,21 +4,14 @@ import { WorkOrdersStackParamList } from '../types'
 import WorkOrdersListScreen from '../screens/workOrders/WorkOrdersListScreen'
 import WorkOrderDetailsScreen from '../screens/workOrders/WorkOrderDetailsScreen'
 import CreateWorkOrderScreen from '../screens/workOrders/CreateWorkOrderScreen'
+import { defaultScreenOptions, modalScreenOptions } from './screenOptions'
 
 const Stack = createStackNavigator<WorkOrdersStackParamList>()
 
 export default function WorkOrdersStack() {
   return (
     <Stack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#6200EE',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
+      screenOptions={defaultScreenOptions}
     >
       <Stack.Screen
         name="WorkOrdersList"
@@ -33,7 +26,7 @@ export default function WorkOrdersStack() {
       <Stack.Screen
         name="CreateWorkOrder"
         component={CreateWorkOrderScreen}
-        options={{ title: 'Create Work Order' }}
+        options={{ title: 'Create Work Order', ...modalScreenOptions }}
       />
     </Stack.Navigator>
   )
