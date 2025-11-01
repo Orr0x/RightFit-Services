@@ -281,8 +281,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className={`app-sidebar-wrapper ${mobileMenuOpen ? 'app-sidebar-mobile-open' : ''}`}>
         <Sidebar
           items={navItems}
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          collapsed={false}
+          onToggle={() => {
+            setSidebarCollapsed(!sidebarCollapsed)
+            setMobileMenuOpen(false)
+          }}
           logo={
             <div className="app-logo">
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
