@@ -70,17 +70,23 @@
 **Duration:** 10-14 days
 **Status:** Only remaining story in Phase 2!
 
-**Major Components:**
-- Database schema for service providers
-- Cleaning Services dashboard
-- Maintenance Services dashboard
-- Worker mobile apps
-- Guest portal
-- Cross-sell workflow
-- AI photo analysis (basic)
+**⚠️ IMPORTANT:** This adds NEW service provider dashboards **in addition to** the existing landlord platform. The current landlord web app and mobile app remain fully functional and serve as code references.
 
-**Note:** This is the largest story and should be broken into smaller sub-stories.
+**Major Components (All NEW, nothing replaced):**
+- NEW Database tables for service providers (existing landlord tables unchanged)
+- NEW Cleaning Services dashboard (web + mobile worker app)
+- NEW Maintenance Services dashboard (web + mobile worker app)
+- NEW Guest portal
+- NEW Cross-sell workflow between cleaning/maintenance
+- NEW AI photo analysis (basic)
+- Dashboard switcher to toggle between Landlord/Cleaning/Maintenance views
 
+**Existing Landlord Platform (KEEP - Use as Reference):**
+- ✅ Web: Properties, Work Orders, Contractors, Certificates, Financial, Tenants
+- ✅ Mobile: All 12 screens with offline sync
+- ✅ Design system and UI components (reuse these!)
+
+**Note:** This is the largest story and should be broken into smaller sub-stories. See [STORY-006 documentation](phase-2/STORY-006-wireframe-implementation.md) for complete details on what to keep vs. what to add.
 ---
 
 ## 🎯 Recommended Approach

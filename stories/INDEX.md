@@ -64,6 +64,7 @@
 
 ---
 
+
 ### STORY-006: Wireframe Implementation
 **File:** [phase-2/STORY-006-wireframe-implementation.md](phase-2/STORY-006-wireframe-implementation.md)
 **Points:** 40 | **Duration:** 10-14 days | **Status:** 📋 Ready
@@ -72,6 +73,11 @@
 **Branch:** `feature/story-006-wireframes`
 **Depends on:** STORY-005
 
+**⚠️ CRITICAL:** This adds NEW functionality alongside the existing landlord platform (NOT a replacement).
+- Keeps existing landlord web/mobile apps fully functional
+- Adds NEW Cleaning & Maintenance dashboards (web + mobile worker apps)
+- Adds dashboard switcher to toggle between Landlord/Cleaning/Maintenance views
+- Existing system serves as code reference for patterns and components
 ---
 
 ## 📊 Summary
