@@ -16,6 +16,7 @@ export interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       label: 'Properties',
       path: '/properties',
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Properties">
           <path
             d="M3 9l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
             stroke="currentColor"
@@ -44,7 +45,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       label: 'Work Orders',
       path: '/work-orders',
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Work Orders">
           <path
             d="M14.5 2h-9A1.5 1.5 0 0 0 4 3.5v13A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 2z"
             stroke="currentColor"
@@ -67,7 +68,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       label: 'Tenants',
       path: '/tenants',
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Tenants">
           <path
             d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 16c-4 0-6 2-6 2v1h12v-1s-2-2-6-2z"
             stroke="currentColor"
@@ -83,7 +84,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       label: 'Contractors',
       path: '/contractors',
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Contractors">
           <path
             d="M16 2L8 10M16 2l-4 12-2-6-6-2 12-4zM8 10L2 16"
             stroke="currentColor"
@@ -99,7 +100,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       label: 'Financial',
       path: '/financial',
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Financial">
           <path
             d="M10 2v16M6 6h8M6 14h8"
             stroke="currentColor"
@@ -122,7 +123,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       label: 'Certificates',
       path: '/certificates',
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Certificates">
           <path
             d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"
             stroke="currentColor"
@@ -148,7 +149,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'profile',
       label: 'My Profile',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-label="Profile">
           <path
             d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 10c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z"
             stroke="currentColor"
@@ -167,7 +168,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'settings',
       label: 'Settings',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-label="Settings">
           <path
             d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
             stroke="currentColor"
@@ -193,7 +194,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'logout',
       label: 'Logout',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-label="Logout">
           <path
             d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6"
             stroke="currentColor"
@@ -267,35 +268,61 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="app-layout">
-      <Sidebar
-        items={navItems}
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        logo={
-          <div className="app-logo">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect width="32" height="32" rx="8" fill="url(#logo-gradient)" />
-              <path
-                d="M8 12L16 8L24 12V20L16 24L8 20V12Z"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <defs>
-                <linearGradient id="logo-gradient" x1="0" y1="0" x2="32" y2="32">
-                  <stop offset="0%" stopColor="#0ea5e9" />
-                  <stop offset="100%" stopColor="#0369a1" />
-                </linearGradient>
-              </defs>
-            </svg>
-            {!sidebarCollapsed && <span className="app-logo-text">RightFit</span>}
-          </div>
-        }
-      />
+      {/* Mobile Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="app-layout-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar - desktop persistent, mobile overlay */}
+      <div className={`app-sidebar-wrapper ${mobileMenuOpen ? 'app-sidebar-mobile-open' : ''}`}>
+        <Sidebar
+          items={navItems}
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          logo={
+            <div className="app-logo">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect width="32" height="32" rx="8" fill="url(#logo-gradient)" />
+                <path
+                  d="M8 12L16 8L24 12V20L16 24L8 20V12Z"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <defs>
+                  <linearGradient id="logo-gradient" x1="0" y1="0" x2="32" y2="32">
+                    <stop offset="0%" stopColor="#0ea5e9" />
+                    <stop offset="100%" stopColor="#0369a1" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              {!sidebarCollapsed && <span className="app-logo-text">RightFit</span>}
+            </div>
+          }
+        />
+      </div>
 
       <div className={`app-main ${sidebarCollapsed ? 'app-main-expanded' : ''}`}>
         <header className="app-header">
+          {/* Hamburger Menu Button - Mobile Only */}
+          <button
+            className="app-hamburger"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="3" y1="12" x2="21" y2="12" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="3" y1="6" x2="21" y2="6" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="3" y1="18" x2="21" y2="18" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+
           <div className="app-header-search">
             <SearchBar
               placeholder="Search properties, work orders, tenants..."
