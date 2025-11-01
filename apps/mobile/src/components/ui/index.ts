@@ -22,3 +22,6 @@ export type { EmptyStateProps } from './EmptyState'
 
 export { PhotoGallery } from './PhotoGallery'
 export type { PhotoGalleryProps, Photo } from './PhotoGallery'
+
+export { OfflineIndicator } from './OfflineIndicator'
+export type { OfflineIndicatorProps } from './OfflineIndicator'

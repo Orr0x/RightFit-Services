@@ -383,6 +383,46 @@ class OfflineDataService {
       _offline: !prop.synced,
     }))
   }
+
+  // Get count of queued operations (not synced)
+  async getQueuedOperationsCount(): Promise<number> {
+    if (!this.isDatabaseAvailable()) {
+      return 0
+    }
+
+    try {
+      const workOrdersCollection = database!.get<WorkOrder>('work_orders')
+      const photosCollection = database!.get<Photo>('photos')
+
+      const unsyncedWorkOrders = await workOrdersCollection
+        .query(Q.where('synced', false))
+        .fetchCount()
+
+      const unsyncedPhotos = await photosCollection
+        .query(Q.where('synced', false))
+        .fetchCount()
+
+      return unsyncedWorkOrders + unsyncedPhotos
+    } catch (error) {
+      console.error('Error getting queued operations count:', error)
+      return 0
+    }
+  }
+
+  // Sync all queued data to server
+  async syncQueuedData(): Promise<void> {
+    if (!this.isDatabaseAvailable()) {
+      throw new Error('Database not available')
+    }
+
+    const online = await this.isOnline()
+    if (!online) {
+      throw new Error('Device is offline')
+    }
+
+    // Use the existing sync service
+    await syncService.syncAllData()
+  }
 }
 
 export default new OfflineDataService()
