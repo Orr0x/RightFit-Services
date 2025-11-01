@@ -22,12 +22,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
 
+  // Close mobile menu on navigation
+  const handleNavigation = () => {
+    setMobileMenuOpen(false)
+  }
+
   // Navigation items
   const navItems: NavItem[] = [
     {
       id: 'properties',
       label: 'Properties',
       path: '/properties',
+      onClick: handleNavigation,
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Properties">
           <path
@@ -44,6 +50,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'work-orders',
       label: 'Work Orders',
       path: '/work-orders',
+      onClick: handleNavigation,
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Work Orders">
           <path
@@ -67,6 +74,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'tenants',
       label: 'Tenants',
       path: '/tenants',
+      onClick: handleNavigation,
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Tenants">
           <path
@@ -83,6 +91,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'contractors',
       label: 'Contractors',
       path: '/contractors',
+      onClick: handleNavigation,
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Contractors">
           <path
@@ -99,6 +108,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'financial',
       label: 'Financial',
       path: '/financial',
+      onClick: handleNavigation,
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Financial">
           <path
@@ -122,6 +132,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       id: 'certificates',
       label: 'Certificates',
       path: '/certificates',
+      onClick: handleNavigation,
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Certificates">
           <path

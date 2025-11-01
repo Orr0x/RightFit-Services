@@ -169,7 +169,16 @@
     z-index: 1000;
     transform: translateX(-100%);
     transition: transform var(--transition-base);
-    background-color: var(--color-surface);
+    background-color: var(--color-surface-elevated);
+  }
+
+  /* Override sidebar component positioning on mobile */
+  .app-sidebar-wrapper .sidebar {
+    position: relative;
+    left: auto;
+    top: auto;
+    z-index: auto;
+    width: 100%;
   }
 
   .app-sidebar-mobile-open {
