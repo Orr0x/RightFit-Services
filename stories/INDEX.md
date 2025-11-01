@@ -133,22 +133,26 @@ Before marking complete:
 | STORY-001 | ✅ COMPLETE | `main` | 100% (14/14 pts) |
 | STORY-002 | ✅ COMPLETE | `feature/story-002-mobile-components` → **MERGED** | 100% (15/15 pts) |
 | STORY-003 | ✅ COMPLETE | `feature/story-003-mobile-screens` → **MERGED** | 100% (25/25 pts) |
-| STORY-004 | 🟡 Partial (7%) | `feature/story-004-mobile-polish` | 7% (2/28 pts) |
-| STORY-005 | 🟡 Partial (50%) | `feature/story-005-dark-mode` → **MERGED** | 50% (14/28 pts - Web only) |
+| STORY-004 | ✅ COMPLETE | `main` | 100% (28/28 pts) |
+| STORY-005 | ✅ COMPLETE | `main` | 100% (28/28 pts) |
 | STORY-006 | 📋 Ready | `feature/story-006-wireframes` | 0% (0/40 pts) |
 
-**Phase 2 Progress:** 70/150 points (47%)
+**Phase 2 Progress:** 110/150 points (73%)**
 
 **Recently Completed:**
-- ✅ STORY-001: Web UX Polish (14 pts) - **Fast-tracked in 1 hour!**
+- ✅ STORY-001: Web UX Polish (14 pts)
 - ✅ STORY-002: Mobile Component Library (15 pts)
-- ✅ STORY-003: Mobile Screen Migration (25 pts) - **Completed in 1 day!**
-- ✅ List auto-refresh fix (WorkOrdersListScreen useFocusEffect)
-- ✅ Auto-rotation enabled (AndroidManifest.xml fullSensor)
-- ✅ Hamburger menu + mobile responsive CSS
-- ✅ ARIA labels on all navigation
-- ✅ Offline sync verified working on all 4 Android devices
-- ✅ Comprehensive README.md created
+- ✅ STORY-003: Mobile Screen Migration (25 pts)
+- ✅ **STORY-004: Mobile UX Polish (28 pts)** - **JUST COMPLETED!**
+  - Haptic feedback (buttons, success, error, warning)
+  - PhotoGallery with lightbox (pinch-zoom, swipe)
+  - OfflineIndicator (sync status, queued count)
+  - Screen transition animations (60fps)
+  - Loading skeletons for lists
+- ✅ **STORY-005: Dark Mode Mobile (28 pts)** - **JUST COMPLETED!**
+  - ThemeContext with system/light/dark modes
+  - Cross-platform parity with web
+- 🎯 **Only STORY-006 remaining (40 pts)**
 
 ---
 
