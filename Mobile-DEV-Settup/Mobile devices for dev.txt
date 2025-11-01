@@ -1,0 +1,57 @@
+BUSID  VID:PID    DEVICE                                                        STATE
+1-3    18d1:4ee8  ADB Interface, WAVE 6C                                        Not shared
+1-4    04e8:6860  James's Galaxy Note9                                          Shared
+1-5    1b1c:0c1a  USB Input Device                                              Not shared
+1-7    04e8:6860  James's S25, USB Serial Device (COM3), ADB Interface          Shared
+2-1    25a7:fa67  USB Input Device                                              Not shared
+2-2    1bcf:2701  HD 720P webcam, USB Microphone                                Not shared
+2-4    0b05:18f3  AURA LED Controller, USB Input Device                         Not shared
+2-6    0b05:18ae  USB Input Device                                              Not shared
+3-1    03f0:004a  USB Input Device                                              Not shared
+3-2    0000:0002  Unknown USB Device (Device Descriptor Request Failed)         Not shared
+3-4    04e8:6860  James's Tab A9+, USB Serial Device (COM4), ADB Interface      Shared
+
+========================================
+Serial: 2a8126c0383f7ece
+BUSID:	1-4 
+Model: SM-N960F
+Brand: Samsung Note9 Phone
+Device Name: crownltexx
+Android Version: 10
+SDK Level: 29
+Screen Resolution: Physical size: 1440x2960
+Screen Density: Physical density: 420
+CPU ABI: arm64-v8a
+========================================
+Serial: R92Y50E5P3V
+BUSID:	3-4
+Model: SM-X210
+Brand: Samsung Tab A9+ Tablet
+Device Name: gta9pwifieea
+Android Version: 15
+SDK Level: 35
+Screen Resolution: Physical size: 1200x1920
+Screen Density: Physical density: 240
+CPU ABI: arm64-v8a
+========================================
+Serial: RZCY51TJKKW
+BUSID:	1-7
+Model: SM-S931B
+Brand: Samsung S25 Phone
+Device Name: pa1qxeea
+Android Version: 16
+SDK Level: 36
+Screen Resolution: Physical size: 1080x2340
+Screen Density: Physical density: 480
+CPU ABI: arm64-v8a
+========================================
+Serial: WAVE6CEEA00024545
+BUSID:	1-3
+Model: WAVE 6C Phone
+Brand: Blackview
+Device Name: WAVE6C_EEA
+Android Version: 13
+SDK Level: 33
+Screen Resolution: Physical size: 720x1600
+Screen Density: Physical density: 320
+CPU ABI: armeabi-v7a
