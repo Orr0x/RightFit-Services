@@ -7,6 +7,7 @@ import { RouteProp } from '@react-navigation/native'
 import { WorkOrdersStackParamList, Property } from '../../types'
 import api from '../../services/api'
 import offlineDataService from '../../services/offlineDataService'
+import { useHaptics } from '../../hooks/useHaptics'
 
 type CreateWorkOrderScreenNavigationProp = StackNavigationProp<WorkOrdersStackParamList, 'CreateWorkOrder'>
 type CreateWorkOrderScreenRouteProp = RouteProp<WorkOrdersStackParamList, 'CreateWorkOrder'>
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function CreateWorkOrderScreen({ navigation, route }: Props) {
+  const haptics = useHaptics()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [propertyId, setPropertyId] = useState(route.params?.propertyId || '')
@@ -66,6 +68,7 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
 
     if (!title || !description || !propertyId) {
       setError('Please fill in all required fields')
+      haptics.error()
       return
     }
 
@@ -90,9 +93,11 @@ export default function CreateWorkOrderScreen({ navigation, route }: Props) {
 
       // Use offline-aware service for work order creation
       await offlineDataService.createWorkOrder(workOrderData)
+      haptics.success()
       navigation.goBack()
     } catch (err: any) {
       setError(err.message || 'Failed to create work order')
+      haptics.error()
     } finally {
       setLoading(false)
     }

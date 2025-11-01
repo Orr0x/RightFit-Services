@@ -1,10 +1,12 @@
 import React from 'react'
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View, ViewStyle, TextStyle } from 'react-native'
 import { colors, spacing, typography, borderRadius } from '../../styles/tokens'
+import { useHaptics } from '../../hooks/useHaptics'
 
 /**
  * Button Component - React Native
  * STORY-002: Mobile Component Library
+ * STORY-004: Added haptic feedback
  * Cross-platform parity with web Button component
  */
 
@@ -23,6 +25,8 @@ export interface ButtonProps {
   onPress?: () => void
   style?: ViewStyle
   testID?: string
+  /** Enable haptic feedback on press (default: true) */
+  haptics?: boolean
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -37,7 +41,10 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   style,
   testID,
+  haptics = true,
 }) => {
+  const { light } = useHaptics()
+
   const buttonStyles: ViewStyle[] = [
     styles.button,
     styles[`button${variant.charAt(0).toUpperCase() + variant.slice(1)}` as keyof typeof styles] as ViewStyle,
@@ -54,10 +61,17 @@ export const Button: React.FC<ButtonProps> = ({
     (disabled || loading) && styles.textDisabled,
   ].filter(Boolean) as TextStyle[]
 
+  const handlePress = () => {
+    if (haptics) {
+      light()
+    }
+    onPress?.()
+  }
+
   return (
     <TouchableOpacity
       style={buttonStyles}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       activeOpacity={0.7}
       testID={testID}
