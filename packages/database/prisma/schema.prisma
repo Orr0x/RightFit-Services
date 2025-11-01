@@ -488,3 +488,428 @@ model PropertyBudget {
   @@index([tenant_id])
   @@map("property_budgets")
 }
+
+// ===== SERVICE PROVIDER PLATFORM (NEW) =====
+// Two-dashboard system: Cleaning Services + Maintenance Services
+// Integrated alongside existing landlord platform
+
+model ServiceProvider {
+  id            String   @id @default(uuid())
+  business_name String   @db.VarChar(100)
+  owner_name    String   @db.VarChar(100)
+  email         String   @db.VarChar(255)
+  phone         String   @db.VarChar(20)
+  address       String?  @db.Text
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relationships
+  services             Service[]
+  workers              Worker[]
+  customers            Customer[]
+  external_contractors ExternalContractor[]
+  checklist_templates  ChecklistTemplate[]
+
+  @@map("service_providers")
+}
+
+model Service {
+  id                  String       @id @default(uuid())
+  service_provider_id String
+  service_type        ServiceType
+  name                String       @db.VarChar(100)
+  description         String?      @db.Text
+  pricing_model       PricingModel
+  default_rate        Decimal      @db.Decimal(10, 2)
+  is_active           Boolean      @default(true)
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+
+  // Relationships
+  service_provider ServiceProvider  @relation(fields: [service_provider_id], references: [id])
+  cleaning_jobs    CleaningJob[]
+  maintenance_jobs MaintenanceJob[]
+
+  @@index([service_provider_id])
+  @@index([service_type])
+  @@map("services")
+}
+
+enum ServiceType {
+  CLEANING
+  MAINTENANCE
+}
+
+enum PricingModel {
+  PER_JOB
+  HOURLY
+  RETAINER
+  CUSTOM
+}
+
+model Customer {
+  id                          String       @id @default(uuid())
+  service_provider_id         String
+  business_name               String       @db.VarChar(100)
+  contact_name                String       @db.VarChar(100)
+  email                       String       @db.VarChar(255)
+  phone                       String       @db.VarChar(20)
+  address                     String?      @db.Text
+  customer_type               CustomerType
+  has_cleaning_contract       Boolean      @default(false)
+  has_maintenance_contract    Boolean      @default(false)
+  bundled_discount_percentage Decimal      @default(0) @db.Decimal(5, 2)
+  payment_terms               PaymentTerms @default(NET_14)
+  payment_reliability_score   Int          @default(50)
+  satisfaction_score          Int?
+  cross_sell_potential        String       @default("MEDIUM") @db.VarChar(20)
+  created_at                  DateTime     @default(now())
+  updated_at                  DateTime     @updatedAt
+
+  // Relationships
+  service_provider    ServiceProvider     @relation(fields: [service_provider_id], references: [id])
+  customer_properties CustomerProperty[]
+  cleaning_jobs       CleaningJob[]
+  maintenance_jobs    MaintenanceJob[]
+  quotes              Quote[]
+  checklist_templates ChecklistTemplate[]
+
+  @@index([service_provider_id])
+  @@map("customers")
+}
+
+enum CustomerType {
+  PROPERTY_MANAGER
+  OWNER
+  LETTING_AGENCY
+}
+
+enum PaymentTerms {
+  NET_7
+  NET_14
+  NET_30
+}
+
+model CustomerProperty {
+  id                             String   @id @default(uuid())
+  customer_id                    String
+  property_name                  String   @db.VarChar(100)
+  address                        String   @db.Text
+  postcode                       String   @db.VarChar(10)
+  property_type                  String   @db.VarChar(50)
+  bedrooms                       Int      @default(0)
+  bathrooms                      Int      @default(0)
+  access_instructions            String?  @db.Text
+  access_code                    String?  @db.VarChar(255)
+  cleaning_checklist_template_id String?
+  guest_portal_enabled           Boolean  @default(false)
+  guest_portal_qr_code_url       String?  @db.VarChar(500)
+  is_active                      Boolean  @default(true)
+  created_at                     DateTime @default(now())
+  updated_at                     DateTime @updatedAt
+
+  // Relationships
+  customer            Customer           @relation(fields: [customer_id], references: [id])
+  cleaning_jobs       CleaningJob[]
+  maintenance_jobs    MaintenanceJob[]
+  guest_issue_reports GuestIssueReport[]
+
+  @@index([customer_id])
+  @@index([postcode])
+  @@map("customer_properties")
+}
+
+model Worker {
+  id                  String         @id @default(uuid())
+  service_provider_id String
+  user_id             String?
+  first_name          String         @db.VarChar(100)
+  last_name           String         @db.VarChar(100)
+  email               String         @db.VarChar(255)
+  phone               String         @db.VarChar(20)
+  worker_type         WorkerType
+  employment_type     EmploymentType
+  hourly_rate         Decimal        @db.Decimal(10, 2)
+  is_active           Boolean        @default(true)
+  max_weekly_hours    Int?
+  jobs_completed      Int            @default(0)
+  average_rating      Decimal?       @db.Decimal(3, 2)
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+
+  // Relationships
+  service_provider ServiceProvider  @relation(fields: [service_provider_id], references: [id])
+  cleaning_jobs    CleaningJob[]
+  maintenance_jobs MaintenanceJob[]
+
+  @@index([service_provider_id])
+  @@index([worker_type])
+  @@map("workers")
+}
+
+enum WorkerType {
+  CLEANER
+  MAINTENANCE
+  BOTH
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACTOR
+}
+
+model ExternalContractor {
+  id                          String   @id @default(uuid())
+  service_provider_id         String
+  company_name                String   @db.VarChar(100)
+  contact_name                String   @db.VarChar(100)
+  email                       String   @db.VarChar(255)
+  phone                       String   @db.VarChar(20)
+  specialties                 String[] @db.VarChar(50)
+  certifications              String[] @db.VarChar(255)
+  referral_fee_percentage     Decimal  @default(0) @db.Decimal(5, 2)
+  preferred_contractor        Boolean  @default(false)
+  emergency_callout_available Boolean  @default(false)
+  jobs_completed              Int      @default(0)
+  average_response_time_hours Decimal? @db.Decimal(10, 2)
+  average_rating              Decimal? @db.Decimal(3, 2)
+  created_at                  DateTime @default(now())
+  updated_at                  DateTime @updatedAt
+
+  // Relationships
+  service_provider ServiceProvider  @relation(fields: [service_provider_id], references: [id])
+  maintenance_jobs MaintenanceJob[]
+
+  @@index([service_provider_id])
+  @@map("external_contractors")
+}
+
+model CleaningJob {
+  id                           String    @id @default(uuid())
+  service_id                   String
+  property_id                  String
+  customer_id                  String
+  assigned_worker_id           String?
+  scheduled_date               DateTime  @db.Date
+  scheduled_start_time         String    @db.VarChar(10)
+  scheduled_end_time           String    @db.VarChar(10)
+  actual_start_time            DateTime?
+  actual_end_time              DateTime?
+  checklist_template_id        String?
+  checklist_items              Json?
+  checklist_completed_items    Int       @default(0)
+  checklist_total_items        Int       @default(0)
+  status                       JobStatus @default(SCHEDULED)
+  completion_notes             String?   @db.Text
+  before_photos                String[]  @db.VarChar(500)
+  after_photos                 String[]  @db.VarChar(500)
+  issue_photos                 String[]  @db.VarChar(500)
+  pricing_type                 String    @db.VarChar(50)
+  quoted_price                 Decimal   @db.Decimal(10, 2)
+  actual_price                 Decimal?  @db.Decimal(10, 2)
+  maintenance_issues_found     Int       @default(0)
+  maintenance_quotes_generated Int       @default(0)
+  created_at                   DateTime  @default(now())
+  updated_at                   DateTime  @updatedAt
+
+  // Relationships
+  service          Service          @relation(fields: [service_id], references: [id])
+  property         CustomerProperty @relation(fields: [property_id], references: [id])
+  customer         Customer         @relation(fields: [customer_id], references: [id])
+  assigned_worker  Worker?          @relation(fields: [assigned_worker_id], references: [id])
+  maintenance_jobs MaintenanceJob[]
+
+  @@index([service_id])
+  @@index([property_id])
+  @@index([customer_id])
+  @@index([assigned_worker_id])
+  @@index([status])
+  @@index([scheduled_date])
+  @@map("cleaning_jobs")
+}
+
+enum JobStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model MaintenanceJob {
+  id                           String              @id @default(uuid())
+  service_id                   String
+  property_id                  String
+  customer_id                  String
+  assigned_worker_id           String?
+  assigned_contractor_id       String?
+  source                       MaintenanceSource
+  source_cleaning_job_id       String?
+  source_guest_report_id       String?
+  category                     String              @db.VarChar(50)
+  priority                     MaintenancePriority
+  title                        String              @db.VarChar(255)
+  description                  String?             @db.Text
+  requested_date               DateTime?           @db.Date
+  scheduled_date               DateTime?           @db.Date
+  completed_date               DateTime?           @db.Date
+  status                       MaintenanceStatus   @default(QUOTE_PENDING)
+  quote_id                     String?
+  estimated_hours              Decimal?            @db.Decimal(10, 2)
+  estimated_parts_cost         Decimal?            @db.Decimal(10, 2)
+  estimated_labor_cost         Decimal?            @db.Decimal(10, 2)
+  estimated_total              Decimal?            @db.Decimal(10, 2)
+  actual_total                 Decimal?            @db.Decimal(10, 2)
+  issue_photos                 String[]            @db.VarChar(500)
+  work_in_progress_photos      String[]            @db.VarChar(500)
+  completion_photos            String[]            @db.VarChar(500)
+  ai_severity_score            Int?
+  ai_category_confidence       Decimal?            @db.Decimal(3, 2)
+  completion_notes             String?             @db.Text
+  customer_satisfaction_rating Int?
+  created_at                   DateTime            @default(now())
+  updated_at                   DateTime            @updatedAt
+
+  // Relationships
+  service             Service             @relation(fields: [service_id], references: [id])
+  property            CustomerProperty    @relation(fields: [property_id], references: [id])
+  customer            Customer            @relation(fields: [customer_id], references: [id])
+  assigned_worker     Worker?             @relation(fields: [assigned_worker_id], references: [id])
+  assigned_contractor ExternalContractor? @relation(fields: [assigned_contractor_id], references: [id])
+  source_cleaning_job CleaningJob?        @relation(fields: [source_cleaning_job_id], references: [id])
+  source_guest_report GuestIssueReport?   @relation(fields: [source_guest_report_id], references: [id])
+  quote               Quote?              @relation(fields: [quote_id], references: [id])
+
+  @@index([service_id])
+  @@index([property_id])
+  @@index([customer_id])
+  @@index([assigned_worker_id])
+  @@index([assigned_contractor_id])
+  @@index([status])
+  @@index([priority])
+  @@index([scheduled_date])
+  @@map("maintenance_jobs")
+}
+
+enum MaintenanceSource {
+  CUSTOMER_REQUEST
+  CLEANER_REPORT
+  GUEST_REPORT
+  PREVENTIVE_MAINTENANCE
+  EMERGENCY
+}
+
+enum MaintenancePriority {
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum MaintenanceStatus {
+  QUOTE_PENDING
+  QUOTE_SENT
+  APPROVED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Quote {
+  id                  String      @id @default(uuid())
+  customer_id         String
+  maintenance_job_id  String?
+  quote_number        String      @unique @db.VarChar(50)
+  quote_date          DateTime    @db.Date
+  valid_until_date    DateTime    @db.Date
+  line_items          Json
+  subtotal            Decimal     @db.Decimal(10, 2)
+  discount_percentage Decimal     @default(0) @db.Decimal(5, 2)
+  discount_amount     Decimal     @default(0) @db.Decimal(10, 2)
+  total               Decimal     @db.Decimal(10, 2)
+  status              QuoteStatus @default(DRAFT)
+  customer_response   String?     @db.Text
+  approved_at         DateTime?
+  approved_by         String?     @db.VarChar(100)
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+
+  // Relationships
+  customer         Customer         @relation(fields: [customer_id], references: [id])
+  maintenance_jobs MaintenanceJob[]
+
+  @@index([customer_id])
+  @@index([status])
+  @@map("quotes")
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  APPROVED
+  DECLINED
+  EXPIRED
+}
+
+model ChecklistTemplate {
+  id                         String   @id @default(uuid())
+  service_provider_id        String
+  customer_id                String?
+  template_name              String   @db.VarChar(100)
+  property_type              String   @db.VarChar(50)
+  sections                   Json
+  estimated_duration_minutes Int
+  is_active                  Boolean  @default(true)
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime @updatedAt
+
+  // Relationships
+  service_provider ServiceProvider @relation(fields: [service_provider_id], references: [id])
+  customer         Customer?       @relation(fields: [customer_id], references: [id])
+
+  @@index([service_provider_id])
+  @@index([customer_id])
+  @@map("checklist_templates")
+}
+
+model GuestIssueReport {
+  id                         String           @id @default(uuid())
+  property_id                String
+  guest_name                 String?          @db.VarChar(100)
+  guest_phone                String?          @db.VarChar(20)
+  guest_email                String?          @db.VarChar(255)
+  issue_type                 String           @db.VarChar(50)
+  issue_description          String           @db.Text
+  photos                     String[]         @db.VarChar(500)
+  ai_severity                String?          @db.VarChar(20)
+  ai_category                String?          @db.VarChar(50)
+  ai_confidence              Decimal?         @db.Decimal(3, 2)
+  ai_analysis_notes          String?          @db.Text
+  status                     GuestIssueStatus @default(SUBMITTED)
+  created_maintenance_job_id String?
+  assigned_to_next_cleaning  Boolean          @default(false)
+  guest_notified             Boolean          @default(false)
+  guest_notification_message String?          @db.Text
+  reported_at                DateTime         @default(now())
+  triaged_at                 DateTime?
+  resolved_at                DateTime?
+  created_at                 DateTime         @default(now())
+  updated_at                 DateTime         @updatedAt
+
+  // Relationships
+  property         CustomerProperty @relation(fields: [property_id], references: [id])
+  maintenance_jobs MaintenanceJob[]
+
+  @@index([property_id])
+  @@index([status])
+  @@map("guest_issue_reports")
+}
+
+enum GuestIssueStatus {
+  SUBMITTED
+  TRIAGED
+  WORK_ORDER_CREATED
+  RESOLVED
+  DISMISSED
+}
