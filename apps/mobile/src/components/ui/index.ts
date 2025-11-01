@@ -25,3 +25,6 @@ export type { PhotoGalleryProps, Photo } from './PhotoGallery'
 
 export { OfflineIndicator } from './OfflineIndicator'
 export type { OfflineIndicatorProps } from './OfflineIndicator'
+
+export { Skeleton, ListSkeleton } from './Skeleton'
+export type { SkeletonProps, ListSkeletonProps } from './Skeleton'
