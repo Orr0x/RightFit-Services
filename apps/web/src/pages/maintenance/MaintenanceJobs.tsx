@@ -143,7 +143,7 @@ export default function MaintenanceJobs() {
           </div>
           <div className="flex items-end">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setSearchQuery('')
                 setStatusFilter('all')

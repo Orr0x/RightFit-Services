@@ -1,17 +1,19 @@
 import { TransitionPresets, StackNavigationOptions } from '@react-navigation/stack'
-import { colors } from '../styles/tokens'
+import { useThemeColors } from '../hooks/useThemeColors'
 
 /**
  * Screen Transition Options
  * STORY-004: Mobile UX Polish
+ * STORY-005: Dark Mode Support
  *
  * Smooth 60fps screen transitions with slide animation
+ * Now supports dynamic theming
  */
 
-export const defaultScreenOptions: StackNavigationOptions = {
+export const getDefaultScreenOptions = (colors: ReturnType<typeof useThemeColors>): StackNavigationOptions => ({
   ...TransitionPresets.SlideFromRightIOS,
   headerStyle: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     elevation: 1,
     shadowOpacity: 0.1,
   },
@@ -28,12 +30,12 @@ export const defaultScreenOptions: StackNavigationOptions = {
   // Optimize for 60fps
   animationEnabled: true,
   presentation: 'card',
-}
+})
 
-export const modalScreenOptions: StackNavigationOptions = {
+export const getModalScreenOptions = (colors: ReturnType<typeof useThemeColors>): StackNavigationOptions => ({
   ...TransitionPresets.ModalSlideFromBottomIOS,
   headerStyle: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     elevation: 1,
     shadowOpacity: 0.1,
   },
@@ -45,4 +47,4 @@ export const modalScreenOptions: StackNavigationOptions = {
   gestureDirection: 'vertical',
   animationEnabled: true,
   presentation: 'modal',
-}
+})

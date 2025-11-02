@@ -58,10 +58,6 @@ export default function CleaningDashboard() {
     }
   }
 
-  const getPriorityColor = (hasIssues: number) => {
-    return hasIssues > 0 ? 'text-orange-600' : 'text-gray-600'
-  }
-
   if (isLoading && todaysJobs.length === 0) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -175,10 +171,10 @@ export default function CleaningDashboard() {
         <Card className="p-4">
           <h3 className="font-semibold mb-2">Quick Actions</h3>
           <div className="space-y-2">
-            <Button variant="outline" className="w-full" onClick={() => navigate('/cleaning/jobs')}>
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/cleaning/jobs')}>
               View All Jobs
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/workers')}>
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/workers')}>
               Manage Workers
             </Button>
           </div>

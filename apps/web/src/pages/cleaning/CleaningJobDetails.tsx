@@ -102,7 +102,7 @@ export default function CleaningJobDetails() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate('/cleaning/jobs')}>
+          <Button variant="secondary" onClick={() => navigate('/cleaning/jobs')}>
             ← Back
           </Button>
           <h1 className="text-3xl font-bold">Cleaning Job Details</h1>
@@ -337,7 +337,7 @@ export default function CleaningJobDetails() {
           Edit Job
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={() => navigate('/cleaning/jobs')}
         >
           Back to List

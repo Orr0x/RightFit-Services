@@ -14,6 +14,7 @@ export interface NavItem {
   icon: React.ReactNode
   badge?: string | number
   children?: NavItem[]
+  onClick?: () => void
 }
 
 export interface SidebarProps {

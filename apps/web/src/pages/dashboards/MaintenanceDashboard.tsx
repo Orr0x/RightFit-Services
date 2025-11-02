@@ -210,10 +210,10 @@ export default function MaintenanceDashboard() {
         <Card className="p-4">
           <h3 className="font-semibold mb-2">Quick Actions</h3>
           <div className="space-y-2">
-            <Button variant="outline" className="w-full" onClick={() => navigate('/maintenance/jobs')}>
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/maintenance/jobs')}>
               View All Jobs
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/quotes')}>
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/quotes')}>
               Manage Quotes
             </Button>
           </div>

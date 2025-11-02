@@ -45,7 +45,7 @@ export default function CreateMaintenanceJob() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" onClick={() => navigate('/maintenance/jobs')}>
+        <Button variant="secondary" onClick={() => navigate('/maintenance/jobs')}>
           ← Back
         </Button>
         <h1 className="text-3xl font-bold">Create Maintenance Job</h1>
@@ -215,7 +215,7 @@ export default function CreateMaintenanceJob() {
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => navigate('/maintenance/jobs')}
               disabled={isLoading}
             >

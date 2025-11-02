@@ -50,3 +50,7 @@ export type { EmptyStateProps } from './EmptyState'
 
 // Theme Toggle
 export { ThemeToggle } from './ThemeToggle'
+
+// Badge
+export { Badge } from './Badge'
+export type { BadgeProps, BadgeColor, BadgeSize } from './Badge'

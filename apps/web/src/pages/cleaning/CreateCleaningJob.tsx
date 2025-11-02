@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Input, Card, Textarea, useToast } from '../../components/ui'
+import { Button, Input, Card, useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, type CreateCleaningJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
@@ -46,7 +46,7 @@ export default function CreateCleaningJob() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" onClick={() => navigate('/cleaning/jobs')}>
+        <Button variant="secondary" onClick={() => navigate('/cleaning/jobs')}>
           ← Back
         </Button>
         <h1 className="text-3xl font-bold">Schedule Cleaning Job</h1>
@@ -208,7 +208,7 @@ export default function CreateCleaningJob() {
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={() => navigate('/cleaning/jobs')}
               disabled={isLoading}
             >

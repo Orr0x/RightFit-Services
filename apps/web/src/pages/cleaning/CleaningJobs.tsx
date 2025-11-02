@@ -128,7 +128,7 @@ export default function CleaningJobs() {
           </div>
           <div className="flex items-end">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setSearchQuery('')
                 setStatusFilter('all')
@@ -249,7 +249,7 @@ export default function CleaningJobs() {
                   <div className="mt-2 space-x-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="secondary"
                       onClick={(e) => {
                         e.stopPropagation()
                         navigate(`/cleaning/jobs/${job.id}/edit`)
@@ -259,7 +259,7 @@ export default function CleaningJobs() {
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="secondary"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDelete(job.id)
