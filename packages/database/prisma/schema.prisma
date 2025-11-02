@@ -405,6 +405,8 @@ model Customer {
   service_provider            ServiceProvider     @relation(fields: [service_provider_id], references: [id])
   maintenance_jobs            MaintenanceJob[]
   quotes                      Quote[]
+  portal_user                 CustomerPortalUser?
+  preferences                 CustomerPreferences?
 
   @@index([service_provider_id])
   @@map("customers")
@@ -431,6 +433,8 @@ model CustomerProperty {
   customer                       Customer           @relation(fields: [customer_id], references: [id])
   guest_issue_reports            GuestIssueReport[]
   maintenance_jobs               MaintenanceJob[]
+  guest_sessions                 GuestSession[]
+  knowledge_base                 PropertyKnowledgeBase[]
 
   @@index([customer_id])
   @@index([postcode])
@@ -570,6 +574,7 @@ model MaintenanceJob {
   service                      Service             @relation(fields: [service_id], references: [id])
   source_cleaning_job          CleaningJob?        @relation(fields: [source_cleaning_job_id], references: [id])
   source_guest_report          GuestIssueReport?   @relation(fields: [source_guest_report_id], references: [id])
+  guest_issues                 GuestIssue[]
 
   @@index([service_id])
   @@index([property_id])
@@ -895,3 +900,195 @@ enum ShareType {
   PROPERTY_MANAGEMENT
   GENERAL
 }
+
+// ============================================================================
+// PHASE 2.5: CUSTOMER PORTAL & GUEST AI DASHBOARD
+// ============================================================================
+
+// Customer Portal - Authentication and Preferences
+model CustomerPortalUser {
+  id               String    @id @default(uuid())
+  customer_id      String    @unique
+  email            String    @unique @db.VarChar(255)
+  password_hash    String    @db.VarChar(255)
+  last_login       DateTime?
+  theme_preference String    @default("light")
+  language         String    @default("en")
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  
+  customer         Customer  @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  
+  @@index([customer_id])
+  @@index([email])
+  @@map("customer_portal_users")
+}
+
+model CustomerPreferences {
+  id                      String   @id @default(uuid())
+  customer_id             String   @unique
+  auto_pay_enabled        Boolean  @default(false)
+  notification_email      Boolean  @default(true)
+  notification_sms        Boolean  @default(false)
+  calendar_sync_enabled   Boolean  @default(false)
+  quote_auto_approve_limit Float?  
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  
+  customer                Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  
+  @@index([customer_id])
+  @@map("customer_preferences")
+}
+
+// Guest AI Dashboard - Sessions and Interactions
+model GuestSession {
+  id                 String          @id @default(uuid())
+  property_id        String
+  device_id          String?
+  session_start      DateTime        @default(now())
+  session_end        DateTime?
+  interactions_count Int             @default(0)
+  
+  property           CustomerProperty @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  questions          GuestQuestion[]
+  issues             GuestIssue[]
+  
+  @@index([property_id])
+  @@index([session_start])
+  @@map("guest_sessions")
+}
+
+model GuestQuestion {
+  id              String        @id @default(uuid())
+  session_id      String
+  question        String        @db.Text
+  answer          String        @db.Text
+  answered_by     String        @db.VarChar(20) // 'AI' or 'human'
+  confidence      Float?
+  helpful_rating  Int?          // 1-5
+  created_at      DateTime      @default(now())
+  
+  session         GuestSession  @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  
+  @@index([session_id])
+  @@index([created_at])
+  @@map("guest_questions")
+}
+
+model GuestIssue {
+  id                     String             @id @default(uuid())
+  session_id             String
+  category               String             @db.VarChar(50)
+  description            String             @db.Text
+  severity               String             @db.VarChar(20) // 'critical', 'high', 'medium', 'low'
+  ai_confidence          Float
+  photos                 Json?              // Array of photo URLs
+  recommended_action     String             @db.VarChar(50) // 'diy', 'send_tech', 'notify_manager'
+  guest_selected_action  String?            @db.VarChar(50)
+  maintenance_job_id     String?
+  resolved_at            DateTime?
+  created_at             DateTime           @default(now())
+  
+  session                GuestSession       @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  maintenance_job        MaintenanceJob?    @relation(fields: [maintenance_job_id], references: [id])
+  assessment             AIAssessment?
+  diy_attempts           DIYAttempt[]
+  
+  @@index([session_id])
+  @@index([maintenance_job_id])
+  @@index([created_at])
+  @@map("guest_issues")
+}
+
+model AIAssessment {
+  id              String      @id @default(uuid())
+  issue_id        String      @unique
+  diagnosis       String      @db.Text
+  confidence      Float
+  severity        String      @db.VarChar(20)
+  estimated_cost  Float?
+  estimated_time  Int?        // minutes
+  created_at      DateTime    @default(now())
+  
+  issue           GuestIssue  @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+  
+  @@index([issue_id])
+  @@map("ai_assessments")
+}
+
+model DIYGuide {
+  id              String        @id @default(uuid())
+  issue_type      String        @db.VarChar(100)
+  title           String        @db.VarChar(200)
+  steps           Json          // Array of step objects
+  video_url       String?       @db.VarChar(500)
+  difficulty      String        @db.VarChar(20) // 'easy', 'medium', 'hard'
+  estimated_time  Int           // minutes
+  success_rate    Float?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  
+  attempts        DIYAttempt[]
+  
+  @@index([issue_type])
+  @@map("diy_guides")
+}
+
+model DIYAttempt {
+  id             String      @id @default(uuid())
+  issue_id       String
+  guide_id       String
+  successful     Boolean
+  time_spent     Int?        // seconds
+  escalated      Boolean     @default(false)
+  feedback       String?     @db.Text
+  created_at     DateTime    @default(now())
+  
+  issue          GuestIssue  @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+  guide          DIYGuide    @relation(fields: [guide_id], references: [id])
+  
+  @@index([issue_id])
+  @@index([guide_id])
+  @@map("diy_attempts")
+}
+
+model PropertyKnowledgeBase {
+  id              String            @id @default(uuid())
+  property_id     String
+  category        String            @db.VarChar(100)
+  title           String            @db.VarChar(200)
+  content         String            @db.Text
+  video_url       String?           @db.VarChar(500)
+  pdf_url         String?           @db.VarChar(500)
+  embedding       Json?             // Vector for RAG
+  view_count      Int               @default(0)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+  
+  property        CustomerProperty  @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  
+  @@index([property_id])
+  @@index([category])
+  @@map("property_knowledge_base")
+}
+
+model LocalRecommendation {
+  id                    String   @id @default(uuid())
+  category              String   @db.VarChar(50) // 'restaurant', 'attraction', 'grocery', etc.
+  name                  String   @db.VarChar(200)
+  description           String   @db.Text
+  address               String?  @db.VarChar(500)
+  distance_description  String?  @db.VarChar(100) // "5 min drive"
+  rating                Float?
+  reviews_count         Int?
+  map_url               String?  @db.VarChar(500)
+  phone                 String?  @db.VarChar(20)
+  website               String?  @db.VarChar(500)
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  @@index([category])
+  @@map("local_recommendations")
+}
+

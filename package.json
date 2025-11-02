@@ -13,6 +13,8 @@
     "dev:landlord": "turbo run dev --filter=web-landlord",
     "dev:cleaning": "turbo run dev --filter=web-cleaning",
     "dev:maintenance": "turbo run dev --filter=web-maintenance",
+    "dev:customer": "turbo run dev --filter=web-customer",
+    "dev:guest": "turbo run dev --filter=guest-tablet",
     "dev:all-web": "turbo run dev --filter=web-*",
     "dev:mobile": "turbo run dev --filter=mobile",
     "build": "turbo run build",

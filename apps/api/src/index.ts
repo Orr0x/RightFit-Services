@@ -25,6 +25,8 @@ import guestIssuesRoutes from './routes/guest-issues'
 import propertySharesRoutes from './routes/property-shares'
 import customersRoutes from './routes/customers'
 import customerPropertiesRoutes from './routes/customer-properties'
+import customerPortalRoutes from './routes/customer-portal'
+import guestRoutes from './routes/guest'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -123,6 +125,8 @@ app.use('/api/quotes', quotesRoutes)
 app.use('/api/guest-issues', guestIssuesRoutes)
 app.use('/api/customers', customersRoutes)
 app.use('/api/customer-properties', customerPropertiesRoutes)
+app.use('/api/customer-portal', customerPortalRoutes)
+app.use('/api/guest', guestRoutes)
 // Property sharing routes
 app.use('/api/property-shares', propertySharesRoutes)
 
