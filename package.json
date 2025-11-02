@@ -10,7 +10,10 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=api",
-    "dev:web": "turbo run dev --filter=web",
+    "dev:landlord": "turbo run dev --filter=web-landlord",
+    "dev:cleaning": "turbo run dev --filter=web-cleaning",
+    "dev:maintenance": "turbo run dev --filter=web-maintenance",
+    "dev:all-web": "turbo run dev --filter=web-*",
     "dev:mobile": "turbo run dev --filter=mobile",
     "build": "turbo run build",
     "test": "turbo run test",

@@ -1,0 +1,92 @@
+/**
+ * Stats Card Styles
+ * US-UX-4: Dashboard Home Screen Redesign
+ */
+
+.stats-card {
+  padding: var(--spacing-6);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+}
+
+.stats-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stats-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4);
+}
+
+.stats-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.stats-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-base);
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+.stats-card-primary .stats-card-icon {
+  background-color: var(--color-primary-500);
+}
+
+.stats-card-success .stats-card-icon {
+  background-color: var(--color-success);
+}
+
+.stats-card-warning .stats-card-icon {
+  background-color: var(--color-warning);
+}
+
+.stats-card-error .stats-card-icon {
+  background-color: var(--color-error);
+}
+
+.stats-card-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-2);
+}
+
+.stats-card-trend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.stats-card-trend-up {
+  color: var(--color-success);
+}
+
+.stats-card-trend-down {
+  color: var(--color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-card {
+    transition: none;
+  }
+
+  .stats-card:hover {
+    transform: none;
+  }
+}

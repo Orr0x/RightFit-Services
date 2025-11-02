@@ -1,0 +1,172 @@
+/**
+ * Select Styles
+ * US-UX-2: Component Library
+ */
+
+/* Wrapper */
+.select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.select-wrapper-full-width {
+  width: 100%;
+}
+
+/* Label */
+.select-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.select-required {
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Container (holds select + icon) */
+.select-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Base Select Styles */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+  outline: none;
+  cursor: pointer;
+  padding-right: var(--spacing-10); /* Space for icon */
+}
+
+/* Placeholder state */
+.select-placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* Sizes */
+.select-sm {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  min-height: 32px;
+}
+
+.select-md {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-base);
+  min-height: 40px;
+}
+
+.select-lg {
+  padding: var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-lg);
+  min-height: 48px;
+}
+
+/* States */
+.select:hover:not(.select-disabled):not(.select-error) {
+  border-color: var(--color-primary-500);
+}
+
+.select:focus:not(.select-disabled) {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.select-error {
+  border-color: var(--color-error);
+}
+
+.select-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.select-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-surface);
+}
+
+/* Custom Chevron Icon */
+.select-icon {
+  position: absolute;
+  right: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  transition: transform var(--transition-fast);
+}
+
+.select:focus + .select-icon {
+  color: var(--color-primary-500);
+}
+
+/* Option Styles */
+.select option {
+  padding: var(--spacing-2);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.select option:disabled {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+/* Helper and Error Text */
+.select-helper-text,
+.select-error-text {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+.select-helper-text {
+  color: var(--color-text-secondary);
+}
+
+.select-error-text {
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Dark Mode Adjustments */
+[data-theme='dark'] .select option,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .select option {
+    background-color: var(--color-surface);
+  }
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .select,
+  .select-icon {
+    transition: none;
+  }
+}
+
+/* Remove default dropdown arrow in IE */
+.select::-ms-expand {
+  display: none;
+}

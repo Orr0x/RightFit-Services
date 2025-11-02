@@ -1,0 +1,192 @@
+/**
+ * Skeleton Styles
+ * US-UX-2: Component Library
+ */
+
+/* Base Skeleton */
+.skeleton {
+  background-color: var(--color-surface-elevated);
+  display: block;
+}
+
+/* Animation */
+.skeleton-animate {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-elevated) 0%,
+    var(--color-hover) 50%,
+    var(--color-surface-elevated) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Variants */
+.skeleton-text {
+  border-radius: var(--radius-sm);
+  height: 1em;
+  transform-origin: 0 50%;
+  transform: scale(1, 0.6);
+}
+
+.skeleton-circular {
+  border-radius: 50%;
+}
+
+.skeleton-rectangular {
+  border-radius: 0;
+}
+
+.skeleton-rounded {
+  border-radius: var(--radius-base);
+}
+
+/* SkeletonText Component */
+.skeleton-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-text-spacing-sm {
+  gap: var(--spacing-2);
+}
+
+.skeleton-text-spacing-md {
+  gap: var(--spacing-3);
+}
+
+.skeleton-text-spacing-lg {
+  gap: var(--spacing-4);
+}
+
+/* SkeletonCard Component */
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.skeleton-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.skeleton-card-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.skeleton-card-actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.skeleton-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.skeleton-card-footer {
+  display: flex;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* SkeletonTable Component */
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.skeleton-table-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-base);
+}
+
+.skeleton-table-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.skeleton-table-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-base);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .skeleton-card {
+    padding: var(--spacing-4);
+  }
+
+  .skeleton-card-header {
+    flex-direction: column;
+  }
+
+  .skeleton-card-footer {
+    flex-direction: column;
+  }
+
+  .skeleton-table-header,
+  .skeleton-table-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+}
+
+/* Dark Mode Adjustments */
+[data-theme='dark'] .skeleton-animate,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .skeleton-animate {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    background-size: 200% 100%;
+  }
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-animate {
+    animation: none;
+    background: var(--color-surface-elevated);
+  }
+
+  @keyframes skeletonPulse {
+    from,
+    to {
+      background-position: 0 0;
+    }
+  }
+}
