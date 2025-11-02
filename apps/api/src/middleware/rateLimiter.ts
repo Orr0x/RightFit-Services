@@ -1,8 +1,11 @@
 import rateLimit from 'express-rate-limit'
 
+// In development, use much more lenient rate limits
+const isDevelopment = process.env.NODE_ENV !== 'production'
+
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  max: isDevelopment ? 1000 : 5, // 1000 in dev, 5 in production
   message: 'Too many login attempts. Please try again after 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -10,7 +13,7 @@ export const loginRateLimiter = rateLimit({
 
 export const registerRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 requests per window
+  max: isDevelopment ? 1000 : 3, // 1000 in dev, 3 in production
   message: 'Too many registration attempts. Please try again after 1 hour.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -18,7 +21,7 @@ export const registerRateLimiter = rateLimit({
 
 export const passwordResetRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 requests per window
+  max: isDevelopment ? 1000 : 3, // 1000 in dev, 3 in production
   message: 'Too many password reset requests. Please try again after 1 hour.',
   standardHeaders: true,
   legacyHeaders: false,

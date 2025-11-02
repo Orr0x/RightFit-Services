@@ -27,32 +27,29 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setMobileMenuOpen(false)
   }
 
-  // Navigation items
+  // Navigation items - Maintenance Services
   const navItems: NavItem[] = [
     {
-      id: 'properties',
-      label: 'Properties',
-      path: '/properties',
+      id: 'dashboard',
+      label: 'Dashboard',
+      path: '/dashboard',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Properties">
-          <path
-            d="M3 9l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Dashboard">
+          <rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="11" y="3" width="6" height="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="3" y="11" width="6" height="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="11" y="11" width="6" height="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
     },
     {
-      id: 'work-orders',
-      label: 'Work Orders',
-      path: '/work-orders',
+      id: 'jobs',
+      label: 'Maintenance Jobs',
+      path: '/jobs',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Work Orders">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Maintenance Jobs">
           <path
             d="M14.5 2h-9A1.5 1.5 0 0 0 4 3.5v13A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 2z"
             stroke="currentColor"
@@ -71,14 +68,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'tenants',
-      label: 'Tenants',
-      path: '/tenants',
+      id: 'properties',
+      label: 'Properties',
+      path: '/properties',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Tenants">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Properties">
           <path
-            d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 16c-4 0-6 2-6 2v1h12v-1s-2-2-6-2z"
+            d="M3 9l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -88,14 +85,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'contractors',
-      label: 'Contractors',
-      path: '/contractors',
+      id: 'workers',
+      label: 'Workers',
+      path: '/workers',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Contractors">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Workers">
           <path
-            d="M16 2L8 10M16 2l-4 12-2-6-6-2 12-4zM8 10L2 16"
+            d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 16c-4 0-6 2-6 2v1h12v-1s-2-2-6-2z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"

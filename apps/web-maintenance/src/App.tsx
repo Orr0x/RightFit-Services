@@ -9,6 +9,10 @@ import Register from './pages/Register'
 import MaintenanceDashboard from './pages/dashboards/MaintenanceDashboard'
 import MaintenanceJobs from './pages/maintenance/MaintenanceJobs'
 import CreateMaintenanceJob from './pages/maintenance/CreateMaintenanceJob'
+import Properties from './pages/Properties'
+import Workers from './pages/Workers'
+import Financial from './pages/Financial'
+import Certificates from './pages/Certificates'
 
 function App() {
   return (
@@ -45,6 +49,46 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <CreateMaintenanceJob />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/properties"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Properties />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workers"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Workers />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/financial"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Financial />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/certificates"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Certificates />
                   </AppLayout>
                 </ProtectedRoute>
               }

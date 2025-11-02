@@ -838,3 +838,206 @@ export const maintenanceJobsAPI = {
     return response.data.data
   },
 }
+
+// Workers API calls
+export interface Worker {
+  id: string
+  service_provider_id: string
+  user_id?: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  worker_type: "CLEANER" | "MAINTENANCE" | "BOTH"
+  employment_type: "FULL_TIME" | "PART_TIME" | "CONTRACTOR"
+  hourly_rate: number
+  is_active: boolean
+  max_weekly_hours?: number
+  jobs_completed: number
+  average_rating?: number
+  created_at: string
+  updated_at: string
+}
+
+export const workersAPI = {
+  list: async (serviceProviderId: string) => {
+    const response = await api.get<{ data: Worker[] }>("/api/workers", {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
+  },
+
+  get: async (id: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: Worker }>(`/api/workers/${id}`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
+  },
+
+  create: async (data: Partial<Worker> & { service_provider_id: string }) => {
+    const response = await api.post<{ data: Worker }>("/api/workers", data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<Worker> & { service_provider_id: string }) => {
+    const response = await api.put<{ data: Worker }>(`/api/workers/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string, serviceProviderId: string) => {
+    await api.delete(`/api/workers/${id}`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+  },
+}
+
+// Customers API - Service provider customers
+export interface Customer {
+  id: string
+  service_provider_id: string
+  business_name: string
+  contact_name: string
+  email: string
+  phone: string
+  address?: string
+  customer_type: 'INDIVIDUAL' | 'PROPERTY_MANAGER' | 'VACATION_RENTAL'
+  has_cleaning_contract: boolean
+  has_maintenance_contract: boolean
+  bundled_discount_percentage: number
+  payment_terms: 'NET_7' | 'NET_14' | 'NET_30' | 'NET_60' | 'DUE_ON_RECEIPT'
+  payment_reliability_score: number
+  satisfaction_score?: number
+  cross_sell_potential: string
+  created_at: string
+  updated_at: string
+  customer_properties?: CustomerProperty[]
+  _count?: {
+    customer_properties: number
+    cleaning_jobs: number
+    maintenance_jobs: number
+    quotes: number
+  }
+}
+
+export interface CreateCustomerData {
+  business_name: string
+  contact_name: string
+  email: string
+  phone: string
+  address?: string
+  customer_type: 'INDIVIDUAL' | 'PROPERTY_MANAGER' | 'VACATION_RENTAL'
+  has_cleaning_contract?: boolean
+  has_maintenance_contract?: boolean
+  bundled_discount_percentage?: number
+  payment_terms?: 'NET_7' | 'NET_14' | 'NET_30' | 'NET_60' | 'DUE_ON_RECEIPT'
+}
+
+export const customersAPI = {
+  list: async (filters?: {
+    page?: number
+    limit?: number
+    search?: string
+  }) => {
+    const response = await api.get<{ data: Customer[]; pagination: any }>('/api/customers', {
+      params: filters,
+    })
+    return response.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: Customer }>(`/api/customers/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateCustomerData) => {
+    const response = await api.post<{ data: Customer }>('/api/customers', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateCustomerData>) => {
+    const response = await api.patch<{ data: Customer }>(`/api/customers/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/customers/${id}`)
+  },
+}
+
+// Customer Properties API - Properties owned by service provider customers
+export interface CustomerProperty {
+  id: string
+  customer_id: string
+  property_name: string
+  address: string
+  postcode: string
+  property_type: string
+  bedrooms: number
+  bathrooms: number
+  access_instructions?: string
+  access_code?: string
+  cleaning_checklist_template_id?: string
+  guest_portal_enabled: boolean
+  guest_portal_qr_code_url?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+    customer_type: string
+  }
+  _count?: {
+    cleaning_jobs: number
+    maintenance_jobs: number
+    guest_issue_reports: number
+  }
+}
+
+export interface CreateCustomerPropertyData {
+  customer_id: string
+  property_name: string
+  address: string
+  postcode: string
+  property_type: string
+  bedrooms?: number
+  bathrooms?: number
+  access_instructions?: string
+  access_code?: string
+  cleaning_checklist_template_id?: string
+  guest_portal_enabled?: boolean
+}
+
+export const customerPropertiesAPI = {
+  list: async (filters?: {
+    page?: number
+    limit?: number
+    search?: string
+    customer_id?: string
+  }) => {
+    const response = await api.get<{ data: CustomerProperty[]; pagination: any }>('/api/customer-properties', {
+      params: filters,
+    })
+    return response.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: CustomerProperty }>(`/api/customer-properties/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateCustomerPropertyData) => {
+    const response = await api.post<{ data: CustomerProperty }>('/api/customer-properties', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateCustomerPropertyData>) => {
+    const response = await api.patch<{ data: CustomerProperty }>(`/api/customer-properties/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/customer-properties/${id}`)
+  },
+}

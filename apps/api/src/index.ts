@@ -22,6 +22,9 @@ import maintenanceJobsRoutes from './routes/maintenance-jobs'
 import workersRoutes from './routes/workers'
 import quotesRoutes from './routes/quotes'
 import guestIssuesRoutes from './routes/guest-issues'
+import propertySharesRoutes from './routes/property-shares'
+import customersRoutes from './routes/customers'
+import customerPropertiesRoutes from './routes/customer-properties'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -118,6 +121,10 @@ app.use('/api/maintenance-jobs', maintenanceJobsRoutes)
 app.use('/api/workers', workersRoutes)
 app.use('/api/quotes', quotesRoutes)
 app.use('/api/guest-issues', guestIssuesRoutes)
+app.use('/api/customers', customersRoutes)
+app.use('/api/customer-properties', customerPropertiesRoutes)
+// Property sharing routes
+app.use('/api/property-shares', propertySharesRoutes)
 
 // Apply general rate limiting to all other API routes
 app.use('/api', generalApiRateLimiter)

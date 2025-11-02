@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Modal, Spinner, EmptyState, Textarea, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState, Textarea, useToast, Tabs, TabPanel, type Tab } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
-import { propertiesAPI, type Property, type CreatePropertyData } from '../lib/api'
+import { propertiesAPI, customerPropertiesAPI, type Property, type CreatePropertyData, type CustomerProperty } from '../lib/api'
 import './Properties.css'
 
 const PROPERTY_TYPES = [
@@ -13,6 +13,8 @@ const PROPERTY_TYPES = [
 
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([])
+  const [customerProperties, setCustomerProperties] = useState<CustomerProperty[]>([])
+  const [activeTab, setActiveTab] = useState('our-properties')
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const [openDialog, setOpenDialog] = useState(false)
@@ -32,6 +34,7 @@ export default function Properties() {
 
   useEffect(() => {
     loadProperties()
+    loadCustomerProperties()
   }, [])
 
   const loadProperties = () => {
@@ -44,6 +47,16 @@ export default function Properties() {
         console.error('Load properties error:', err)
       }
     })
+  }
+
+  const loadCustomerProperties = async () => {
+    try {
+      const result = await customerPropertiesAPI.list()
+      setCustomerProperties(result.data)
+    } catch (err: any) {
+      toast.error('Failed to load customer properties')
+      console.error('Load customer properties error:', err)
+    }
   }
 
   const handleOpenDialog = (property?: Property) => {
@@ -112,6 +125,39 @@ export default function Properties() {
     }
   }
 
+  const tabs: Tab[] = [
+    {
+      id: 'our-properties',
+      label: 'Our Properties',
+      count: properties.length,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2 7l7-5 7 5v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7z" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        </svg>
+      ),
+    },
+    {
+      id: 'customer-properties',
+      label: 'Customer Properties',
+      count: customerProperties.length,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M14 15a3 3 0 0 0-6 0m6 0a3 3 0 0 1-6 0m6 0h2m-8 0H4m7-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        </svg>
+      ),
+    },
+    {
+      id: 'shared-properties',
+      label: 'Shared Properties',
+      count: 0,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M13 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM13 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6.5 8.5l5 2M6.5 9.5l5-2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ]
+
   if (isLoading) {
     return (
       <div className="page-loading">
@@ -151,21 +197,26 @@ export default function Properties() {
               </svg>
             </button>
           </div>
-          <Button
-            variant="primary"
-            leftIcon={
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            }
-            onClick={() => handleOpenDialog()}
-          >
-            Add Property
-          </Button>
+          {activeTab === 'our-properties' && (
+            <Button
+              variant="primary"
+              leftIcon={
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              }
+              onClick={() => handleOpenDialog()}
+            >
+              Add Property
+            </Button>
+          )}
         </div>
       </div>
 
-      {properties.length === 0 ? (
+      <Tabs tabs={tabs} defaultTab="our-properties" onChange={setActiveTab} />
+
+      <TabPanel tabId="our-properties" activeTab={activeTab}>
+        {properties.length === 0 ? (
         <EmptyState
           title="No properties yet"
           description="Get started by adding your first property to your portfolio"
@@ -242,6 +293,85 @@ export default function Properties() {
           ))}
         </div>
       )}
+      </TabPanel>
+
+      <TabPanel tabId="customer-properties" activeTab={activeTab}>
+        {customerProperties.length === 0 ? (
+          <EmptyState
+            title="No customer properties yet"
+            description="Customer properties will appear here once your customers add them"
+          />
+        ) : (
+          <div className={`properties-${viewMode}`}>
+            {customerProperties.map((property) => (
+              <Card key={property.id} variant="elevated" className="property-card">
+                <div className="property-card-header">
+                  <div>
+                    <h3 className="property-name">{property.property_name}</h3>
+                    <p className="property-address">{property.address}</p>
+                    {property.customer && (
+                      <p className="property-customer">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ display: 'inline', marginRight: '4px' }}>
+                          <path d="M12 13a3 3 0 0 0-6 0m6 0a3 3 0 0 1-6 0m6 0h1.5m-7.5 0H4.5m5-9a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                        </svg>
+                        {property.customer.business_name}
+                      </p>
+                    )}
+                  </div>
+                  <span className="property-type-badge">{property.property_type}</span>
+                </div>
+
+                <div className="property-details">
+                  <div className="property-detail-item">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 6l6-4 6 4v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    <span>{property.bedrooms} bed</span>
+                  </div>
+                  <div className="property-detail-item">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M14 10h-1V6a1 1 0 0 0-1-1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v1H4a1 1 0 0 0-1 1v4H2" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    <span>{property.bathrooms} bath</span>
+                  </div>
+                  <div className="property-detail-item">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 14l-4-4h2.5V2h3v8H12l-4 4z" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    <span>{property.postcode}</span>
+                  </div>
+                </div>
+
+                {property._count && (
+                  <div className="property-stats">
+                    <div className="property-stat">
+                      <span className="property-stat-value">{property._count.cleaning_jobs}</span>
+                      <span className="property-stat-label">Cleaning Jobs</span>
+                    </div>
+                    <div className="property-stat">
+                      <span className="property-stat-value">{property._count.maintenance_jobs}</span>
+                      <span className="property-stat-label">Maintenance Jobs</span>
+                    </div>
+                    {property._count.guest_issue_reports > 0 && (
+                      <div className="property-stat">
+                        <span className="property-stat-value">{property._count.guest_issue_reports}</span>
+                        <span className="property-stat-label">Guest Reports</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+      </TabPanel>
+
+      <TabPanel tabId="shared-properties" activeTab={activeTab}>
+        <EmptyState
+          title="No shared properties yet"
+          description="Properties shared with you by other users will appear here"
+        />
+      </TabPanel>
 
       <Modal
         isOpen={openDialog}

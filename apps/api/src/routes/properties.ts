@@ -16,8 +16,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100)
     const search = req.query.search as string | undefined
+    const includeShared = req.query.include_shared !== 'false' // Default to true
 
-    const result = await propertiesService.list(tenantId, page, limit, search)
+    const result = await propertiesService.list(tenantId, page, limit, search, includeShared)
     res.json({ data: result.data, pagination: result.pagination })
   } catch (error) {
     next(error)
