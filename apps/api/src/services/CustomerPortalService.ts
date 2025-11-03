@@ -92,6 +92,32 @@ export class CustomerPortalService {
 
   // Dashboard Data
   async getDashboard(customerId: string): Promise<CustomerDashboardData> {
+    // DEMO MODE: Return mock data for demo customer
+    if (customerId === 'demo-customer-id') {
+      return {
+        customer: {
+          id: 'demo-customer-id',
+          business_name: 'Demo Customer',
+          contact_name: 'Demo User',
+          email: 'demo@example.com',
+          phone: '555-0100',
+        },
+        properties: [],
+        activeJobs: {
+          cleaning: [],
+          maintenance: [],
+        },
+        recentInvoices: [],
+        pendingQuotes: [],
+        statistics: {
+          totalProperties: 0,
+          activeJobs: 0,
+          thisMonthSpending: 0,
+          pendingQuotes: 0,
+        },
+      };
+    }
+
     const customer = await prisma.customer.findUnique({
       where: { id: customerId },
       include: {
@@ -164,12 +190,12 @@ export class CustomerPortalService {
     // Calculate this month's spending (completed jobs)
     const completedJobsThisMonth = await prisma.$queryRaw<any[]>`
       SELECT
-        COALESCE(SUM(cj.price), 0) as cleaning_total,
+        COALESCE(SUM(cj.actual_price), 0) as cleaning_total,
         COALESCE(SUM(mj.actual_total), 0) as maintenance_total
       FROM customers c
       LEFT JOIN cleaning_jobs cj ON c.id = cj.customer_id
         AND cj.status = 'COMPLETED'
-        AND cj.completed_at >= ${thisMonthStart}
+        AND cj.actual_end_time >= ${thisMonthStart}
       LEFT JOIN maintenance_jobs mj ON c.id = mj.customer_id
         AND mj.status = 'COMPLETED'
         AND mj.completed_date >= ${thisMonthStart}
@@ -340,5 +366,303 @@ export class CustomerPortalService {
     });
 
     return preferences;
+  }
+
+  // Properties
+  async getProperties(customerId: string) {
+    const properties = await prisma.customerProperty.findMany({
+      where: {
+        customer_id: customerId,
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            business_name: true,
+            contact_name: true,
+          },
+        },
+        _count: {
+          select: {
+            cleaning_jobs: true,
+            maintenance_jobs: true,
+            guest_issue_reports: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+
+    return properties;
+  }
+
+  // Guest Issues
+  async getGuestIssues(customerId: string) {
+    // Get all properties for this customer
+    const properties = await prisma.customerProperty.findMany({
+      where: { customer_id: customerId },
+      select: { id: true },
+    });
+
+    const propertyIds = properties.map((p) => p.id);
+
+    // Get all guest issues for these properties
+    const issues = await prisma.guestIssueReport.findMany({
+      where: {
+        property_id: { in: propertyIds },
+      },
+      include: {
+        property: {
+          select: {
+            property_name: true,
+            address: true,
+            postcode: true,
+          },
+        },
+      },
+      orderBy: {
+        reported_at: 'desc',
+      },
+    });
+
+    return issues;
+  }
+
+  async submitGuestIssue(customerId: string, issueId: string) {
+    // Verify the issue belongs to this customer's property
+    const issue = await prisma.guestIssueReport.findUnique({
+      where: { id: issueId },
+      include: { property: true },
+    });
+
+    if (!issue) {
+      throw new NotFoundError('Guest issue not found');
+    }
+
+    if (issue.property.customer_id !== customerId) {
+      throw new UnauthorizedError('You do not have permission to submit this issue');
+    }
+
+    // Get the property's service provider
+    const property = await prisma.customerProperty.findUnique({
+      where: { id: issue.property_id },
+      include: { customer: true },
+    });
+
+    if (!property) {
+      throw new NotFoundError('Property not found');
+    }
+
+    // Find the maintenance service for this service provider
+    const maintenanceService = await prisma.service.findFirst({
+      where: {
+        service_provider_id: property.customer.service_provider_id,
+        service_type: 'MAINTENANCE',
+        is_active: true,
+      },
+    });
+
+    if (!maintenanceService) {
+      throw new NotFoundError('No active maintenance service found for this property');
+    }
+
+    // Create a maintenance job from the guest issue
+    const maintenanceJob = await prisma.maintenanceJob.create({
+      data: {
+        service_id: maintenanceService.id,
+        property_id: issue.property_id,
+        customer_id: customerId,
+        source: 'GUEST_REPORT',
+        source_guest_report_id: issueId,
+        category: issue.issue_type,
+        priority: issue.ai_severity?.toUpperCase() === 'HIGH' || issue.ai_severity?.toUpperCase() === 'URGENT' ? 'URGENT' : 'MEDIUM',
+        title: `Guest Report: ${issue.issue_type}`,
+        description: issue.issue_description,
+        status: 'QUOTE_PENDING',
+        issue_photos: issue.photos || [],
+      },
+    });
+
+    // Update guest issue status
+    const updatedIssue = await prisma.guestIssueReport.update({
+      where: { id: issueId },
+      data: { status: 'WORK_ORDER_CREATED' },
+    });
+
+    return { issue: updatedIssue, maintenanceJob };
+  }
+
+  async dismissGuestIssue(customerId: string, issueId: string) {
+    // Verify the issue belongs to this customer's property
+    const issue = await prisma.guestIssueReport.findUnique({
+      where: { id: issueId },
+      include: { property: true },
+    });
+
+    if (!issue) {
+      throw new NotFoundError('Guest issue not found');
+    }
+
+    if (issue.property.customer_id !== customerId) {
+      throw new UnauthorizedError('You do not have permission to dismiss this issue');
+    }
+
+    // Update guest issue status
+    const updatedIssue = await prisma.guestIssueReport.update({
+      where: { id: issueId },
+      data: { status: 'DISMISSED' },
+    });
+
+    return updatedIssue;
+  }
+
+  async rateMaintenanceJob(jobId: string, customerId: string, rating: number) {
+    // Verify job exists and belongs to this customer
+    const job = await prisma.maintenanceJob.findFirst({
+      where: {
+        id: jobId,
+        customer_id: customerId,
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundError('Maintenance job not found');
+    }
+
+    if (job.status !== 'COMPLETED') {
+      throw new Error('Can only rate completed jobs');
+    }
+
+    // Update job rating
+    const updatedJob = await prisma.maintenanceJob.update({
+      where: { id: jobId },
+      data: {
+        customer_satisfaction_rating: rating,
+        updated_at: new Date(),
+      },
+      include: {
+        property: true,
+        assigned_worker: true,
+        assigned_contractor: true,
+      },
+    });
+
+    return updatedJob;
+  }
+
+  // Notifications
+  async getNotifications(customerId: string) {
+    // Get the portal user for this customer
+    const portalUser = await prisma.customerPortalUser.findUnique({
+      where: { customer_id: customerId },
+    });
+
+    if (!portalUser) {
+      return [];
+    }
+
+    // Get all notifications for this portal user
+    const notifications = await prisma.customerNotification.findMany({
+      where: {
+        customer_portal_user_id: portalUser.id,
+      },
+      orderBy: {
+        sent_at: 'desc',
+      },
+      take: 50, // Limit to latest 50 notifications
+    });
+
+    return notifications;
+  }
+
+  async markNotificationAsRead(customerId: string, notificationId: string) {
+    // Get the portal user for this customer
+    const portalUser = await prisma.customerPortalUser.findUnique({
+      where: { customer_id: customerId },
+    });
+
+    if (!portalUser) {
+      throw new NotFoundError('Customer portal user not found');
+    }
+
+    // Verify notification belongs to this portal user
+    const notification = await prisma.customerNotification.findFirst({
+      where: {
+        id: notificationId,
+        customer_portal_user_id: portalUser.id,
+      },
+    });
+
+    if (!notification) {
+      throw new NotFoundError('Notification not found');
+    }
+
+    // Mark as read
+    const updatedNotification = await prisma.customerNotification.update({
+      where: { id: notificationId },
+      data: { read_at: new Date() },
+    });
+
+    return updatedNotification;
+  }
+
+  // Get maintenance job details for customer
+  async getMaintenanceJobDetails(customerId: string, jobId: string) {
+    // Verify customer owns this job
+    const job = await prisma.maintenanceJob.findFirst({
+      where: {
+        id: jobId,
+        customer_id: customerId,
+      },
+      include: {
+        property: true,
+        customer: true,
+        assigned_worker: true,
+        assigned_contractor: true,
+        quote: true,
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundError('Maintenance job not found');
+    }
+
+    return job;
+  }
+
+  // Add customer comment to maintenance job
+  async addJobComment(customerId: string, jobId: string, comment: string) {
+    // Verify customer owns this job
+    const job = await prisma.maintenanceJob.findFirst({
+      where: {
+        id: jobId,
+        customer_id: customerId,
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundError('Maintenance job not found');
+    }
+
+    // For now, we'll append the comment to the description field
+    // In a production system, you'd want a separate comments/activity table
+    const commentTimestamp = new Date().toLocaleString();
+    const customerComment = `\n\n--- Customer Comment (${commentTimestamp}) ---\n${comment}`;
+
+    await prisma.maintenanceJob.update({
+      where: { id: jobId },
+      data: {
+        description: job.description
+          ? `${job.description}${customerComment}`
+          : `Customer Job${customerComment}`,
+      },
+    });
+
+    // Create a notification for the service provider
+    // TODO: Implement notification system for service providers
+
+    return { success: true, message: 'Comment added successfully' };
   }
 }

@@ -1,6 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { CustomerPortalService } from '../services/CustomerPortalService';
-import { authMiddleware } from '../middleware/auth';
 
 const router: Router = Router();
 const customerPortalService = new CustomerPortalService();
@@ -127,6 +126,126 @@ router.put('/preferences', customerAuthMiddleware, async (req: Request, res: Res
     const customerId = (req as any).customerId;
     const preferences = await customerPortalService.updatePreferences(customerId, req.body);
     res.json({ data: preferences });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/customer-portal/properties?customer_id=xxx
+router.get('/properties', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const properties = await customerPortalService.getProperties(customerId);
+    res.json({ data: properties });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/customer-portal/guest-issues?customer_id=xxx
+router.get('/guest-issues', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const issues = await customerPortalService.getGuestIssues(customerId);
+    res.json({ data: issues });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/guest-issues/:id/submit
+router.post('/guest-issues/:id/submit', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const issueId = req.params.id;
+    const result = await customerPortalService.submitGuestIssue(customerId, issueId);
+    res.json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/guest-issues/:id/dismiss
+router.post('/guest-issues/:id/dismiss', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const issueId = req.params.id;
+    const result = await customerPortalService.dismissGuestIssue(customerId, issueId);
+    res.json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/jobs/:jobId/rate
+// Customer rates a completed maintenance job
+router.post('/jobs/:jobId/rate', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { rating, customerId } = req.body;
+
+    if (!customerId || !rating) {
+      return res.status(400).json({ error: 'customerId and rating are required' });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+
+    const result = await customerPortalService.rateMaintenanceJob(req.params.jobId, customerId, rating);
+    res.json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/customer-portal/notifications?customer_id=xxx
+router.get('/notifications', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const notifications = await customerPortalService.getNotifications(customerId);
+    res.json({ data: notifications });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/customer-portal/notifications/:id/mark-read
+router.put('/notifications/:id/mark-read', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const notificationId = req.params.id;
+    const notification = await customerPortalService.markNotificationAsRead(customerId, notificationId);
+    res.json({ data: notification });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/customer-portal/maintenance-jobs/:id?customer_id=xxx
+router.get('/maintenance-jobs/:id', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const jobId = req.params.id;
+    const job = await customerPortalService.getMaintenanceJobDetails(customerId, jobId);
+    res.json({ data: job });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/maintenance-jobs/:id/comment
+router.post('/maintenance-jobs/:id/comment', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const jobId = req.params.id;
+    const { comment } = req.body;
+
+    if (!comment) {
+      return res.status(400).json({ error: 'Comment is required' });
+    }
+
+    const result = await customerPortalService.addJobComment(customerId, jobId, comment);
+    res.json({ data: result });
   } catch (error) {
     next(error);
   }

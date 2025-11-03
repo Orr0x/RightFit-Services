@@ -722,6 +722,8 @@ export interface MaintenanceJob {
   description?: string
   requested_date?: string
   scheduled_date?: string
+  scheduled_start_time?: string
+  scheduled_end_time?: string
   completed_date?: string
   status: 'QUOTE_PENDING' | 'QUOTE_SENT' | 'APPROVED' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
   quote_id?: string

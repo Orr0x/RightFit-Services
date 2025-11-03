@@ -9,8 +9,10 @@ import Register from './pages/Register'
 import MaintenanceDashboard from './pages/dashboards/MaintenanceDashboard'
 import MaintenanceJobs from './pages/maintenance/MaintenanceJobs'
 import CreateMaintenanceJob from './pages/maintenance/CreateMaintenanceJob'
+import MaintenanceJobDetails from './pages/MaintenanceJobDetails'
 import Properties from './pages/Properties'
 import Workers from './pages/Workers'
+import Contractors from './pages/Contractors'
 import Financial from './pages/Financial'
 import Certificates from './pages/Certificates'
 
@@ -54,6 +56,16 @@ function App() {
               }
             />
             <Route
+              path="/jobs/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <MaintenanceJobDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/properties"
               element={
                 <ProtectedRoute>
@@ -69,6 +81,16 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Workers />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contractors"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Contractors />
                   </AppLayout>
                 </ProtectedRoute>
               }

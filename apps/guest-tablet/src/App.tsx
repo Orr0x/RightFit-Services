@@ -1,115 +1,28 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ToastProvider } from './components/ui/Toast'
-import { AppLayout } from './components/layout'
-import ProtectedRoute from './components/ProtectedRoute'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import CleaningDashboard from './pages/dashboards/CleaningDashboard'
-import CleaningJobs from './pages/cleaning/CleaningJobs'
-import CreateCleaningJob from './pages/cleaning/CreateCleaningJob'
-import CleaningJobDetails from './pages/cleaning/CleaningJobDetails'
-import Properties from './pages/Properties'
-import Workers from './pages/Workers'
-import Financial from './pages/Financial'
-import Certificates from './pages/Certificates'
+import GuestWelcome from './pages/GuestWelcome'
+import AIChat from './pages/AIChat'
+import ReportIssue from './pages/ReportIssue'
+import DIYGuide from './pages/DIYGuide'
+import KnowledgeBase from './pages/KnowledgeBase'
 
 function App() {
   return (
     <ThemeProvider>
       <ToastProvider position="top-right">
-        <AuthProvider>
-          <BrowserRouter>
+        <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CleaningDashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CleaningJobs />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/new"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CreateCleaningJob />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:id"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CleaningJobDetails />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/properties"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Properties />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/workers"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Workers />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/financial"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Financial />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/certificates"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Certificates />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<GuestWelcome />} />
+            <Route path="/chat" element={<AIChat />} />
+            <Route path="/report-issue" element={<ReportIssue />} />
+            <Route path="/diy-guides" element={<DIYGuide />} />
+            <Route path="/info" element={<KnowledgeBase />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
-      </AuthProvider>
-    </ToastProvider>
-  </ThemeProvider>
+      </ToastProvider>
+    </ThemeProvider>
   )
 }
 

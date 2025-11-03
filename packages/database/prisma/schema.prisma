@@ -405,6 +405,7 @@ model Customer {
   service_provider            ServiceProvider     @relation(fields: [service_provider_id], references: [id])
   maintenance_jobs            MaintenanceJob[]
   quotes                      Quote[]
+  invoices                    Invoice[]
   portal_user                 CustomerPortalUser?
   preferences                 CustomerPreferences?
 
@@ -549,6 +550,8 @@ model MaintenanceJob {
   description                  String?
   requested_date               DateTime?           @db.Date
   scheduled_date               DateTime?           @db.Date
+  scheduled_start_time         String?             @db.VarChar(5)
+  scheduled_end_time           String?             @db.VarChar(5)
   completed_date               DateTime?           @db.Date
   status                       MaintenanceStatus   @default(QUOTE_PENDING)
   quote_id                     String?
@@ -575,6 +578,7 @@ model MaintenanceJob {
   source_cleaning_job          CleaningJob?        @relation(fields: [source_cleaning_job_id], references: [id])
   source_guest_report          GuestIssueReport?   @relation(fields: [source_guest_report_id], references: [id])
   guest_issues                 GuestIssue[]
+  invoice                      Invoice?
 
   @@index([service_id])
   @@index([property_id])
@@ -611,6 +615,35 @@ model Quote {
   @@index([customer_id])
   @@index([status])
   @@map("quotes")
+}
+
+model Invoice {
+  id                    String        @id @default(uuid())
+  customer_id           String
+  maintenance_job_id    String?       @unique
+  cleaning_job_id       String?       @unique
+  invoice_number        String        @unique @db.VarChar(50)
+  invoice_date          DateTime      @db.Date
+  due_date              DateTime      @db.Date
+  line_items            Json
+  subtotal              Decimal       @db.Decimal(10, 2)
+  tax_percentage        Decimal       @default(20) @db.Decimal(5, 2)
+  tax_amount            Decimal       @db.Decimal(10, 2)
+  total                 Decimal       @db.Decimal(10, 2)
+  status                InvoiceStatus @default(PENDING)
+  payment_method        String?       @db.VarChar(50)
+  paid_at               DateTime?
+  payment_reference     String?       @db.VarChar(100)
+  notes                 String?
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+  customer              Customer       @relation(fields: [customer_id], references: [id])
+  maintenance_job       MaintenanceJob? @relation(fields: [maintenance_job_id], references: [id])
+
+  @@index([customer_id])
+  @@index([status])
+  @@index([invoice_date])
+  @@map("invoices")
 }
 
 model ChecklistTemplate {
@@ -768,6 +801,9 @@ enum NotificationType {
   LEASE_EXPIRING
   RENT_OVERDUE
   BUDGET_ALERT
+  MAINTENANCE_JOB_SCHEDULED
+  MAINTENANCE_JOB_COMPLETED
+  QUOTE_READY
 }
 
 enum TenantStatus {
@@ -886,6 +922,14 @@ enum QuoteStatus {
   EXPIRED
 }
 
+enum InvoiceStatus {
+  PENDING
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
 enum GuestIssueStatus {
   SUBMITTED
   TRIAGED
@@ -907,21 +951,38 @@ enum ShareType {
 
 // Customer Portal - Authentication and Preferences
 model CustomerPortalUser {
-  id               String    @id @default(uuid())
-  customer_id      String    @unique
-  email            String    @unique @db.VarChar(255)
-  password_hash    String    @db.VarChar(255)
-  last_login       DateTime?
-  theme_preference String    @default("light")
-  language         String    @default("en")
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-  
-  customer         Customer  @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  
+  id                String                 @id @default(uuid())
+  customer_id       String                 @unique
+  email             String                 @unique @db.VarChar(255)
+  password_hash     String                 @db.VarChar(255)
+  last_login        DateTime?
+  theme_preference  String                 @default("light")
+  language          String                 @default("en")
+  created_at        DateTime               @default(now())
+  updated_at        DateTime               @updatedAt
+
+  customer          Customer               @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  notifications     CustomerNotification[]
+
   @@index([customer_id])
   @@index([email])
   @@map("customer_portal_users")
+}
+
+model CustomerNotification {
+  id                     String               @id @default(uuid())
+  customer_portal_user_id String
+  notification_type      NotificationType
+  title                  String               @db.VarChar(255)
+  body                   String
+  data                   Json?
+  sent_at                DateTime             @default(now())
+  read_at                DateTime?
+
+  customer_portal_user   CustomerPortalUser   @relation(fields: [customer_portal_user_id], references: [id], onDelete: Cascade)
+
+  @@index([customer_portal_user_id, read_at])
+  @@map("customer_notifications")
 }
 
 model CustomerPreferences {

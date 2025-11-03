@@ -27,7 +27,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setMobileMenuOpen(false)
   }
 
-  // Navigation items - Cleaning Services
+  // Navigation items - Customer Portal
   const navItems: NavItem[] = [
     {
       id: 'dashboard',
@@ -44,32 +44,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'jobs',
-      label: 'Cleaning Jobs',
-      path: '/jobs',
-      onClick: handleNavigation,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Cleaning Jobs">
-          <path
-            d="M14.5 2h-9A1.5 1.5 0 0 0 4 3.5v13A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 2z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M7 6h6M7 10h6M7 14h3"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
       id: 'properties',
-      label: 'Properties',
+      label: 'My Properties',
       path: '/properties',
       onClick: handleNavigation,
       icon: (
@@ -85,14 +61,68 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'workers',
-      label: 'Workers',
-      path: '/workers',
+      id: 'issues',
+      label: 'Guest Issues',
+      path: '/issues',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Workers">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Guest Issues">
           <path
-            d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 16c-4 0-6 2-6 2v1h12v-1s-2-2-6-2z"
+            d="M10 2a6 6 0 0 1 6 6c0 2-1 3.5-3 4.5V15a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-2.5C5 11.5 4 10 4 8a6 6 0 0 1 6-6z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M8 16h4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'quotes',
+      label: 'Quotes',
+      path: '/quotes',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Quotes">
+          <path
+            d="M14.5 2h-9A1.5 1.5 0 0 0 4 3.5v13A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 2z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7 6h6M7 10h4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'invoices',
+      label: 'Invoices',
+      path: '/invoices',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Invoices">
+          <path
+            d="M4 2h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 6h8M6 10h8M6 14h4"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -126,21 +156,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'certificates',
-      label: 'Certificates',
-      path: '/certificates',
+      id: 'settings',
+      label: 'Settings',
+      path: '/settings',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Certificates">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Settings">
           <path
-            d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"
+            d="M10 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M8 6h4M8 10h4M8 14h2"
+            d="M16 10a1.5 1.5 0 0 0 .3 1.5l.05.05a1.8 1.8 0 1 1-2.55 2.55l-.05-.05a1.5 1.5 0 0 0-2.55 1V15a1.8 1.8 0 1 1-3.6 0v-.1a1.5 1.5 0 0 0-2.55-1l-.05.05a1.8 1.8 0 1 1-2.55-2.55l.05-.05a1.5 1.5 0 0 0-1-2.55H1a1.8 1.8 0 1 1 0-3.6h.1a1.5 1.5 0 0 0 1-2.55l-.05-.05a1.8 1.8 0 1 1 2.55-2.55l.05.05a1.5 1.5 0 0 0 2.55-1V1a1.8 1.8 0 1 1 3.6 0v.1a1.5 1.5 0 0 0 1 2.55l.05-.05a1.8 1.8 0 1 1 2.55 2.55l-.05.05a1.5 1.5 0 0 0 1 2.55H19a1.8 1.8 0 1 1 0 3.6h-.1a1.5 1.5 0 0 0-1 2.55z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -235,23 +265,37 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         {
           id: '1',
           title: 'Properties',
-          subtitle: 'View and manage all properties',
+          subtitle: 'View my properties',
           category: 'Page',
           path: '/properties',
         },
         {
           id: '2',
-          title: 'Work Orders',
-          subtitle: 'Track and manage work orders',
+          title: 'Quotes',
+          subtitle: 'Review and approve quotes',
           category: 'Page',
-          path: '/work-orders',
+          path: '/quotes',
         },
         {
           id: '3',
-          title: 'Tenants',
-          subtitle: 'Manage tenant information',
+          title: 'Invoices',
+          subtitle: 'View payment history',
           category: 'Page',
-          path: '/tenants',
+          path: '/invoices',
+        },
+        {
+          id: '4',
+          title: 'Financial',
+          subtitle: 'Service history and costs',
+          category: 'Page',
+          path: '/financial',
+        },
+        {
+          id: '5',
+          title: 'Settings',
+          subtitle: 'Account preferences',
+          category: 'Page',
+          path: '/settings',
         },
       ].filter(
         (result) =>
@@ -336,7 +380,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           <div className="app-header-search">
             <SearchBar
-              placeholder="Search properties, work orders, tenants..."
+              placeholder="Search properties, issues, quotes, invoices..."
               onSearch={handleSearch}
               onSelect={handleSearchSelect}
               results={searchResults}

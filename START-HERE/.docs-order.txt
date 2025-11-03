@@ -1,0 +1,16 @@
+📖 RECOMMENDED READING ORDER
+
+For New Developers:
+
+1. 00-START-HERE.md          (5 min)  ⭐ READ FIRST
+2. README.md                 (10 min) ⭐ ESSENTIAL
+3. ../CURRENT_STATUS.md      (10 min) ⭐ ESSENTIAL
+4. IMPLEMENTATION-ROADMAP.md (5 min)  📋 STRATEGY
+5. MAINTENANCE-FIRST-SPRINT.md (reference as needed) 🎯 CURRENT WORK
+
+Reference Documents (as needed):
+- APP-SEPARATION.md          📐 ARCHITECTURE
+- WORK-SCHEDULING-SYSTEM.md  ⏰ SCHEDULING SPEC
+
+Total Reading Time: ~30 minutes
+Then: Start building M-201! 🚀

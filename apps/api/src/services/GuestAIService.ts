@@ -1,5 +1,6 @@
 import { prisma } from '@rightfit/database';
 import { NotFoundError } from '../utils/errors';
+import { MaintenanceJobsService } from './MaintenanceJobsService';
 
 export interface GuestSessionCreate {
   property_id: string;
@@ -108,7 +109,7 @@ export class GuestAIService {
     });
 
     // MOCK AI RESPONSE - In production, this would call OpenAI/Claude
-    const answer = this.generateMockAnswer(data.question, session.property.knowledge_base);
+    const answer = this.generateMockAnswer(data.question);
 
     const question = await prisma.guestQuestion.create({
       data: {
@@ -123,7 +124,7 @@ export class GuestAIService {
     return question;
   }
 
-  private generateMockAnswer(question: string, knowledgeBase: any[]) {
+  private generateMockAnswer(question: string) {
     const q = question.toLowerCase();
 
     // Simple keyword matching
@@ -204,7 +205,7 @@ export class GuestAIService {
         description: data.description,
         severity: triage.severity,
         ai_confidence: triage.confidence,
-        photos: data.photos ? JSON.stringify(data.photos) : null,
+        photos: data.photos || undefined,
         recommended_action: triage.recommended_action,
       },
     });
@@ -221,9 +222,60 @@ export class GuestAIService {
       },
     });
 
+    // AUTO-CREATE MAINTENANCE JOB if AI recommends sending a technician
+    let maintenanceJob = null;
+    if (triage.recommended_action === 'send_tech') {
+      try {
+        // Get the maintenance service for this service provider
+        const maintenanceService = await prisma.service.findFirst({
+          where: {
+            service_provider_id: session.property.customer.service_provider.id,
+            service_type: 'MAINTENANCE',
+            is_active: true,
+          },
+        });
+
+        if (maintenanceService) {
+          // Map severity to priority
+          const priorityMap: Record<string, 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'> = {
+            critical: 'URGENT',
+            high: 'HIGH',
+            medium: 'MEDIUM',
+            low: 'LOW',
+          };
+
+          const maintenanceJobsService = new MaintenanceJobsService();
+          maintenanceJob = await maintenanceJobsService.create(
+            {
+              service_id: maintenanceService.id,
+              property_id: session.property_id,
+              customer_id: session.property.customer_id,
+              source: 'GUEST_REPORT',
+              category: data.category,
+              priority: priorityMap[triage.severity] || 'MEDIUM',
+              title: `Guest Reported: ${data.category} - ${triage.severity.toUpperCase()}`,
+              description: `${data.description}\n\nAI Diagnosis: ${triage.diagnosis}\n\nEstimated Cost: £${triage.estimated_cost}\nEstimated Time: ${triage.estimated_time} minutes`,
+              requested_date: new Date(),
+            },
+            session.property.customer.service_provider.id
+          );
+
+          // Link the maintenance job to the guest issue
+          await prisma.guestIssue.update({
+            where: { id: issue.id },
+            data: { maintenance_job_id: maintenanceJob.id },
+          });
+        }
+      } catch (error) {
+        console.error('Failed to auto-create maintenance job:', error);
+        // Don't fail the whole request if maintenance job creation fails
+      }
+    }
+
     return {
       issue,
       triage,
+      maintenanceJob,
     };
   }
 

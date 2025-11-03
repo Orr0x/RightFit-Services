@@ -65,21 +65,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authAPI.login(credentials)
 
-      // API wraps response in { data: { user, tenant, access_token, refresh_token } }
-      const { access_token, refresh_token, user: userData, tenant } = response.data
+      // Customer Portal API returns { data: { user, customer } }
+      const { user: userData, customer } = response.data
 
-      // Add tenant_name to user object for display
-      const userWithTenant = {
+      // Add customer info to user object for display
+      const userWithCustomer = {
         ...userData,
-        tenant_name: tenant.tenant_name,
+        customer_name: customer.business_name,
+        customer_id: customer.id,
       }
 
-      // Store tokens
-      localStorage.setItem('access_token', access_token)
-      localStorage.setItem('refresh_token', refresh_token)
-      localStorage.setItem('user', JSON.stringify(userWithTenant))
+      // Store user data (customer portal doesn't use JWT tokens)
+      localStorage.setItem('user', JSON.stringify(userWithCustomer))
+      localStorage.setItem('customer', JSON.stringify(customer))
 
-      setUser(userWithTenant)
+      setUser(userWithCustomer)
     } catch (error) {
       console.error('Login failed:', error)
       throw error

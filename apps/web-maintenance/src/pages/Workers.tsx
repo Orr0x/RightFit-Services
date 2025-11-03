@@ -4,7 +4,7 @@ import { useLoading } from '../hooks/useLoading'
 import { workersAPI, type Worker } from '../lib/api'
 import '../pages/Properties.css'
 
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 export default function Workers() {
   const [workers, setWorkers] = useState<Worker[]>([])
@@ -203,13 +203,13 @@ export default function Workers() {
         isOpen={openDialog}
         onClose={() => setOpenDialog(false)}
         title={editingWorker ? 'Edit Worker' : 'Add New Worker'}
-        actions={
-          <>
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             <Button variant="ghost" onClick={() => setOpenDialog(false)}>Cancel</Button>
             <Button variant="primary" onClick={handleSubmit}>
               {editingWorker ? 'Update' : 'Create'}
             </Button>
-          </>
+          </div>
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

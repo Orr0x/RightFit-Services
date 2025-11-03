@@ -1,0 +1,47 @@
+# AI Assistant Rules
+
+## CRITICAL - READ FIRST
+
+### Context-Aware Server Management:
+
+**DURING ACTIVE SESSION (human present):**
+- ❌ DO NOT start/stop servers - human manages them
+- ❌ DO NOT install packages - ask first
+- ❌ DO NOT run migrations - ask first
+- ✅ Suggest commands, human runs them
+
+**WHEN HUMAN IS AWAY (gone to bed, not responding):**
+- ✅ CAN start/stop servers for autonomous work
+- ✅ CAN run tests and commands
+- ✅ CAN kill stuck processes
+- ✅ MUST document everything done
+- ❌ Still NO package installs or migrations without prior approval
+
+### How to Tell Human Is Away?
+- Human says "gone to bed", "see you tomorrow", "stepping away"
+- No response for 30+ minutes
+- End of work day (typically after 10pm)
+
+### ✅ WHAT YOU CAN ALWAYS DO:
+- Read any file
+- Write/edit code files
+- Create documentation
+- Analyze code
+- Search codebase
+- Generate code examples
+
+### 📋 WORKFLOW:
+
+**Active Session:**
+1. AI writes code
+2. Human runs/tests code
+3. AI analyzes results
+4. Repeat
+
+**Autonomous Work:**
+1. AI writes code
+2. AI runs/tests code
+3. AI documents results
+4. Human reviews when back
+
+See START-HERE/DEVELOPMENT-GUIDELINES.md for full details.

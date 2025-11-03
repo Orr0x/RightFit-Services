@@ -21,6 +21,8 @@ import cleaningJobsRoutes from './routes/cleaning-jobs'
 import maintenanceJobsRoutes from './routes/maintenance-jobs'
 import workersRoutes from './routes/workers'
 import quotesRoutes from './routes/quotes'
+import invoicesRoutes from './routes/invoices'
+import externalContractorsRoutes from './routes/external-contractors'
 import guestIssuesRoutes from './routes/guest-issues'
 import propertySharesRoutes from './routes/property-shares'
 import customersRoutes from './routes/customers'
@@ -122,6 +124,8 @@ app.use('/api/cleaning-jobs', cleaningJobsRoutes)
 app.use('/api/maintenance-jobs', maintenanceJobsRoutes)
 app.use('/api/workers', workersRoutes)
 app.use('/api/quotes', quotesRoutes)
+app.use('/api/invoices', invoicesRoutes)
+app.use('/api/external-contractors', externalContractorsRoutes)
 app.use('/api/guest-issues', guestIssuesRoutes)
 app.use('/api/customers', customersRoutes)
 app.use('/api/customer-properties', customerPropertiesRoutes)

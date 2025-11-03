@@ -234,24 +234,45 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       const mockResults: SearchResult[] = [
         {
           id: '1',
+          title: 'Dashboard',
+          subtitle: 'Overview of cleaning activities',
+          category: 'Page',
+          path: '/dashboard',
+        },
+        {
+          id: '2',
+          title: 'Cleaning Jobs',
+          subtitle: 'View and manage cleaning jobs',
+          category: 'Page',
+          path: '/jobs',
+        },
+        {
+          id: '3',
           title: 'Properties',
-          subtitle: 'View and manage all properties',
+          subtitle: 'Customer properties assigned to you',
           category: 'Page',
           path: '/properties',
         },
         {
-          id: '2',
-          title: 'Work Orders',
-          subtitle: 'Track and manage work orders',
+          id: '4',
+          title: 'Workers',
+          subtitle: 'Manage your cleaning team',
           category: 'Page',
-          path: '/work-orders',
+          path: '/workers',
         },
         {
-          id: '3',
-          title: 'Tenants',
-          subtitle: 'Manage tenant information',
+          id: '5',
+          title: 'Financial',
+          subtitle: 'Job history and earnings',
           category: 'Page',
-          path: '/tenants',
+          path: '/financial',
+        },
+        {
+          id: '6',
+          title: 'Certificates',
+          subtitle: 'Certifications and compliance',
+          category: 'Page',
+          path: '/certificates',
         },
       ].filter(
         (result) =>
@@ -336,7 +357,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           <div className="app-header-search">
             <SearchBar
-              placeholder="Search properties, work orders, tenants..."
+              placeholder="Search jobs, properties, workers..."
               onSearch={handleSearch}
               onSelect={handleSearchSelect}
               results={searchResults}

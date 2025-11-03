@@ -102,6 +102,37 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
+      id: 'contractors',
+      label: 'Contractors',
+      path: '/contractors',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Contractors">
+          <path
+            d="M10 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M3 18v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16 6l2 2-2 2M4 6L2 8l2 2"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       id: 'financial',
       label: 'Financial',
       path: '/financial',
@@ -234,24 +265,45 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       const mockResults: SearchResult[] = [
         {
           id: '1',
+          title: 'Dashboard',
+          subtitle: 'Overview of maintenance activities',
+          category: 'Page',
+          path: '/dashboard',
+        },
+        {
+          id: '2',
+          title: 'Maintenance Jobs',
+          subtitle: 'View and manage maintenance jobs',
+          category: 'Page',
+          path: '/jobs',
+        },
+        {
+          id: '3',
           title: 'Properties',
-          subtitle: 'View and manage all properties',
+          subtitle: 'Customer properties assigned to you',
           category: 'Page',
           path: '/properties',
         },
         {
-          id: '2',
-          title: 'Work Orders',
-          subtitle: 'Track and manage work orders',
+          id: '4',
+          title: 'Workers',
+          subtitle: 'Manage your maintenance team',
           category: 'Page',
-          path: '/work-orders',
+          path: '/workers',
         },
         {
-          id: '3',
-          title: 'Tenants',
-          subtitle: 'Manage tenant information',
+          id: '5',
+          title: 'Financial',
+          subtitle: 'Job history and earnings',
           category: 'Page',
-          path: '/tenants',
+          path: '/financial',
+        },
+        {
+          id: '6',
+          title: 'Certificates',
+          subtitle: 'Certifications and compliance',
+          category: 'Page',
+          path: '/certificates',
         },
       ].filter(
         (result) =>
@@ -336,7 +388,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           <div className="app-header-search">
             <SearchBar
-              placeholder="Search properties, work orders, tenants..."
+              placeholder="Search jobs, properties, workers..."
               onSearch={handleSearch}
               onSelect={handleSearchSelect}
               results={searchResults}

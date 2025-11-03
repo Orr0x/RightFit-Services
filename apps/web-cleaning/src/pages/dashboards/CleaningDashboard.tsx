@@ -70,7 +70,7 @@ export default function CleaningDashboard() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Cleaning Services Dashboard</h1>
-        <Button onClick={() => navigate('/cleaning/jobs/new')}>
+        <Button onClick={() => navigate('/jobs/new')}>
           Schedule Cleaning
         </Button>
       </div>
@@ -110,7 +110,7 @@ export default function CleaningDashboard() {
               <Card
                 key={job.id}
                 className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/cleaning/jobs/${job.id}`)}
+                onClick={() => navigate(`/jobs/${job.id}`)}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -171,7 +171,7 @@ export default function CleaningDashboard() {
         <Card className="p-4">
           <h3 className="font-semibold mb-2">Quick Actions</h3>
           <div className="space-y-2">
-            <Button variant="secondary" className="w-full" onClick={() => navigate('/cleaning/jobs')}>
+            <Button variant="secondary" className="w-full" onClick={() => navigate('/jobs')}>
               View All Jobs
             </Button>
             <Button variant="secondary" className="w-full" onClick={() => navigate('/workers')}>

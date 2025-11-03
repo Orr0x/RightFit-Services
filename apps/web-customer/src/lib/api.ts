@@ -123,7 +123,7 @@ export const authAPI = {
   },
 
   login: async (credentials: LoginCredentials) => {
-    const response = await api.post('/api/auth/login', credentials)
+    const response = await api.post('/api/customer-portal/auth/login', credentials)
     return response.data
   },
 
@@ -1039,5 +1039,15 @@ export const customerPropertiesAPI = {
 
   delete: async (id: string) => {
     await api.delete(`/api/customer-properties/${id}`)
+  },
+}
+
+// Customer Portal API (uses customer_id query param instead of JWT)
+export const customerPortalAPI = {
+  getProperties: async (customerId: string) => {
+    const response = await api.get<{ data: CustomerProperty[] }>('/api/customer-portal/properties', {
+      params: { customer_id: customerId },
+    })
+    return response.data
   },
 }

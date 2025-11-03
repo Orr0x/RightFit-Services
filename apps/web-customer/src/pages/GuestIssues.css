@@ -1,0 +1,153 @@
+.guest-issues-page {
+  padding: 2rem;
+}
+
+.issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.issue-card {
+  padding: 1.5rem;
+}
+
+.issue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.issue-property-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.issue-property-address {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.issue-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.status-badge,
+.severity-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-triaged {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-in-progress {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-resolved {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-dismissed {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.severity-high {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.severity-medium {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.severity-low {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.issue-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.issue-detail-row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.issue-detail-row strong {
+  color: #374151;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.issue-detail-row span,
+.issue-description {
+  color: #6b7280;
+  margin: 0;
+}
+
+.issue-description {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.issue-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .guest-issues-page {
+    padding: 1rem;
+  }
+
+  .issue-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .issue-badges {
+    width: 100%;
+  }
+
+  .issue-detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .issue-detail-row strong {
+    min-width: auto;
+  }
+}

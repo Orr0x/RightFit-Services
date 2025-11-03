@@ -15,7 +15,13 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ error: 'service_provider_id is required' });
     }
 
-    const workers = await workersService.list(serviceProviderId);
+    const filters = {
+      worker_type: req.query.worker_type as string | undefined,
+      employment_type: req.query.employment_type as string | undefined,
+      is_active: req.query.is_active === 'false' ? false : req.query.is_active === 'true' ? true : undefined,
+    };
+
+    const workers = await workersService.list(serviceProviderId, filters);
     res.json({ data: workers });
   } catch (error) {
     next(error);

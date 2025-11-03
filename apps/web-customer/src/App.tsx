@@ -6,14 +6,14 @@ import { AppLayout } from './components/layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import CleaningDashboard from './pages/dashboards/CleaningDashboard'
-import CleaningJobs from './pages/cleaning/CleaningJobs'
-import CreateCleaningJob from './pages/cleaning/CreateCleaningJob'
-import CleaningJobDetails from './pages/cleaning/CleaningJobDetails'
+import CustomerDashboard from './pages/dashboards/CustomerDashboard'
 import Properties from './pages/Properties'
-import Workers from './pages/Workers'
+import GuestIssues from './pages/GuestIssues'
 import Financial from './pages/Financial'
-import Certificates from './pages/Certificates'
+import QuoteApproval from './pages/QuoteApproval'
+import Invoices from './pages/Invoices'
+import Settings from './pages/Settings'
+import MaintenanceJobDetails from './pages/MaintenanceJobDetails'
 
 function App() {
   return (
@@ -29,37 +29,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <CleaningDashboard />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CleaningJobs />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/new"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CreateCleaningJob />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:id"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CleaningJobDetails />
+                    <CustomerDashboard />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -75,11 +45,11 @@ function App() {
               }
             />
             <Route
-              path="/workers"
+              path="/issues"
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <Workers />
+                    <GuestIssues />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -95,11 +65,41 @@ function App() {
               }
             />
             <Route
-              path="/certificates"
+              path="/quotes"
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <Certificates />
+                    <QuoteApproval />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Invoices />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Settings />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <MaintenanceJobDetails />
                   </AppLayout>
                 </ProtectedRoute>
               }
