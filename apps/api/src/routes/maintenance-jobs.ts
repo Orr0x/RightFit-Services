@@ -281,7 +281,10 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ error: 'service_provider_id is required' });
     }
 
-    const job = await maintenanceJobsService.update(req.params.id, req.body, serviceProviderId);
+    // Extract service_provider_id from body before passing to service
+    const { service_provider_id, ...updateData } = req.body;
+
+    const job = await maintenanceJobsService.update(req.params.id, updateData, serviceProviderId);
     res.json({ data: job });
   } catch (error) {
     next(error);

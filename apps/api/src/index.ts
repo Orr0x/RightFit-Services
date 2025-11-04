@@ -29,6 +29,12 @@ import customersRoutes from './routes/customers'
 import customerPropertiesRoutes from './routes/customer-properties'
 import customerPortalRoutes from './routes/customer-portal'
 import guestRoutes from './routes/guest'
+import cleaningContractsRoutes from './routes/cleaning-contracts'
+import propertyCalendarsRoutes from './routes/property-calendars'
+import cleaningTimesheetsRoutes from './routes/cleaning-timesheets'
+import servicesRoutes from './routes/services'
+import checklistTemplatesRoutes from './routes/checklist-templates'
+import globalActivityRoutes from './routes/global-activity'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -131,6 +137,12 @@ app.use('/api/customers', customersRoutes)
 app.use('/api/customer-properties', customerPropertiesRoutes)
 app.use('/api/customer-portal', customerPortalRoutes)
 app.use('/api/guest', guestRoutes)
+app.use('/api/cleaning-contracts', cleaningContractsRoutes)
+app.use('/api/property-calendars', propertyCalendarsRoutes)
+app.use('/api/cleaning-timesheets', cleaningTimesheetsRoutes)
+app.use('/api/services', servicesRoutes)
+app.use('/api/checklist-templates', checklistTemplatesRoutes)
+app.use('/api/global-activity', globalActivityRoutes)
 // Property sharing routes
 app.use('/api/property-shares', propertySharesRoutes)
 

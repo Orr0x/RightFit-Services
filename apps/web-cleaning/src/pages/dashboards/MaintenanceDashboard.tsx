@@ -5,7 +5,7 @@ import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 
 // HARDCODED for demo - In production, get from auth context
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 export default function MaintenanceDashboard() {
   const [activeJobs, setActiveJobs] = useState<MaintenanceJob[]>([])

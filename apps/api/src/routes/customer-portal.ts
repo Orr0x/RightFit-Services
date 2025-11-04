@@ -251,4 +251,15 @@ router.post('/maintenance-jobs/:id/comment', customerAuthMiddleware, async (req:
   }
 });
 
+// GET /api/customer-portal/invoices?customer_id=xxx
+router.get('/invoices', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const invoices = await customerPortalService.getInvoices(customerId);
+    res.json({ data: invoices });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

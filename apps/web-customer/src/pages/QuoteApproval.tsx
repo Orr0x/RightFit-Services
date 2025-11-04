@@ -26,6 +26,8 @@ interface Quote {
 
 export default function QuoteApproval() {
   const [quotes, setQuotes] = useState<Quote[]>([])
+  const [allQuotes, setAllQuotes] = useState<Quote[]>([])
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null)
   const [showDeclineModal, setShowDeclineModal] = useState(false)
   const [declineReason, setDeclineReason] = useState('')
@@ -35,6 +37,15 @@ export default function QuoteApproval() {
   useEffect(() => {
     loadQuotes()
   }, [])
+
+  useEffect(() => {
+    // Filter quotes based on status
+    if (statusFilter === 'ALL') {
+      setQuotes(allQuotes)
+    } else {
+      setQuotes(allQuotes.filter(q => q.status === statusFilter))
+    }
+  }, [statusFilter, allQuotes])
 
   const loadQuotes = () => {
     withLoading(async () => {
@@ -51,8 +62,38 @@ export default function QuoteApproval() {
         if (!response.ok) throw new Error('Failed to load quotes')
 
         const data = await response.json()
-        // Dashboard returns pendingQuotes which are quotes with status SENT
-        setQuotes(data.data.pendingQuotes || [])
+
+        // Get all quotes from maintenance jobs
+        const maintenanceJobs = data.data.activeJobs.maintenance || []
+        const quotesFromJobs: Quote[] = []
+
+        // Extract quotes from maintenance jobs
+        maintenanceJobs.forEach((job: any) => {
+          if (job.quote) {
+            quotesFromJobs.push({
+              ...job.quote,
+              maintenance_jobs: [{
+                id: job.id,
+                title: job.title,
+                category: job.category,
+                property: job.property
+              }]
+            })
+          }
+        })
+
+        // Combine with pending quotes and remove duplicates
+        const pendingQuotes = data.data.pendingQuotes || []
+        const allQuotesMap = new Map()
+
+        pendingQuotes.forEach((q: Quote) => allQuotesMap.set(q.id, q))
+        quotesFromJobs.forEach((q: Quote) => allQuotesMap.set(q.id, q))
+
+        const combinedQuotes = Array.from(allQuotesMap.values())
+          .sort((a, b) => new Date(b.quote_date).getTime() - new Date(a.quote_date).getTime())
+
+        setAllQuotes(combinedQuotes)
+        setQuotes(combinedQuotes)
       } catch (err: any) {
         toast.error('Failed to load quotes')
         console.error('Load quotes error:', err)
@@ -151,14 +192,53 @@ export default function QuoteApproval() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Quote Approvals</h1>
-        <p className="text-gray-600 mt-2">Review and approve quotes for maintenance work at your properties</p>
+        <h1 className="text-3xl font-bold">Quotes</h1>
+        <p className="text-gray-600 mt-2">Review and manage quotes for maintenance work at your properties</p>
+      </div>
+
+      {/* Filter Buttons */}
+      <div className="mb-6 flex gap-2 flex-wrap">
+        <Button
+          variant={statusFilter === 'ALL' ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setStatusFilter('ALL')}
+        >
+          All Quotes ({allQuotes.length})
+        </Button>
+        <Button
+          variant={statusFilter === 'SENT' ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setStatusFilter('SENT')}
+        >
+          Pending Approval ({allQuotes.filter(q => q.status === 'SENT').length})
+        </Button>
+        <Button
+          variant={statusFilter === 'APPROVED' ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setStatusFilter('APPROVED')}
+        >
+          Approved ({allQuotes.filter(q => q.status === 'APPROVED').length})
+        </Button>
+        <Button
+          variant={statusFilter === 'DECLINED' ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setStatusFilter('DECLINED')}
+        >
+          Declined ({allQuotes.filter(q => q.status === 'DECLINED').length})
+        </Button>
+        <Button
+          variant={statusFilter === 'DRAFT' ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setStatusFilter('DRAFT')}
+        >
+          Draft ({allQuotes.filter(q => q.status === 'DRAFT').length})
+        </Button>
       </div>
 
       {quotes.length === 0 ? (
         <EmptyState
-          title="No pending quotes"
-          description="You don't have any quotes waiting for approval"
+          title={statusFilter === 'ALL' ? 'No quotes' : `No ${statusFilter.toLowerCase()} quotes`}
+          description={statusFilter === 'ALL' ? "You don't have any quotes yet" : `You don't have any ${statusFilter.toLowerCase()} quotes`}
         />
       ) : (
         <div className="space-y-4">

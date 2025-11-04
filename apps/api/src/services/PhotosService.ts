@@ -51,11 +51,6 @@ class PhotosService {
     data: CreatePhotoDTO
   ): Promise<PhotoUploadResult> {
     try {
-      // Validate that at least one entity is provided
-      if (!data.property_id && !data.work_order_id) {
-        throw new Error('Either property_id or work_order_id must be provided')
-      }
-
       // Verify property belongs to tenant if provided
       if (data.property_id) {
         const property = await prisma.property.findFirst({
@@ -85,6 +80,9 @@ class PhotosService {
           throw new Error('Work order not found')
         }
       }
+
+      // Note: Photos can be uploaded without property_id or work_order_id
+      // They will be linked to maintenance jobs via photo ID arrays when jobs are completed
 
       // Process image with sharp
       const imageBuffer = file.buffer

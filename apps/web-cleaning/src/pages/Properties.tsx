@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Spinner, EmptyState, useToast } from '../components/ui'
+import { useNavigate } from 'react-router-dom'
+import { Card, Spinner, EmptyState, useToast, Button } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { customerPropertiesAPI, type CustomerProperty } from '../lib/api'
 import './Properties.css'
@@ -8,6 +9,7 @@ export default function Properties() {
   const [customerProperties, setCustomerProperties] = useState<CustomerProperty[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
+  const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   useEffect(() => {
@@ -42,6 +44,9 @@ export default function Properties() {
           <p className="page-subtitle">Properties assigned to you by your customers</p>
         </div>
         <div className="page-header-actions">
+          <Button variant="primary" onClick={() => navigate('/properties/new')}>
+            + Add Property
+          </Button>
           <div className="view-toggle">
             <button
               className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -75,7 +80,13 @@ export default function Properties() {
       ) : (
         <div className={`properties-${viewMode}`}>
           {customerProperties.map((property) => (
-            <Card key={property.id} variant="elevated" className="property-card">
+            <Card
+              key={property.id}
+              variant="elevated"
+              className="property-card"
+              onClick={() => navigate(`/properties/${property.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="property-card-header">
                 <div>
                   <h3 className="property-name">{property.property_name}</h3>

@@ -561,7 +561,7 @@ export default function CleaningJobDetails() {
         )}
 
         <Button
-          onClick={() => navigate(`/cleaning/jobs/${id}/edit`)}
+          onClick={() => navigate(`/jobs/${id}/edit`)}
           disabled={job.status === 'COMPLETED'}
           variant="secondary"
         >

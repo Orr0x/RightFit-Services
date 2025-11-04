@@ -157,14 +157,15 @@ export class CustomerPortalService {
     const activeMaintenanceJobs = await prisma.maintenanceJob.findMany({
       where: {
         customer_id: customerId,
-        status: { in: ['SCHEDULED', 'IN_PROGRESS'] },
+        status: { in: ['QUOTE_PENDING', 'QUOTE_SENT', 'APPROVED', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'] },
       },
       include: {
         property: true,
         assigned_worker: true,
+        quote: true,
       },
-      orderBy: { scheduled_date: 'asc' },
-      take: 10,
+      orderBy: { scheduled_date: 'desc' },
+      take: 50,
     });
 
     const pendingQuotes = await prisma.quote.findMany({
@@ -664,5 +665,56 @@ export class CustomerPortalService {
     // TODO: Implement notification system for service providers
 
     return { success: true, message: 'Comment added successfully' };
+  }
+
+  // Get all invoices for a customer
+  async getInvoices(customerId: string) {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        customer_id: customerId,
+      },
+      include: {
+        maintenance_job: {
+          include: {
+            property: true,
+            service: true,
+          },
+        },
+      },
+      orderBy: {
+        invoice_date: 'desc',
+      },
+    });
+
+    // Calculate statistics
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+
+    const currentMonthTotal = invoices
+      .filter(inv => new Date(inv.invoice_date) >= currentMonthStart)
+      .reduce((sum, inv) => sum + Number(inv.total), 0);
+
+    const lastMonthTotal = invoices
+      .filter(inv => {
+        const invDate = new Date(inv.invoice_date);
+        return invDate >= lastMonthStart && invDate <= lastMonthEnd;
+      })
+      .reduce((sum, inv) => sum + Number(inv.total), 0);
+
+    const ytdTotal = invoices
+      .filter(inv => new Date(inv.invoice_date) >= yearStart)
+      .reduce((sum, inv) => sum + Number(inv.total), 0);
+
+    return {
+      invoices,
+      statistics: {
+        currentMonth: currentMonthTotal,
+        lastMonth: lastMonthTotal,
+        ytdTotal,
+      },
+    };
   }
 }

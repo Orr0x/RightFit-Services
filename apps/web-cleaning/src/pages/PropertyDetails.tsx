@@ -4,6 +4,7 @@ import { Button, Card, Spinner, useToast, Badge } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { customerPropertiesAPI, cleaningJobsAPI, type CustomerProperty, type CleaningJob } from '../lib/api'
 import { PropertyHistoryTimeline } from '../components/PropertyHistoryTimeline'
+import { PropertyGuestCalendar } from '../components/PropertyGuestCalendar'
 import HomeIcon from '@mui/icons-material/Home'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import KeyIcon from '@mui/icons-material/Key'
@@ -367,6 +368,9 @@ export default function PropertyDetails() {
           </div>
         </Card>
       )}
+
+      {/* Guest Turnover Calendar */}
+      {id && <PropertyGuestCalendar propertyId={id} />}
 
       {/* Property History Timeline */}
       {id && <PropertyHistoryTimeline propertyId={id} />}

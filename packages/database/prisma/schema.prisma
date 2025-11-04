@@ -403,6 +403,7 @@ model Customer {
   cleaning_jobs               CleaningJob[]
   cleaning_contracts          CleaningContract[]
   cleaning_invoices           CleaningInvoice[]
+  cleaning_quotes             CleaningQuote[]
   customer_properties         CustomerProperty[]
   service_provider            ServiceProvider      @relation(fields: [service_provider_id], references: [id])
   maintenance_jobs            MaintenanceJob[]
@@ -431,18 +432,19 @@ model CustomerProperty {
   guest_portal_qr_code_url       String?                 @db.VarChar(500)
   is_active                      Boolean                 @default(true)
   // Enhanced property details for service providers
-  photo_urls                     Json?                   // Array of photo URLs [{url, caption, type}]
-  utility_locations              Json?                   // {stopTap, waterMeter, gasMeter, fuseBox, etc.}
-  emergency_contacts             Json?                   // Array of emergency contacts [{name, phone, relation}]
-  cleaner_notes                  String?                 // General notes for cleaners
+  photo_urls                     Json? // Array of photo URLs [{url, caption, type}]
+  utility_locations              Json? // {stopTap, waterMeter, gasMeter, fuseBox, etc.}
+  emergency_contacts             Json? // Array of emergency contacts [{name, phone, relation}]
+  cleaner_notes                  String? // General notes for cleaners
   wifi_ssid                      String?                 @db.VarChar(100)
   wifi_password                  String?                 @db.VarChar(100)
-  parking_info                   String?                 // Where to park
-  pet_info                       String?                 // Info about pets
-  special_requirements           String?                 // Any special requirements or sensitivities
+  parking_info                   String? // Where to park
+  pet_info                       String? // Info about pets
+  special_requirements           String? // Any special requirements or sensitivities
   created_at                     DateTime                @default(now())
   updated_at                     DateTime                @updatedAt
   cleaning_jobs                  CleaningJob[]
+  cleaning_quotes                CleaningQuote[]
   contract_properties            ContractProperty[]
   customer                       Customer                @relation(fields: [customer_id], references: [id])
   guest_issue_reports            GuestIssueReport[]
@@ -478,6 +480,7 @@ model Worker {
   cleaning_jobs       CleaningJob[]
   cleaning_timesheets CleaningJobTimesheet[]
   maintenance_jobs    MaintenanceJob[]
+  history             WorkerHistory[]
   service_provider    ServiceProvider        @relation(fields: [service_provider_id], references: [id])
 
   @@index([service_provider_id])
@@ -535,16 +538,16 @@ model CleaningJob {
   contract_id                  String?
   assigned_worker_id           String?
   quote_id                     String?
-  scheduled_date               DateTime               @db.Date
-  scheduled_start_time         String                 @db.VarChar(10)
-  scheduled_end_time           String                 @db.VarChar(10)
+  scheduled_date               DateTime?              @db.Date
+  scheduled_start_time         String?                @db.VarChar(10)
+  scheduled_end_time           String?                @db.VarChar(10)
   actual_start_time            DateTime?
   actual_end_time              DateTime?
   checklist_template_id        String?
   checklist_items              Json?
   checklist_completed_items    Int                    @default(0)
   checklist_total_items        Int                    @default(0)
-  status                       JobStatus              @default(SCHEDULED)
+  status                       JobStatus              @default(PENDING)
   completion_notes             String?
   before_photos                String[]               @db.VarChar(500)
   after_photos                 String[]               @db.VarChar(500)
@@ -924,6 +927,7 @@ enum EmploymentType {
 }
 
 enum JobStatus {
+  PENDING // Job created but not yet scheduled
   SCHEDULED
   IN_PROGRESS
   COMPLETED
@@ -1310,6 +1314,35 @@ model CleaningInvoice {
   @@map("cleaning_invoices")
 }
 
+model CleaningQuote {
+  id                  String      @id @default(uuid())
+  customer_id         String
+  property_id         String?
+  cleaning_job_id     String?
+  quote_number        String      @unique @db.VarChar(50)
+  quote_date          DateTime    @db.Date
+  valid_until_date    DateTime    @db.Date
+  line_items          Json
+  subtotal            Decimal     @db.Decimal(10, 2)
+  discount_percentage Decimal     @default(0) @db.Decimal(5, 2)
+  discount_amount     Decimal     @default(0) @db.Decimal(10, 2)
+  total               Decimal     @db.Decimal(10, 2)
+  status              QuoteStatus @default(DRAFT)
+  customer_response   String?
+  approved_at         DateTime?
+  notes               String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+
+  customer Customer          @relation(fields: [customer_id], references: [id])
+  property CustomerProperty? @relation(fields: [property_id], references: [id])
+
+  @@index([customer_id])
+  @@index([property_id])
+  @@index([status])
+  @@map("cleaning_quotes")
+}
+
 model PropertyCalendar {
   id                          String   @id @default(uuid())
   property_id                 String
@@ -1335,16 +1368,16 @@ model PropertyCalendar {
 // ============================================================================
 
 model CleaningJobHistory {
-  id                 String              @id @default(uuid())
+  id                 String               @id @default(uuid())
   cleaning_job_id    String
-  changed_by_user_id String?             // User who made the change (can be null for system changes)
-  changed_at         DateTime            @default(now())
+  changed_by_user_id String? // User who made the change (can be null for system changes)
+  changed_at         DateTime             @default(now())
   change_type        JobHistoryChangeType
-  field_name         String?             @db.VarChar(100) // Which field changed (e.g., "assigned_worker_id", "scheduled_date")
-  old_value          String?             @db.Text // Previous value (JSON string or simple value)
-  new_value          String?             @db.Text // New value (JSON string or simple value)
-  description        String?             @db.VarChar(500) // Human-readable description (e.g., "Worker changed from John to Sarah")
-  metadata           Json?               // Additional context (IP address, user agent, etc.)
+  field_name         String?              @db.VarChar(100) // Which field changed (e.g., "assigned_worker_id", "scheduled_date")
+  old_value          String?              @db.Text // Previous value (JSON string or simple value)
+  new_value          String?              @db.Text // New value (JSON string or simple value)
+  description        String?              @db.VarChar(500) // Human-readable description (e.g., "Worker changed from John to Sarah")
+  metadata           Json? // Additional context (IP address, user agent, etc.)
 
   cleaning_job CleaningJob @relation(fields: [cleaning_job_id], references: [id], onDelete: Cascade)
 
@@ -1355,20 +1388,20 @@ model CleaningJobHistory {
 }
 
 enum JobHistoryChangeType {
-  CREATED              // Job was created
-  UPDATED              // General update
-  STATUS_CHANGED       // Status field changed
-  WORKER_ASSIGNED      // Worker assigned (from null)
-  WORKER_CHANGED       // Worker changed (from one to another)
-  WORKER_UNASSIGNED    // Worker removed (to null)
-  TIME_CHANGED         // Start or end time changed
-  DATE_CHANGED         // Scheduled date changed
-  CHECKLIST_UPDATED    // Checklist modified
-  PHOTO_ADDED          // Photo uploaded
-  NOTES_UPDATED        // Completion notes or other notes changed
-  PRICE_CHANGED        // Price modified
+  CREATED // Job was created
+  UPDATED // General update
+  STATUS_CHANGED // Status field changed
+  WORKER_ASSIGNED // Worker assigned (from null)
+  WORKER_CHANGED // Worker changed (from one to another)
+  WORKER_UNASSIGNED // Worker removed (to null)
+  TIME_CHANGED // Start or end time changed
+  DATE_CHANGED // Scheduled date changed
+  CHECKLIST_UPDATED // Checklist modified
+  PHOTO_ADDED // Photo uploaded
+  NOTES_UPDATED // Completion notes or other notes changed
+  PRICE_CHANGED // Price modified
   MAINTENANCE_ISSUE_CREATED // Maintenance issue reported from this job
-  DELETED              // Job marked as deleted
+  DELETED // Job marked as deleted
 }
 
 // ============================================================================
@@ -1378,14 +1411,14 @@ enum JobHistoryChangeType {
 model PropertyHistory {
   id                 String                    @id @default(uuid())
   property_id        String
-  changed_by_user_id String?                   // User who made the change (can be null for system changes)
+  changed_by_user_id String? // User who made the change (can be null for system changes)
   changed_at         DateTime                  @default(now())
   change_type        PropertyHistoryChangeType
   field_name         String?                   @db.VarChar(100) // Which field changed
   old_value          String?                   @db.Text // Previous value
   new_value          String?                   @db.Text // New value
   description        String?                   @db.VarChar(500) // Human-readable description
-  metadata           Json?                     // Additional context (job IDs, contract IDs, etc.)
+  metadata           Json? // Additional context (job IDs, contract IDs, etc.)
 
   // No foreign key - allows tracking any property from any table (properties, customer_properties, etc.)
 
@@ -1396,39 +1429,104 @@ model PropertyHistory {
 }
 
 enum PropertyHistoryChangeType {
-  PROPERTY_CREATED           // Property was created
-  PROPERTY_UPDATED           // Property details updated
+  PROPERTY_CREATED // Property was created
+  PROPERTY_UPDATED // Property details updated
   ACCESS_INSTRUCTIONS_UPDATED // Access instructions changed
-  STATUS_CHANGED             // Property status changed
+  STATUS_CHANGED // Property status changed
 
   // Cleaning events
-  CLEANING_JOB_SCHEDULED     // Cleaning job scheduled for property
-  CLEANING_JOB_STARTED       // Cleaning job started
-  CLEANING_JOB_COMPLETED     // Cleaning job completed
-  CLEANING_JOB_CANCELLED     // Cleaning job cancelled
+  CLEANING_JOB_SCHEDULED // Cleaning job scheduled for property
+  CLEANING_JOB_STARTED // Cleaning job started
+  CLEANING_JOB_COMPLETED // Cleaning job completed
+  CLEANING_JOB_CANCELLED // Cleaning job cancelled
 
   // Maintenance events
-  MAINTENANCE_JOB_CREATED    // Maintenance job created
-  MAINTENANCE_JOB_SCHEDULED  // Maintenance job scheduled
-  MAINTENANCE_JOB_COMPLETED  // Maintenance job completed
-  MAINTENANCE_JOB_CANCELLED  // Maintenance job cancelled
+  MAINTENANCE_JOB_CREATED // Maintenance job created
+  MAINTENANCE_JOB_SCHEDULED // Maintenance job scheduled
+  MAINTENANCE_JOB_COMPLETED // Maintenance job completed
+  MAINTENANCE_JOB_CANCELLED // Maintenance job cancelled
 
   // Contract events
-  CONTRACT_CREATED           // Cleaning contract created
-  CONTRACT_RENEWED           // Contract renewed
-  CONTRACT_UPDATED           // Contract terms updated
-  CONTRACT_CANCELLED         // Contract cancelled
+  CONTRACT_CREATED // Cleaning contract created
+  CONTRACT_RENEWED // Contract renewed
+  CONTRACT_UPDATED // Contract terms updated
+  CONTRACT_CANCELLED // Contract cancelled
 
   // Certificate events
-  CERTIFICATE_UPLOADED       // New certificate uploaded
-  CERTIFICATE_EXPIRING_SOON  // Certificate expiring soon (auto)
-  CERTIFICATE_EXPIRED        // Certificate expired (auto)
-  CERTIFICATE_RENEWED        // Certificate renewed
+  CERTIFICATE_UPLOADED // New certificate uploaded
+  CERTIFICATE_EXPIRING_SOON // Certificate expiring soon (auto)
+  CERTIFICATE_EXPIRED // Certificate expired (auto)
+  CERTIFICATE_RENEWED // Certificate renewed
 
   // Other events
-  PHOTO_UPLOADED             // Property photo uploaded
-  TENANT_MOVED_IN            // New tenant moved in
-  TENANT_MOVED_OUT           // Tenant moved out
-  WORK_ORDER_CREATED         // Work order created
-  WORK_ORDER_COMPLETED       // Work order completed
+  PHOTO_UPLOADED // Property photo uploaded
+  TENANT_MOVED_IN // New tenant moved in
+  TENANT_MOVED_OUT // Tenant moved out
+  WORK_ORDER_CREATED // Work order created
+  WORK_ORDER_COMPLETED // Work order completed
+}
+
+// ============================================================================
+// WORKER HISTORY & ACTIVITY LOG
+// ============================================================================
+
+model WorkerHistory {
+  id                 String                  @id @default(uuid())
+  worker_id          String
+  changed_by_user_id String? // Admin who made the change (can be null for system changes)
+  changed_at         DateTime                @default(now())
+  change_type        WorkerHistoryChangeType
+  field_name         String?                 @db.VarChar(100) // Which field changed
+  old_value          String?                 @db.Text // Previous value
+  new_value          String?                 @db.Text // New value
+  description        String?                 @db.VarChar(500) // Human-readable description
+  metadata           Json? // Additional context (job IDs, property names, etc.)
+
+  worker Worker @relation(fields: [worker_id], references: [id], onDelete: Cascade)
+
+  @@index([worker_id])
+  @@index([changed_at])
+  @@index([change_type])
+  @@map("worker_history")
+}
+
+enum WorkerHistoryChangeType {
+  // Profile events
+  WORKER_CREATED // Worker account created
+  PROFILE_UPDATED // Basic profile fields changed
+  PHOTO_UPLOADED // Profile photo added/changed
+  CONTACT_INFO_UPDATED // Phone, email changed
+  RATE_CHANGED // Hourly rate modified
+  STATUS_CHANGED // Active/inactive status
+
+  // Job events
+  JOB_ASSIGNED // Assigned to a job (cleaning or maintenance)
+  JOB_REASSIGNED // Job reassigned to different worker
+  JOB_UNASSIGNED // Removed from a job
+  JOB_STARTED // Worker started a job
+  JOB_COMPLETED // Worker completed a job
+  JOB_CANCELLED // Assigned job was cancelled
+
+  // Certificate events
+  CERTIFICATE_UPLOADED // New certificate added
+  CERTIFICATE_RENEWED // Certificate renewed
+  CERTIFICATE_EXPIRING // Certificate expiring soon (auto-generated)
+  CERTIFICATE_EXPIRED // Certificate expired (auto-generated)
+  CERTIFICATE_REMOVED // Certificate deleted
+
+  // Availability events
+  AVAILABILITY_UPDATED // Working hours/days changed
+  TIME_OFF_REQUESTED // PTO/vacation requested
+  TIME_OFF_APPROVED // Time off approved
+  TIME_OFF_DECLINED // Time off declined
+
+  // Performance events
+  RATING_RECEIVED // Customer rating received
+  MILESTONE_REACHED // 10th job, 50th job, 100th job, etc.
+  COMPLAINT_FILED // Customer complaint
+  COMMENDATION_RECEIVED // Positive feedback/commendation
+
+  // Other
+  NOTE_ADDED // Admin note added to worker profile
+  EMERGENCY_CONTACT_UPDATED // Emergency contact information updated
 }

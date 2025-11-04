@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '../utils/errors';
 import { InvoiceService } from './InvoiceService';
 import { CleaningJobHistoryService } from './CleaningJobHistoryService';
 import { PropertyHistoryService } from './PropertyHistoryService';
+import { WorkerHistoryService } from './WorkerHistoryService';
 
 export interface CreateMaintenanceJobInput {
   service_id: string;
@@ -46,10 +47,12 @@ export interface UpdateMaintenanceJobInput {
 export class MaintenanceJobsService {
   private cleaningJobHistoryService: CleaningJobHistoryService;
   private propertyHistoryService: PropertyHistoryService;
+  private workerHistoryService: WorkerHistoryService;
 
   constructor() {
     this.cleaningJobHistoryService = new CleaningJobHistoryService();
     this.propertyHistoryService = new PropertyHistoryService();
+    this.workerHistoryService = new WorkerHistoryService();
   }
 
   async list(
@@ -264,6 +267,19 @@ export class MaintenanceJobsService {
       console.error('Failed to record maintenance job in property history:', error);
     });
 
+    // Record worker assignment in worker history
+    if (job.assigned_worker_id && job.assigned_worker) {
+      await this.workerHistoryService.recordJobAssigned(
+        job.assigned_worker_id,
+        job.id,
+        'MAINTENANCE',
+        job.property?.property_name,
+        job.scheduled_date?.toISOString().split('T')[0]
+      ).catch((error) => {
+        console.error('Failed to record job assignment in worker history:', error);
+      });
+    }
+
     return job;
   }
 
@@ -292,6 +308,104 @@ export class MaintenanceJobsService {
       ).catch((error) => {
         console.error('Failed to record maintenance job completion in property history:', error);
       });
+    }
+
+    // Track worker assignment changes
+    const oldWorkerId = existingJob.assigned_worker_id;
+    const newWorkerId = input.assigned_worker_id;
+
+    if (newWorkerId !== undefined && oldWorkerId !== newWorkerId) {
+      // Worker was unassigned (removed from job)
+      if (oldWorkerId && !newWorkerId) {
+        await this.workerHistoryService.recordJobUnassigned(
+          oldWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name
+        ).catch((error) => {
+          console.error('Failed to record job unassignment in worker history:', error);
+        });
+      }
+      // Worker was reassigned to different worker
+      else if (oldWorkerId && newWorkerId && oldWorkerId !== newWorkerId) {
+        await this.workerHistoryService.recordJobReassigned(
+          newWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name,
+          job.scheduled_date?.toISOString().split('T')[0]
+        ).catch((error) => {
+          console.error('Failed to record job reassignment in worker history:', error);
+        });
+
+        // Also record unassignment for old worker
+        await this.workerHistoryService.recordJobUnassigned(
+          oldWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name
+        ).catch((error) => {
+          console.error('Failed to record job unassignment in worker history:', error);
+        });
+      }
+      // Worker was newly assigned (wasn't assigned before)
+      else if (!oldWorkerId && newWorkerId) {
+        await this.workerHistoryService.recordJobAssigned(
+          newWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name,
+          job.scheduled_date?.toISOString().split('T')[0]
+        ).catch((error) => {
+          console.error('Failed to record job assignment in worker history:', error);
+        });
+      }
+    }
+
+    // Track status changes for worker history
+    const currentWorkerId = newWorkerId !== undefined ? newWorkerId : oldWorkerId;
+    if (currentWorkerId && input.status && input.status !== existingJob.status) {
+      // Job started
+      if (input.status === 'IN_PROGRESS' && existingJob.status !== 'IN_PROGRESS') {
+        await this.workerHistoryService.recordJobStarted(
+          currentWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name
+        ).catch((error) => {
+          console.error('Failed to record job start in worker history:', error);
+        });
+      }
+      // Job completed
+      else if (input.status === 'COMPLETED' && existingJob.status !== 'COMPLETED') {
+        // Calculate duration if we have dates
+        let duration: number | undefined;
+        if (existingJob.scheduled_date && job.completed_date) {
+          const durationMs = job.completed_date.getTime() - existingJob.scheduled_date.getTime();
+          duration = Math.round(durationMs / (1000 * 60 * 60) * 10) / 10;
+        }
+
+        await this.workerHistoryService.recordJobCompleted(
+          currentWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name,
+          duration
+        ).catch((error) => {
+          console.error('Failed to record job completion in worker history:', error);
+        });
+      }
+      // Job cancelled
+      else if (input.status === 'CANCELLED' && existingJob.status !== 'CANCELLED') {
+        await this.workerHistoryService.recordJobCancelled(
+          currentWorkerId,
+          job.id,
+          'MAINTENANCE',
+          job.property?.property_name
+        ).catch((error) => {
+          console.error('Failed to record job cancellation in worker history:', error);
+        });
+      }
     }
 
     return job;
@@ -593,6 +707,17 @@ export class MaintenanceJobsService {
       }
     );
 
+    // 6. Record in worker history
+    await this.workerHistoryService.recordJobAssigned(
+      workerId,
+      jobId,
+      'MAINTENANCE',
+      updatedJob.property?.property_name,
+      scheduledDate.toISOString().split('T')[0]
+    ).catch((error) => {
+      console.error('Failed to record job assignment in worker history:', error);
+    });
+
     return updatedJob;
   }
 
@@ -842,6 +967,28 @@ export class MaintenanceJobsService {
         invoice_id: invoiceId,
       }
     );
+
+    // Record in worker history if worker was assigned
+    if (updatedJob.assigned_worker_id) {
+      // Calculate duration if we have scheduled and completed dates
+      let duration: number | undefined;
+      if (job.scheduled_date && updatedJob.completed_date) {
+        const durationMs = updatedJob.completed_date.getTime() - job.scheduled_date.getTime();
+        duration = Math.round(durationMs / (1000 * 60 * 60) * 10) / 10;
+      } else if (completionData.actual_hours_worked) {
+        duration = completionData.actual_hours_worked;
+      }
+
+      await this.workerHistoryService.recordJobCompleted(
+        updatedJob.assigned_worker_id,
+        jobId,
+        'MAINTENANCE',
+        updatedJob.property?.property_name,
+        duration
+      ).catch((error) => {
+        console.error('Failed to record job completion in worker history:', error);
+      });
+    }
 
     return {
       job: updatedJob,

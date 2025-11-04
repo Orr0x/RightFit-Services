@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Button, Card, Spinner, EmptyState, useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, type CleaningJob } from '../../lib/api'
+import { GlobalActivityTimeline } from '../../components/GlobalActivityTimeline'
 import { useNavigate } from 'react-router-dom'
 
 // HARDCODED for demo - In production, get from auth context
@@ -250,6 +251,11 @@ export default function CleaningDashboard() {
             )}
           </div>
         </Card>
+      </div>
+
+      {/* Global Activity Feed */}
+      <div className="mt-8">
+        <GlobalActivityTimeline limit={50} />
       </div>
     </div>
   )

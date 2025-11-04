@@ -233,7 +233,74 @@ export default function CleaningJobDetails() {
           </Button>
         </div>
 
-        {job.maintenance_issues_found > 0 && (
+        {/* Linked Maintenance Jobs as Cards */}
+        {job.maintenance_jobs && job.maintenance_jobs.length > 0 && (
+          <div className="space-y-3 mb-4">
+            {job.maintenance_jobs.map((maintenanceJob: any) => (
+              <Card
+                key={maintenanceJob.id}
+                className="p-4 bg-orange-50 border border-orange-200 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/maintenance/jobs/${maintenanceJob.id}`)}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold text-orange-900">{maintenanceJob.title}</h4>
+                      <Badge
+                        color={
+                          maintenanceJob.status === 'QUOTE_PENDING' ? 'yellow' :
+                          maintenanceJob.status === 'QUOTE_APPROVED' ? 'blue' :
+                          maintenanceJob.status === 'SCHEDULED' ? 'blue' :
+                          maintenanceJob.status === 'IN_PROGRESS' ? 'blue' :
+                          maintenanceJob.status === 'COMPLETED' ? 'green' :
+                          maintenanceJob.status === 'CANCELLED' ? 'red' : 'gray'
+                        }
+                      >
+                        {maintenanceJob.status.replace('_', ' ')}
+                      </Badge>
+                      <Badge
+                        color={
+                          maintenanceJob.priority === 'URGENT' ? 'red' :
+                          maintenanceJob.priority === 'HIGH' ? 'yellow' : 'gray'
+                        }
+                      >
+                        {maintenanceJob.priority}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2">{maintenanceJob.description || 'No description'}</p>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <div>Category: <span className="font-medium">{maintenanceJob.category}</span></div>
+                      {(maintenanceJob.quote?.total || maintenanceJob.estimated_total) && (
+                        <div>
+                          {maintenanceJob.quote ? 'Quote: ' : 'Estimate: '}
+                          <span className="font-medium text-green-600">
+                            £{Number(maintenanceJob.quote?.total || maintenanceJob.estimated_total).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {maintenanceJob.scheduled_date && (
+                        <div>Scheduled: <span className="font-medium">{new Date(maintenanceJob.scheduled_date).toLocaleDateString('en-GB')}</span></div>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(`/maintenance/jobs/${maintenanceJob.id}`)
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Fallback counter display if jobs not loaded */}
+        {job.maintenance_issues_found > 0 && (!job.maintenance_jobs || job.maintenance_jobs.length === 0) && (
           <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded">
             <div className="font-semibold text-orange-800">
               {job.maintenance_issues_found} issue(s) reported from this cleaning job

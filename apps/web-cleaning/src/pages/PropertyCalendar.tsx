@@ -1,0 +1,898 @@
+import { useState, useEffect } from 'react'
+import { Button, Card, Spinner, Badge } from '../components/ui'
+import { useToast } from '../components/ui/Toast'
+import { cleaningJobsAPI, type CleaningJob } from '../lib/api'
+import { useNavigate } from 'react-router-dom'
+import EditIcon from '@mui/icons-material/Edit'
+import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
+
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+
+export default function PropertyCalendar() {
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [jobs, setJobs] = useState<CleaningJob[]>([])
+  const [loading, setLoading] = useState(true)
+  const [draggingJobId, setDraggingJobId] = useState<string | null>(null)
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null)
+  const [editingJob, setEditingJob] = useState<CleaningJob | null>(null)
+  const toast = useToast()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    loadJobs()
+  }, [currentDate])
+
+  const loadJobs = async () => {
+    try {
+      setLoading(true)
+      // Load all jobs to show past, present, and future
+      const result = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID)
+      setJobs(result.data)
+    } catch (error: any) {
+      console.error('Error loading jobs:', error)
+      toast.error('Failed to load cleaning jobs')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+
+    return { daysInMonth, startingDayOfWeek, year, month }
+  }
+
+  const getJobsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]
+    return jobs.filter(job => {
+      const jobDate = new Date(job.scheduled_date).toISOString().split('T')[0]
+      return jobDate === dateStr
+    })
+  }
+
+  const isToday = (date: Date) => {
+    const today = new Date()
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    )
+  }
+
+  const isCurrentMonth = (date: Date) => {
+    return date.getMonth() === currentDate.getMonth()
+  }
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+  }
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+  }
+
+  const goToToday = () => {
+    setCurrentDate(new Date())
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'SCHEDULED':
+        return {
+          backgroundColor: '#dbeafe',
+          color: '#1d4ed8',
+          borderColor: '#93c5fd'
+        }
+      case 'IN_PROGRESS':
+        return {
+          backgroundColor: '#fef3c7',
+          color: '#b45309',
+          borderColor: '#fcd34d'
+        }
+      case 'COMPLETED':
+        return {
+          backgroundColor: '#d1fae5',
+          color: '#065f46',
+          borderColor: '#6ee7b7'
+        }
+      case 'CANCELLED':
+        return {
+          backgroundColor: '#fee2e2',
+          color: '#991b1b',
+          borderColor: '#fca5a5'
+        }
+      default:
+        return {
+          backgroundColor: '#f3f4f6',
+          color: '#374151',
+          borderColor: '#d1d5db'
+        }
+    }
+  }
+
+  // Helper function to parse time string (HH:MM) to minutes since midnight
+  const parseTimeToMinutes = (timeStr: string): number => {
+    const [hours, minutes] = timeStr.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+
+  // Check if two time ranges overlap
+  const timesOverlap = (start1: string, end1: string, start2: string, end2: string): boolean => {
+    const start1Min = parseTimeToMinutes(start1)
+    const end1Min = parseTimeToMinutes(end1)
+    const start2Min = parseTimeToMinutes(start2)
+    const end2Min = parseTimeToMinutes(end2)
+
+    return start1Min < end2Min && end1Min > start2Min
+  }
+
+  // Validate if job can be moved to new date
+  const validateJobReschedule = (job: CleaningJob, newDateStr: string): { valid: boolean; message?: string } => {
+    // Don't allow rescheduling completed or cancelled jobs
+    if (job.status === 'COMPLETED') {
+      return { valid: false, message: 'Cannot reschedule completed jobs' }
+    }
+    if (job.status === 'CANCELLED') {
+      return { valid: false, message: 'Cannot reschedule cancelled jobs' }
+    }
+
+    // Don't allow moving jobs to the past (except same day)
+    const newDate = new Date(newDateStr)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    newDate.setHours(0, 0, 0, 0)
+
+    if (newDate < today) {
+      return { valid: false, message: 'Cannot schedule jobs in the past' }
+    }
+
+    // Check for worker conflicts if worker is assigned
+    if (job.assigned_worker_id) {
+      // Get all jobs for this worker on the new date
+      const workerJobsOnDate = jobs.filter(j =>
+        j.id !== job.id && // Exclude the job being moved
+        j.assigned_worker_id === job.assigned_worker_id &&
+        new Date(j.scheduled_date).toISOString().split('T')[0] === newDateStr &&
+        j.status !== 'CANCELLED' // Ignore cancelled jobs
+      )
+
+      // Check for time conflicts
+      for (const existingJob of workerJobsOnDate) {
+        if (timesOverlap(
+          job.scheduled_start_time,
+          job.scheduled_end_time,
+          existingJob.scheduled_start_time,
+          existingJob.scheduled_end_time
+        )) {
+          const workerName = `${job.assigned_worker?.first_name} ${job.assigned_worker?.last_name}`
+          return {
+            valid: false,
+            message: `${workerName} is already scheduled from ${existingJob.scheduled_start_time} to ${existingJob.scheduled_end_time} on this date`
+          }
+        }
+      }
+    }
+
+    // TODO: Check worker availability once availability API is implemented
+    // For now, we'll allow all moves that pass the above checks
+
+    return { valid: true }
+  }
+
+  // Handle drag start
+  const handleDragStart = (e: React.DragEvent, job: CleaningJob, dateStr: string) => {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('jobId', job.id)
+    e.dataTransfer.setData('oldDate', dateStr)
+    setDraggingJobId(job.id)
+  }
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setDraggingJobId(null)
+    setDragOverDate(null)
+  }
+
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent, dateStr: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverDate(dateStr)
+  }
+
+  // Handle drag leave
+  const handleDragLeave = () => {
+    setDragOverDate(null)
+  }
+
+  // Handle drop
+  const handleDrop = async (e: React.DragEvent, newDate: Date) => {
+    e.preventDefault()
+    const jobId = e.dataTransfer.getData('jobId')
+    const oldDate = e.dataTransfer.getData('oldDate')
+
+    setDragOverDate(null)
+    setDraggingJobId(null)
+
+    const newDateStr = newDate.toISOString().split('T')[0]
+
+    // If dropped on same date, do nothing
+    if (oldDate === newDateStr) {
+      return
+    }
+
+    // Find the job
+    const job = jobs.find(j => j.id === jobId)
+    if (!job) {
+      toast.error('Job not found')
+      return
+    }
+
+    // Validate the move
+    const validation = validateJobReschedule(job, newDateStr)
+    if (!validation.valid) {
+      toast.error(validation.message || 'Cannot reschedule this job')
+      return
+    }
+
+    try {
+      toast.info('Rescheduling job...')
+
+      // Update via API
+      await cleaningJobsAPI.update(jobId, {
+        scheduled_date: newDateStr,
+        service_provider_id: SERVICE_PROVIDER_ID,
+      })
+
+      // Refresh jobs to show updated state
+      await loadJobs()
+
+      const formattedDate = newDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+      toast.success(`Job rescheduled to ${formattedDate}`)
+    } catch (error: any) {
+      console.error('Error rescheduling job:', error)
+      toast.error(error.response?.data?.error || 'Failed to reschedule job')
+    }
+  }
+
+  // Handle quick edit
+  const handleQuickEdit = (e: React.MouseEvent | React.Touch, job: CleaningJob) => {
+    e.stopPropagation() // Prevent navigation to job details
+    setEditingJob(job)
+  }
+
+  // Handle right-click
+  const handleContextMenu = (e: React.MouseEvent, job: CleaningJob) => {
+    e.preventDefault() // Prevent default browser context menu
+    e.stopPropagation()
+    handleQuickEdit(e, job)
+  }
+
+  const renderCalendar = () => {
+    const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentDate)
+    const days = []
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      const prevMonthDate = new Date(year, month, -startingDayOfWeek + i + 1)
+      const dayJobs = getJobsForDate(prevMonthDate)
+      const isLastColumn = (i % 7) === 6
+      const dateStr = prevMonthDate.toISOString().split('T')[0]
+      const isDropTarget = dragOverDate === dateStr
+
+      days.push(
+        <div
+          key={`empty-${i}`}
+          className="p-2"
+          onDragOver={(e) => handleDragOver(e, dateStr)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, prevMonthDate)}
+          style={{
+            minHeight: '120px',
+            backgroundColor: isDropTarget ? '#e0f2fe' : '#f9fafb',
+            borderRight: isLastColumn ? 'none' : '1px solid #d1d5db',
+            borderBottom: '1px solid #d1d5db',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          <div className="text-sm font-medium mb-1" style={{ color: '#9ca3af' }}>
+            {prevMonthDate.getDate()}
+          </div>
+          {dayJobs.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {dayJobs.map(job => {
+                const colors = getStatusColor(job.status)
+                const isDragging = draggingJobId === job.id
+                const canDrag = job.status === 'SCHEDULED' || job.status === 'IN_PROGRESS'
+
+                return (
+                  <div
+                    key={job.id}
+                    draggable={canDrag}
+                    onDragStart={(e) => canDrag && handleDragStart(e, job, dateStr)}
+                    onDragEnd={handleDragEnd}
+                    onContextMenu={(e) => handleContextMenu(e, job)}
+                    className="text-xs p-1 rounded"
+                    onClick={(e) => {
+                      if (!isDragging) {
+                        navigate(`/jobs/${job.id}`)
+                      }
+                    }}
+                    style={{
+                      ...colors,
+                      border: `1px solid ${colors.borderColor}`,
+                      transition: 'opacity 0.2s, transform 0.2s',
+                      fontWeight: '500',
+                      cursor: canDrag ? 'grab' : 'pointer',
+                      opacity: isDragging ? 0.4 : 1,
+                      transform: isDragging ? 'scale(0.95)' : 'scale(1)',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => !isDragging && (e.currentTarget.style.opacity = '0.8')}
+                    onMouseLeave={(e) => !isDragging && (e.currentTarget.style.opacity = '1')}
+                  >
+                    <div className="truncate">
+                      {job.scheduled_start_time} - {job.property?.property_name}
+                    </div>
+                    {/* Quick edit button */}
+                    <button
+                      onClick={(e) => handleQuickEdit(e, job)}
+                      style={{
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        border: `1px solid ${colors.borderColor}`,
+                        borderRadius: '3px',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        opacity: 0.7,
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = '1'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = '0.7'
+                      }}
+                      title="Quick edit"
+                    >
+                      <EditIcon style={{ fontSize: '12px', color: colors.color }} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // Add cells for each day of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day)
+      const dayJobs = getJobsForDate(date)
+      const isTodayDate = isToday(date)
+      const cellIndex = startingDayOfWeek + day - 1
+      const isLastColumn = (cellIndex % 7) === 6
+      const dateStr = date.toISOString().split('T')[0]
+      const isDropTarget = dragOverDate === dateStr
+
+      days.push(
+        <div
+          key={day}
+          className="p-2"
+          onDragOver={(e) => handleDragOver(e, dateStr)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, date)}
+          style={{
+            minHeight: '120px',
+            backgroundColor: isDropTarget ? '#e0f2fe' : (isTodayDate ? '#eff6ff' : '#ffffff'),
+            borderRight: isLastColumn ? 'none' : '1px solid #d1d5db',
+            borderBottom: '1px solid #d1d5db',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          <div
+            className="text-sm font-medium mb-1"
+            style={{
+              color: isTodayDate ? '#2563eb' : '#111827',
+              fontWeight: isTodayDate ? '700' : '500'
+            }}
+          >
+            {day}
+            {isTodayDate && <span className="ml-1 text-xs">(Today)</span>}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {dayJobs.map(job => {
+              const colors = getStatusColor(job.status)
+              const isDragging = draggingJobId === job.id
+              const canDrag = job.status === 'SCHEDULED' || job.status === 'IN_PROGRESS'
+
+              return (
+                <div
+                  key={job.id}
+                  draggable={canDrag}
+                  onDragStart={(e) => canDrag && handleDragStart(e, job, dateStr)}
+                  onDragEnd={handleDragEnd}
+                  onContextMenu={(e) => handleContextMenu(e, job)}
+                  className="text-xs p-1 rounded"
+                  onClick={(e) => {
+                    if (!isDragging) {
+                      navigate(`/jobs/${job.id}`)
+                    }
+                  }}
+                  title={`${job.property?.property_name} - ${job.customer?.business_name}\n${job.scheduled_start_time} - ${job.scheduled_end_time}\nWorker: ${job.assigned_worker ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}` : 'Unassigned'}\n${canDrag ? 'Drag to reschedule' : 'Cannot reschedule ' + job.status.toLowerCase() + ' jobs'}\nRight-click or click edit icon for quick edit`}
+                  style={{
+                    ...colors,
+                    border: `1px solid ${colors.borderColor}`,
+                    transition: 'opacity 0.2s, transform 0.2s',
+                    fontWeight: '500',
+                    cursor: canDrag ? 'grab' : 'pointer',
+                    opacity: isDragging ? 0.4 : 1,
+                    transform: isDragging ? 'scale(0.95)' : 'scale(1)',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={(e) => !isDragging && (e.currentTarget.style.opacity = '0.8')}
+                  onMouseLeave={(e) => !isDragging && (e.currentTarget.style.opacity = '1')}
+                >
+                  <div className="truncate">
+                    {job.scheduled_start_time} - {job.property?.property_name}
+                  </div>
+                  <div style={{ fontSize: '10px', opacity: 0.75 }} className="truncate">
+                    {job.assigned_worker
+                      ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}`
+                      : 'Unassigned'}
+                  </div>
+                  {/* Quick edit button */}
+                  <button
+                    onClick={(e) => handleQuickEdit(e, job)}
+                    style={{
+                      position: 'absolute',
+                      top: '2px',
+                      right: '2px',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      border: `1px solid ${colors.borderColor}`,
+                      borderRadius: '3px',
+                      padding: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      opacity: 0.7,
+                      transition: 'opacity 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '0.7'
+                    }}
+                    title="Quick edit"
+                  >
+                    <EditIcon style={{ fontSize: '12px', color: colors.color }} />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    // Add empty cells for days after the last day of the month
+    const totalCells = days.length
+    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7)
+    for (let i = 1; i <= remainingCells; i++) {
+      const nextMonthDate = new Date(year, month + 1, i)
+      const dayJobs = getJobsForDate(nextMonthDate)
+      const cellIndex = totalCells + i - 1
+      const isLastColumn = (cellIndex % 7) === 6
+      const dateStr = nextMonthDate.toISOString().split('T')[0]
+      const isDropTarget = dragOverDate === dateStr
+
+      days.push(
+        <div
+          key={`next-${i}`}
+          className="p-2"
+          onDragOver={(e) => handleDragOver(e, dateStr)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, nextMonthDate)}
+          style={{
+            minHeight: '120px',
+            backgroundColor: isDropTarget ? '#e0f2fe' : '#f9fafb',
+            borderRight: isLastColumn ? 'none' : '1px solid #d1d5db',
+            borderBottom: '1px solid #d1d5db',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          <div className="text-sm font-medium mb-1" style={{ color: '#9ca3af' }}>
+            {i}
+          </div>
+          {dayJobs.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {dayJobs.map(job => {
+                const colors = getStatusColor(job.status)
+                const isDragging = draggingJobId === job.id
+                const canDrag = job.status === 'SCHEDULED' || job.status === 'IN_PROGRESS'
+
+                return (
+                  <div
+                    key={job.id}
+                    draggable={canDrag}
+                    onDragStart={(e) => canDrag && handleDragStart(e, job, dateStr)}
+                    onDragEnd={handleDragEnd}
+                    onContextMenu={(e) => handleContextMenu(e, job)}
+                    className="text-xs p-1 rounded"
+                    onClick={(e) => {
+                      if (!isDragging) {
+                        navigate(`/jobs/${job.id}`)
+                      }
+                    }}
+                    style={{
+                      ...colors,
+                      border: `1px solid ${colors.borderColor}`,
+                      transition: 'opacity 0.2s, transform 0.2s',
+                      fontWeight: '500',
+                      cursor: canDrag ? 'grab' : 'pointer',
+                      opacity: isDragging ? 0.4 : 1,
+                      transform: isDragging ? 'scale(0.95)' : 'scale(1)',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => !isDragging && (e.currentTarget.style.opacity = '0.8')}
+                    onMouseLeave={(e) => !isDragging && (e.currentTarget.style.opacity = '1')}
+                  >
+                    <div className="truncate">
+                      {job.scheduled_start_time} - {job.property?.property_name}
+                    </div>
+                    {/* Quick edit button */}
+                    <button
+                      onClick={(e) => handleQuickEdit(e, job)}
+                      style={{
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        border: `1px solid ${colors.borderColor}`,
+                        borderRadius: '3px',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        opacity: 0.7,
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = '1'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = '0.7'
+                      }}
+                      title="Quick edit"
+                    >
+                      <EditIcon style={{ fontSize: '12px', color: colors.color }} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return days
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]
+
+  const { year, month } = getDaysInMonth(currentDate)
+
+  // Get jobs for current month being viewed
+  const monthStart = new Date(year, month, 1)
+  const monthEnd = new Date(year, month + 1, 0)
+  const monthJobs = jobs.filter(job => {
+    const jobDate = new Date(job.scheduled_date)
+    return jobDate >= monthStart && jobDate <= monthEnd
+  })
+
+  // Get unique workers and properties for the month
+  const uniqueWorkerIds = new Set(
+    monthJobs
+      .filter(job => job.assigned_worker)
+      .map(job => job.assigned_worker!.id)
+  )
+  const uniqueWorkers = Array.from(uniqueWorkerIds).map(workerId => {
+    const job = monthJobs.find(j => j.assigned_worker?.id === workerId)
+    return job?.assigned_worker!
+  }).filter(Boolean)
+
+  const uniqueProperties = new Set(
+    monthJobs
+      .filter(job => job.property)
+      .map(job => job.property!.property_name)
+  )
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">
+            {monthNames[month]} {year}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={goToPreviousMonth}>
+            ← Previous
+          </Button>
+          <Button variant="secondary" onClick={goToToday}>
+            Today
+          </Button>
+          <Button variant="secondary" onClick={goToNextMonth}>
+            Next →
+          </Button>
+          <Button onClick={() => navigate('/jobs/new')}>
+            + Schedule Job
+          </Button>
+        </div>
+      </div>
+
+      {/* Legend with Stats */}
+      <Card className="p-4 mb-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <div className="text-sm font-medium text-gray-700">Status Legend:</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: '#dbeafe',
+                  border: '2px solid #93c5fd',
+                  borderRadius: '4px'
+                }}
+              ></div>
+              <span className="text-sm">Scheduled</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: '#fef3c7',
+                  border: '2px solid #fcd34d',
+                  borderRadius: '4px'
+                }}
+              ></div>
+              <span className="text-sm">In Progress</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: '#d1fae5',
+                  border: '2px solid #6ee7b7',
+                  borderRadius: '4px'
+                }}
+              ></div>
+              <span className="text-sm">Completed</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: '#fee2e2',
+                  border: '2px solid #fca5a5',
+                  borderRadius: '4px'
+                }}
+              ></div>
+              <span className="text-sm">Cancelled</span>
+            </div>
+          </div>
+
+          {/* Summary Stats */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="text-sm font-medium text-gray-700">Total Jobs:</span>
+              <span className="text-lg font-bold">{monthJobs.length}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="text-sm font-medium" style={{ color: '#1d4ed8' }}>Scheduled:</span>
+              <span className="text-lg font-bold" style={{ color: '#1d4ed8' }}>
+                {monthJobs.filter(j => j.status === 'SCHEDULED').length}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="text-sm font-medium" style={{ color: '#b45309' }}>In Progress:</span>
+              <span className="text-lg font-bold" style={{ color: '#b45309' }}>
+                {monthJobs.filter(j => j.status === 'IN_PROGRESS').length}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="text-sm font-medium" style={{ color: '#065f46' }}>Completed:</span>
+              <span className="text-lg font-bold" style={{ color: '#065f46' }}>
+                {monthJobs.filter(j => j.status === 'COMPLETED').length}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Calendar Grid */}
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{ border: '2px solid #d1d5db' }}>
+        {/* Day headers */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            borderBottom: '2px solid #d1d5db'
+          }}
+          className="bg-gray-100"
+        >
+          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(
+            (day, idx) => (
+              <div
+                key={day}
+                className="p-3 text-center text-sm font-semibold text-gray-700"
+                style={{
+                  borderRight: idx < 6 ? '1px solid #d1d5db' : 'none'
+                }}
+              >
+                {day}
+              </div>
+            )
+          )}
+        </div>
+
+        {/* Calendar days */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          {renderCalendar()}
+        </div>
+      </div>
+
+      {/* Properties Section */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4">Properties This Month</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from(uniqueProperties).map((propertyName) => {
+            const propertyJobs = monthJobs.filter(job => job.property?.property_name === propertyName)
+            const property = propertyJobs[0]?.property
+
+            return (
+              <Card
+                key={propertyName}
+                className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => property?.id && navigate(`/properties/${property.id}`)}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{propertyName}</h3>
+                    {property?.address && (
+                      <p className="text-sm text-gray-600 mt-1">{property.address}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Jobs this month:</span>
+                    <span className="font-semibold">{propertyJobs.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-600">Completed:</span>
+                    <span className="font-semibold text-green-600">
+                      {propertyJobs.filter(j => j.status === 'COMPLETED').length}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+        {uniqueProperties.size === 0 && (
+          <Card className="p-8">
+            <p className="text-center text-gray-500">No properties with scheduled jobs this month</p>
+          </Card>
+        )}
+      </div>
+
+      {/* Workers Section */}
+      <div className="mt-8 mb-8">
+        <h2 className="text-xl font-bold mb-4">Workers This Month</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {uniqueWorkers.map((worker) => {
+            const workerJobs = monthJobs.filter(
+              job => job.assigned_worker?.id === worker.id
+            )
+
+            return (
+              <Card
+                key={worker.id}
+                className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/workers/${worker.id}`)}
+              >
+                <div className="flex items-start mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">
+                      {worker.first_name} {worker.last_name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">{worker.email}</p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Jobs assigned:</span>
+                    <span className="font-semibold">{workerJobs.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-600">Completed:</span>
+                    <span className="font-semibold text-green-600">
+                      {workerJobs.filter(j => j.status === 'COMPLETED').length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-600">In progress:</span>
+                    <span className="font-semibold text-yellow-600">
+                      {workerJobs.filter(j => j.status === 'IN_PROGRESS').length}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+        {uniqueWorkers.length === 0 && (
+          <Card className="p-8">
+            <p className="text-center text-gray-500">No workers assigned to jobs this month</p>
+          </Card>
+        )}
+      </div>
+
+      {/* Quick Edit Modal */}
+      {editingJob && (
+        <QuickEditJobModal
+          job={editingJob}
+          isOpen={!!editingJob}
+          onClose={() => setEditingJob(null)}
+          onSuccess={loadJobs}
+        />
+      )}
+    </div>
+  )
+}

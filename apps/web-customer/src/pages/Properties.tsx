@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, Spinner, EmptyState, useToast, Button } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { customerPortalAPI, type CustomerProperty } from '../lib/api'
@@ -8,6 +9,7 @@ export default function Properties() {
   const [customerProperties, setCustomerProperties] = useState<CustomerProperty[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
+  const navigate = useNavigate()
 
   const handleCopyGuestLink = (propertyId: string, propertyName: string) => {
     // Guest tablet runs on port 5177
@@ -70,7 +72,21 @@ export default function Properties() {
       ) : (
         <div className="properties-grid">
           {customerProperties.map((customerProp) => (
-            <Card key={customerProp.id} variant="elevated" className="property-card">
+            <Card
+              key={customerProp.id}
+              variant="elevated"
+              className="property-card"
+              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = ''
+              }}
+              onClick={() => navigate(`/properties/${customerProp.id}`)}
+            >
               <div className="property-card-header">
                 <div>
                   <h3 className="property-name">{customerProp.property_name}</h3>
@@ -113,7 +129,10 @@ export default function Properties() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleCopyGuestLink(customerProp.id, customerProp.property_name)}
+                  onClick={(e) => {
+                    e.stopPropagation() // Prevent card click
+                    handleCopyGuestLink(customerProp.id, customerProp.property_name)
+                  }}
                   style={{ width: '100%' }}
                 >
                   📱 Copy Guest Tablet Link

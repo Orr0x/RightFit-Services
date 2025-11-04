@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -36,6 +37,7 @@ interface MonthlyStats {
 }
 
 export default function Invoices() {
+  const navigate = useNavigate()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [stats, setStats] = useState<MonthlyStats>({
     current_month: 0,
@@ -51,44 +53,34 @@ export default function Invoices() {
   const fetchInvoices = async () => {
     try {
       setLoading(true)
-      // TODO: Replace with actual API call
-      // const customer = JSON.parse(localStorage.getItem('customer') || '{}')
-      // const response = await fetch(`/api/customer-portal/invoices?customer_id=${customer.id}`)
-      // const data = await response.json()
+      const customer = JSON.parse(localStorage.getItem('customer') || '{}')
 
-      // Mock data
+      if (!customer.id) {
+        console.error('No customer ID found')
+        return
+      }
+
+      // Import the API
+      const { customerPortalAPI } = await import('../lib/api')
+      const data = await customerPortalAPI.getInvoices(customer.id)
+
       setStats({
-        current_month: 1250.00,
-        last_month: 980.50,
-        ytd_total: 14567.89,
+        current_month: data.statistics.currentMonth,
+        last_month: data.statistics.lastMonth,
+        ytd_total: data.statistics.ytdTotal,
       })
 
-      setInvoices([
-        {
-          id: '1',
-          invoice_number: 'INV-2025-001',
-          date: new Date().toISOString(),
-          service_type: 'Cleaning Service',
-          amount: 450.00,
-          status: 'PAID',
-        },
-        {
-          id: '2',
-          invoice_number: 'INV-2025-002',
-          date: new Date(Date.now() - 86400000 * 7).toISOString(),
-          service_type: 'Plumbing Repair',
-          amount: 150.00,
-          status: 'PENDING',
-        },
-        {
-          id: '3',
-          invoice_number: 'INV-2024-098',
-          date: new Date(Date.now() - 86400000 * 14).toISOString(),
-          service_type: 'HVAC Maintenance',
-          amount: 650.50,
-          status: 'PAID',
-        },
-      ])
+      // Map API invoices to UI format
+      const mappedInvoices = data.invoices.map((invoice: any) => ({
+        id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        date: invoice.invoice_date,
+        service_type: invoice.maintenance_job?.service?.service_name || 'Maintenance Service',
+        amount: Number(invoice.total),
+        status: invoice.status,
+      }))
+
+      setInvoices(mappedInvoices)
     } catch (err) {
       console.error('Failed to load invoices:', err)
     } finally {
@@ -185,7 +177,16 @@ export default function Invoices() {
               </TableRow>
             ) : (
               invoices.map((invoice) => (
-                <TableRow key={invoice.id}>
+                <TableRow
+                  key={invoice.id}
+                  onClick={() => navigate(`/invoices/${invoice.id}`)}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
                   <TableCell>{invoice.invoice_number}</TableCell>
                   <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
                   <TableCell>{invoice.service_type}</TableCell>
@@ -206,7 +207,10 @@ export default function Invoices() {
                       variant="outlined"
                       size="small"
                       startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(invoice.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDownload(invoice.id)
+                      }}
                     >
                       Download
                     </Button>

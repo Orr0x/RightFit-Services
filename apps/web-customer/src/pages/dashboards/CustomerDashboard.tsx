@@ -84,6 +84,7 @@ export default function CustomerDashboard() {
   const [pendingQuotes, setPendingQuotes] = useState<Quote[]>([])
   const [scheduledJobs, setScheduledJobs] = useState<Job[]>([])
   const [inProgressJobs, setInProgressJobs] = useState<Job[]>([])
+  const [completedJobs, setCompletedJobs] = useState<Job[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export default function CustomerDashboard() {
       const maintenanceJobs = data.data.activeJobs?.maintenance || []
       setScheduledJobs(maintenanceJobs.filter((j: Job) => j.status === 'SCHEDULED' || j.status === 'APPROVED'))
       setInProgressJobs(maintenanceJobs.filter((j: Job) => j.status === 'IN_PROGRESS'))
+      setCompletedJobs(maintenanceJobs.filter((j: Job) => j.status === 'COMPLETED'))
     } catch (error) {
       console.error('Failed to load dashboard data:', error)
     } finally {
@@ -289,6 +291,7 @@ export default function CustomerDashboard() {
           <Tab label={`Pending Quotes (${pendingQuotes.length})`} />
           <Tab label={`Scheduled (${scheduledJobs.length})`} />
           <Tab label={`In Progress (${inProgressJobs.length})`} />
+          <Tab label={`Completed (${completedJobs.length})`} />
           <Tab label="Invoices" />
         </Tabs>
 
@@ -442,8 +445,66 @@ export default function CustomerDashboard() {
             </Box>
           )}
 
-          {/* Tab 3: Invoices */}
+          {/* Tab 3: Completed Jobs */}
           {activeTab === 3 && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Completed Maintenance Jobs
+              </Typography>
+              {completedJobs.length === 0 ? (
+                <Typography color="textSecondary">No completed jobs yet.</Typography>
+              ) : (
+                <Grid container spacing={2}>
+                  {completedJobs.map(job => (
+                    <Grid item xs={12} key={job.id}>
+                      <Card
+                        variant="outlined"
+                        sx={{
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            boxShadow: 3,
+                            transform: 'translateY(-2px)',
+                          },
+                        }}
+                        onClick={() => navigate(`/jobs/${job.id}`)}
+                      >
+                        <CardContent>
+                          <Box display="flex" justifyContent="space-between" alignItems="start">
+                            <Box flex={1}>
+                              <Typography variant="h6">{job.title}</Typography>
+                              <Typography color="textSecondary" variant="body2">
+                                Property: {job.property?.property_name}
+                              </Typography>
+                              {job.category && (
+                                <Typography color="textSecondary" variant="body2">
+                                  Category: {job.category}
+                                </Typography>
+                              )}
+                              {job.assigned_worker && (
+                                <Typography color="textSecondary" variant="body2">
+                                  Worker: {job.assigned_worker.first_name} {job.assigned_worker.last_name}
+                                </Typography>
+                              )}
+                              {(job.estimated_total || job.actual_total) && (
+                                <Typography variant="body1" color="primary" sx={{ mt: 1 }}>
+                                  Total: £{Number(job.actual_total || job.estimated_total).toFixed(2)}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Chip label="Completed" color="success" size="small" />
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </Box>
+          )}
+
+          {/* Tab 4: Invoices */}
+          {activeTab === 4 && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 Invoices & Completed Jobs

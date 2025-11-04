@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { workersAPI, type Worker } from '../lib/api'
 import '../pages/Properties.css'
 
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 export default function Workers() {
+  const navigate = useNavigate()
   const [workers, setWorkers] = useState<Worker[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
@@ -186,8 +188,8 @@ export default function Workers() {
                   </div>
                 </div>
                 <div className="property-actions">
-                  <Button variant="secondary" size="sm" onClick={() => handleOpenDialog(worker)}>
-                    Edit
+                  <Button variant="secondary" size="sm" onClick={() => navigate(`/workers/${worker.id}`)}>
+                    View Details
                   </Button>
                   <Button variant="danger" size="sm" onClick={() => handleDelete(worker.id, `${worker.first_name} ${worker.last_name}`)}>
                     Delete
@@ -203,13 +205,13 @@ export default function Workers() {
         isOpen={openDialog}
         onClose={() => setOpenDialog(false)}
         title={editingWorker ? 'Edit Worker' : 'Add New Worker'}
-        actions={
-          <>
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             <Button variant="ghost" onClick={() => setOpenDialog(false)}>Cancel</Button>
             <Button variant="primary" onClick={handleSubmit}>
               {editingWorker ? 'Update' : 'Create'}
             </Button>
-          </>
+          </div>
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

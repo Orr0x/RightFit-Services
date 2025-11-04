@@ -31,9 +31,7 @@
   }
 }
 
-.card {
-  padding: 2em;
-}
+/* Removed conflicting .card rule - Card component handles its own padding */
 
 .read-the-docs {
   color: #888;

@@ -4,7 +4,7 @@ import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type CreateMaintenanceJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 export default function CreateMaintenanceJob() {
   const [formData, setFormData] = useState<CreateMaintenanceJobData>({

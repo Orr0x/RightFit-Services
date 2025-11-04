@@ -1050,4 +1050,20 @@ export const customerPortalAPI = {
     })
     return response.data
   },
+
+  getInvoices: async (customerId: string) => {
+    const response = await api.get<{
+      data: {
+        invoices: any[]
+        statistics: {
+          currentMonth: number
+          lastMonth: number
+          ytdTotal: number
+        }
+      }
+    }>('/api/customer-portal/invoices', {
+      params: { customer_id: customerId },
+    })
+    return response.data.data
+  },
 }

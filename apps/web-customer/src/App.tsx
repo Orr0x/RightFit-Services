@@ -8,10 +8,13 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import CustomerDashboard from './pages/dashboards/CustomerDashboard'
 import Properties from './pages/Properties'
+import PropertyDetails from './pages/PropertyDetails'
 import GuestIssues from './pages/GuestIssues'
+import GuestIssueDetails from './pages/GuestIssueDetails'
 import Financial from './pages/Financial'
 import QuoteApproval from './pages/QuoteApproval'
 import Invoices from './pages/Invoices'
+import InvoiceDetails from './pages/InvoiceDetails'
 import Settings from './pages/Settings'
 import MaintenanceJobDetails from './pages/MaintenanceJobDetails'
 
@@ -45,11 +48,31 @@ function App() {
               }
             />
             <Route
+              path="/properties/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PropertyDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/issues"
               element={
                 <ProtectedRoute>
                   <AppLayout>
                     <GuestIssues />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/issues/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <GuestIssueDetails />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -80,6 +103,16 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Invoices />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <InvoiceDetails />
                   </AppLayout>
                 </ProtectedRoute>
               }

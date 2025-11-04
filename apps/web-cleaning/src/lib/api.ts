@@ -614,17 +614,19 @@ export interface CleaningJob {
   service_id: string
   property_id: string
   customer_id: string
+  contract_id?: string | null
+  quote_id?: string | null
   assigned_worker_id?: string
-  scheduled_date: string
-  scheduled_start_time: string
-  scheduled_end_time: string
+  scheduled_date?: string | null
+  scheduled_start_time?: string | null
+  scheduled_end_time?: string | null
   actual_start_time?: string
   actual_end_time?: string
   checklist_template_id?: string
   checklist_items?: any
   checklist_completed_items: number
   checklist_total_items: number
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  status: 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
   completion_notes?: string
   before_photos: string[]
   after_photos: string[]
@@ -659,15 +661,18 @@ export interface CreateCleaningJobData {
   service_id: string
   property_id: string
   customer_id: string
+  contract_id?: string
+  quote_id?: string
   assigned_worker_id?: string
-  scheduled_date: string
-  scheduled_start_time: string
-  scheduled_end_time: string
+  scheduled_date?: string
+  scheduled_start_time?: string
+  scheduled_end_time?: string
   checklist_template_id?: string
   checklist_total_items?: number
   pricing_type: string
   quoted_price: number
   service_provider_id: string
+  status?: 'PENDING' | 'SCHEDULED'  // Allow setting initial status
 }
 
 export interface JobHistoryEntry {
@@ -920,6 +925,25 @@ export interface WorkerCertificate {
   updated_at: string
 }
 
+export interface WorkerHistoryEntry {
+  id: string
+  worker_id: string
+  changed_by_user_id?: string
+  changed_at: string
+  change_type:
+    | 'WORKER_CREATED' | 'PROFILE_UPDATED' | 'PHOTO_UPLOADED' | 'CONTACT_INFO_UPDATED' | 'RATE_CHANGED' | 'STATUS_CHANGED'
+    | 'JOB_ASSIGNED' | 'JOB_REASSIGNED' | 'JOB_UNASSIGNED' | 'JOB_STARTED' | 'JOB_COMPLETED' | 'JOB_CANCELLED'
+    | 'CERTIFICATE_UPLOADED' | 'CERTIFICATE_RENEWED' | 'CERTIFICATE_EXPIRING' | 'CERTIFICATE_EXPIRED' | 'CERTIFICATE_REMOVED'
+    | 'AVAILABILITY_UPDATED' | 'TIME_OFF_REQUESTED' | 'TIME_OFF_APPROVED' | 'TIME_OFF_DECLINED'
+    | 'RATING_RECEIVED' | 'MILESTONE_REACHED' | 'COMPLAINT_FILED' | 'COMMENDATION_RECEIVED'
+    | 'NOTE_ADDED' | 'EMERGENCY_CONTACT_UPDATED'
+  field_name?: string
+  old_value?: string
+  new_value?: string
+  description?: string
+  metadata?: any
+}
+
 export const workersAPI = {
   list: async (serviceProviderId: string) => {
     const response = await api.get<{ data: Worker[] }>("/api/workers", {
@@ -1000,6 +1024,27 @@ export const workersAPI = {
 
   deleteCertificate: async (workerId: string, certificateId: string) => {
     await api.delete(`/api/workers/${workerId}/certificates/${certificateId}`)
+  },
+
+  // History operations
+  getHistory: async (workerId: string, serviceProviderId: string, limit?: number) => {
+    const response = await api.get<{ data: WorkerHistoryEntry[] }>(`/api/workers/${workerId}/history`, {
+      params: {
+        service_provider_id: serviceProviderId,
+        limit
+      },
+    })
+    return response.data.data
+  },
+
+  getStats: async (workerId: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: { total_jobs: number; average_rating: number; completion_rate: number } }>(
+      `/api/workers/${workerId}/history/stats`,
+      {
+        params: { service_provider_id: serviceProviderId },
+      }
+    )
+    return response.data.data
   },
 }
 
@@ -1210,5 +1255,278 @@ export const checklistTemplatesAPI = {
       params: { service_provider_id: serviceProviderId },
     })
     return response.data.data
+  },
+}
+
+// Global Activity API
+export interface GlobalActivityEntry {
+  id: string
+  timestamp: string
+  activity_type: 'PROPERTY' | 'JOB' | 'WORKER'
+  event_type: string
+  description: string
+  metadata?: any
+  property_id?: string
+  property_name?: string
+  job_id?: string
+  worker_id?: string
+  worker_name?: string
+}
+
+export interface GlobalActivityStats {
+  total_events: number
+  properties_active: number
+  jobs_completed: number
+  workers_active: number
+  events_by_day: { date: string; count: number }[]
+}
+
+export const globalActivityAPI = {
+  list: async (filters?: {
+    limit?: number
+    activity_type?: 'PROPERTY' | 'JOB' | 'WORKER'
+    property_id?: string
+    worker_id?: string
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: GlobalActivityEntry[] }>('/api/global-activity', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  getStats: async (days?: number) => {
+    const response = await api.get<{ data: GlobalActivityStats }>('/api/global-activity/stats', {
+      params: { days },
+    })
+    return response.data.data
+  },
+}
+
+// Property Calendar API
+export interface PropertyCalendar {
+  id: string
+  property_id: string
+  guest_checkout_datetime: string
+  next_guest_checkin_datetime: string
+  clean_window_start: string
+  clean_window_end: string
+  cleaning_job_id?: string | null
+  notes?: string | null
+  created_at: string
+  updated_at: string
+  property?: {
+    id: string
+    property_name: string
+    address: string
+    customer?: {
+      id: string
+      business_name: string
+    }
+  }
+}
+
+export interface CreatePropertyCalendarData {
+  property_id: string
+  guest_checkout_datetime: string
+  next_guest_checkin_datetime: string
+  notes?: string
+}
+
+export interface UpdatePropertyCalendarData {
+  guest_checkout_datetime?: string
+  next_guest_checkin_datetime?: string
+  cleaning_job_id?: string | null
+  notes?: string
+}
+
+export interface PropertyCalendarStats {
+  total: number
+  upcoming: number
+  past: number
+  needs_cleaning: number
+  has_cleaning_job: number
+}
+
+export const propertyCalendarsAPI = {
+  list: async (filters?: {
+    property_id?: string
+    include_completed?: boolean
+    days_ahead?: number
+    start_date?: string
+    end_date?: string
+  }) => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendar[] }>('/api/property-calendars', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendar }>(`/api/property-calendars/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreatePropertyCalendarData) => {
+    const response = await api.post<{ success: boolean; data: PropertyCalendar }>('/api/property-calendars', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: UpdatePropertyCalendarData) => {
+    const response = await api.put<{ success: boolean; data: PropertyCalendar }>(`/api/property-calendars/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/property-calendars/${id}`)
+  },
+
+  needsCleaning: async () => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendar[] }>('/api/property-calendars/needs-cleaning')
+    return response.data.data
+  },
+
+  getPropertyStats: async (propertyId: string) => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendarStats }>(
+      `/api/property-calendars/property/${propertyId}/stats`
+    )
+    return response.data.data
+  },
+
+  linkJob: async (id: string, cleaningJobId: string) => {
+    const response = await api.put<{ success: boolean; data: PropertyCalendar }>(
+      `/api/property-calendars/${id}/link-job`,
+      { cleaning_job_id: cleaningJobId }
+    )
+    return response.data.data
+  },
+}
+
+// Cleaning Contracts API
+export interface CleaningContract {
+  id: string
+  customer_id: string
+  service_provider_id: string
+  contract_type: 'FLAT_MONTHLY' | 'PER_PROPERTY'
+  contract_start_date: string
+  contract_end_date?: string | null
+  monthly_fee: number
+  billing_day: number
+  status: 'ACTIVE' | 'PAUSED' | 'CANCELLED'
+  notes?: string | null
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+  }
+  property_contracts?: ContractProperty[]
+}
+
+export interface ContractProperty {
+  id: string
+  contract_id: string
+  property_id: string
+  property_monthly_fee?: number | null
+  is_active: boolean
+  property?: {
+    id: string
+    property_name: string
+    address: string
+    postcode: string
+  }
+}
+
+export interface CreateCleaningContractData {
+  customer_id: string
+  service_provider_id: string
+  contract_type: 'FLAT_MONTHLY' | 'PER_PROPERTY'
+  contract_start_date: string
+  contract_end_date?: string
+  monthly_fee: number
+  billing_day: number
+  property_ids?: string[]
+  property_fees?: Record<string, number>
+  notes?: string
+}
+
+export const cleaningContractsAPI = {
+  list: async (filters: {
+    customer_id?: string
+    service_provider_id?: string
+    status?: 'ACTIVE' | 'PAUSED' | 'CANCELLED'
+  }): Promise<CleaningContract[]> => {
+    const params = new URLSearchParams()
+    if (filters.customer_id) params.append('customer_id', filters.customer_id)
+    if (filters.service_provider_id) params.append('service_provider_id', filters.service_provider_id)
+    if (filters.status) params.append('status', filters.status)
+
+    const response = await api.get<{ data: CleaningContract[] }>(`/api/cleaning-contracts?${params.toString()}`)
+    return response.data.data
+  },
+
+  get: async (id: string): Promise<CleaningContract> => {
+    const response = await api.get<CleaningContract>(`/api/cleaning-contracts/${id}`)
+    return response.data
+  },
+
+  create: async (data: CreateCleaningContractData): Promise<CleaningContract> => {
+    const response = await api.post<CleaningContract>('/api/cleaning-contracts', data)
+    return response.data
+  },
+
+  update: async (id: string, data: Partial<CreateCleaningContractData>): Promise<CleaningContract> => {
+    const response = await api.put<CleaningContract>(`/api/cleaning-contracts/${id}`, data)
+    return response.data
+  },
+
+  pause: async (id: string): Promise<CleaningContract> => {
+    const response = await api.put<CleaningContract>(`/api/cleaning-contracts/${id}/pause`)
+    return response.data
+  },
+
+  resume: async (id: string): Promise<CleaningContract> => {
+    const response = await api.put<CleaningContract>(`/api/cleaning-contracts/${id}/resume`)
+    return response.data
+  },
+
+  cancel: async (id: string): Promise<CleaningContract> => {
+    const response = await api.put<CleaningContract>(`/api/cleaning-contracts/${id}/cancel`)
+    return response.data
+  },
+
+  getProperties: async (id: string): Promise<ContractProperty[]> => {
+    const response = await api.get<ContractProperty[]>(`/api/cleaning-contracts/${id}/properties`)
+    return response.data
+  },
+
+  linkProperty: async (
+    id: string,
+    data: { property_id: string; property_monthly_fee?: number }
+  ): Promise<ContractProperty> => {
+    const response = await api.post<ContractProperty>(`/api/cleaning-contracts/${id}/properties`, data)
+    return response.data
+  },
+
+  unlinkProperty: async (id: string, propertyId: string): Promise<void> => {
+    await api.delete(`/api/cleaning-contracts/${id}/properties/${propertyId}`)
+  },
+
+  updatePropertyFee: async (
+    id: string,
+    propertyId: string,
+    fee: number
+  ): Promise<ContractProperty> => {
+    const response = await api.put<ContractProperty>(`/api/cleaning-contracts/${id}/properties/${propertyId}/fee`, {
+      property_monthly_fee: fee,
+    })
+    return response.data
+  },
+
+  calculateMonthlyFee: async (id: string): Promise<number> => {
+    const response = await api.get<{ data: { contract_id: string; monthly_fee: number } }>(`/api/cleaning-contracts/${id}/monthly-fee`)
+    return response.data.data.monthly_fee
   },
 }

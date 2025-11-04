@@ -90,14 +90,14 @@ export default function MaintenanceJobCompletionModal({
         generate_invoice: generateInvoice,
       })
 
-      toast.success('Job marked as complete!')
-
       if (generateInvoice && response.data.invoice_id) {
-        navigate(`/invoices/${response.data.invoice_id}`)
+        toast.success('Job completed and invoice generated!')
       } else {
-        onComplete()
-        onClose()
+        toast.success('Job marked as complete!')
       }
+
+      onComplete()
+      onClose()
     } catch (err: any) {
       console.error('Complete job error:', err)
       toast.error(err.response?.data?.error || 'Failed to complete job')
@@ -163,7 +163,7 @@ export default function MaintenanceJobCompletionModal({
               Before Photos
             </label>
             <PhotoUpload
-              propertyId={job.property_id}
+              workOrderId={job.id}
               onUploadComplete={(photoId) => {
                 setBeforePhotoIds([...beforePhotoIds, photoId])
               }}
@@ -176,7 +176,7 @@ export default function MaintenanceJobCompletionModal({
               Work in Progress
             </label>
             <PhotoUpload
-              propertyId={job.property_id}
+              workOrderId={job.id}
               onUploadComplete={(photoId) => {
                 setInProgressPhotoIds([...inProgressPhotoIds, photoId])
               }}
@@ -189,7 +189,7 @@ export default function MaintenanceJobCompletionModal({
               After Photos *
             </label>
             <PhotoUpload
-              propertyId={job.property_id}
+              workOrderId={job.id}
               onUploadComplete={(photoId) => {
                 setAfterPhotoIds([...afterPhotoIds, photoId])
               }}

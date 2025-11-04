@@ -5,7 +5,7 @@ import { useLoading } from '../hooks/useLoading'
 import { cleaningJobsAPI, type CleaningJob } from '../lib/api'
 
 // HARDCODED for demo
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 // Maintenance issue form interface
 interface MaintenanceIssueForm {

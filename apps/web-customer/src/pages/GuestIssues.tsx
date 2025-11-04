@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, Spinner, EmptyState, useToast, Button } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import './GuestIssues.css'
@@ -31,6 +32,7 @@ export default function GuestIssues() {
   const [issues, setIssues] = useState<GuestIssue[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
+  const navigate = useNavigate()
 
   useEffect(() => {
     loadGuestIssues()
@@ -175,7 +177,21 @@ export default function GuestIssues() {
       ) : (
         <div className="issues-list">
           {issues.map((issue) => (
-            <Card key={issue.id} variant="elevated" className="issue-card">
+            <Card
+              key={issue.id}
+              variant="elevated"
+              className="issue-card"
+              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = ''
+              }}
+              onClick={() => navigate(`/issues/${issue.id}`)}
+            >
               <div className="issue-header">
                 <div>
                   <h3 className="issue-property-name">
@@ -237,7 +253,7 @@ export default function GuestIssues() {
                 )}
               </div>
 
-              <div className="issue-actions">
+              <div className="issue-actions" onClick={(e) => e.stopPropagation()}>
                 {issue.status === 'SUBMITTED' && (
                   <>
                     <Button

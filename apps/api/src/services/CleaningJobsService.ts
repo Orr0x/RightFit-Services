@@ -2,6 +2,7 @@ import { prisma } from '@rightfit/database';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { CleaningJobHistoryService } from './CleaningJobHistoryService';
 import { PropertyHistoryService } from './PropertyHistoryService';
+import { WorkerHistoryService } from './WorkerHistoryService';
 
 export interface CreateCleaningJobInput {
   service_id: string;
@@ -9,13 +10,14 @@ export interface CreateCleaningJobInput {
   customer_id: string;
   contract_id?: string;
   assigned_worker_id?: string;
-  scheduled_date: Date;
-  scheduled_start_time: string;
-  scheduled_end_time: string;
+  scheduled_date?: Date;
+  scheduled_start_time?: string;
+  scheduled_end_time?: string;
   checklist_template_id?: string;
   checklist_total_items?: number;
   pricing_type: string;
   quoted_price: number;
+  status?: 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 }
 
 export interface UpdateCleaningJobInput {
@@ -23,7 +25,7 @@ export interface UpdateCleaningJobInput {
   scheduled_date?: Date;
   scheduled_start_time?: string;
   scheduled_end_time?: string;
-  status?: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status?: 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   actual_start_time?: Date;
   actual_end_time?: Date;
   checklist_items?: any;
@@ -40,10 +42,12 @@ export interface UpdateCleaningJobInput {
 export class CleaningJobsService {
   private historyService: CleaningJobHistoryService;
   private propertyHistoryService: PropertyHistoryService;
+  private workerHistoryService: WorkerHistoryService;
 
   constructor() {
     this.historyService = new CleaningJobHistoryService();
     this.propertyHistoryService = new PropertyHistoryService();
+    this.workerHistoryService = new WorkerHistoryService();
   }
 
   async list(
@@ -140,7 +144,7 @@ export class CleaningJobsService {
     const job = await prisma.cleaningJob.findFirst({
       where: {
         id,
-        assigned_worker: {
+        service: {
           service_provider_id: serviceProviderId,
         },
       },
@@ -194,23 +198,32 @@ export class CleaningJobsService {
     }
 
     // Convert empty strings to undefined for optional foreign key fields
-    const cleanedData = {
+    const cleanedData: any = {
       service_id: input.service_id || undefined,
       property_id: input.property_id,
       customer_id: input.customer_id,
       contract_id: input.contract_id || undefined,
       assigned_worker_id: input.assigned_worker_id || undefined,
-      scheduled_date: input.scheduled_date,
-      scheduled_start_time: input.scheduled_start_time,
-      scheduled_end_time: input.scheduled_end_time,
       checklist_template_id: input.checklist_template_id || undefined,
       checklist_total_items: input.checklist_total_items || 0,
       pricing_type: input.pricing_type,
       quoted_price: input.quoted_price,
+      status: input.status || 'PENDING',
       before_photos: [],
       after_photos: [],
       issue_photos: [],
     };
+
+    // Only include scheduling fields if they're provided
+    if (input.scheduled_date) {
+      cleanedData.scheduled_date = input.scheduled_date;
+    }
+    if (input.scheduled_start_time) {
+      cleanedData.scheduled_start_time = input.scheduled_start_time;
+    }
+    if (input.scheduled_end_time) {
+      cleanedData.scheduled_end_time = input.scheduled_end_time;
+    }
 
     const job = await prisma.cleaningJob.create({
       data: cleanedData,
@@ -225,19 +238,35 @@ export class CleaningJobsService {
     // Record job creation in history
     await this.historyService.recordJobCreation(job.id);
 
-    // Record in property history
-    const workerName = job.assigned_worker
-      ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}`
-      : undefined;
+    // Only record property/worker history if job is scheduled
+    if (job.scheduled_date) {
+      // Record in property history
+      const workerName = job.assigned_worker
+        ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}`
+        : undefined;
 
-    await this.propertyHistoryService.recordCleaningJobScheduled(
-      job.property_id,
-      job.id,
-      job.scheduled_date.toISOString().split('T')[0],
-      workerName
-    ).catch((error) => {
-      console.error('Failed to record cleaning job in property history:', error);
-    });
+      await this.propertyHistoryService.recordCleaningJobScheduled(
+        job.property_id,
+        job.id,
+        job.scheduled_date.toISOString().split('T')[0],
+        workerName
+      ).catch((error) => {
+        console.error('Failed to record cleaning job in property history:', error);
+      });
+
+      // Record worker assignment in worker history
+      if (job.assigned_worker_id && job.assigned_worker) {
+        await this.workerHistoryService.recordJobAssigned(
+          job.assigned_worker_id,
+          job.id,
+          'CLEANING',
+          job.property?.property_name,
+          job.scheduled_date.toISOString().split('T')[0]
+        ).catch((error) => {
+          console.error('Failed to record job assignment in worker history:', error);
+        });
+      }
+    }
 
     return job;
   }
@@ -296,6 +325,74 @@ export class CleaningJobsService {
     this.historyService.recordJobUpdate(id, oldJob, cleanedData, userId).catch((error) => {
       console.error('Failed to record job history:', error);
     });
+
+    // Track worker assignment changes
+    const oldWorkerId = oldJob.assigned_worker_id;
+    const newWorkerId = cleanedData.assigned_worker_id;
+
+    if (oldWorkerId !== newWorkerId) {
+      // Worker was unassigned (removed from job)
+      if (oldWorkerId && !newWorkerId) {
+        await this.workerHistoryService.recordJobUnassigned(
+          oldWorkerId,
+          job.id,
+          'CLEANING',
+          job.property?.property_name
+        ).catch((error) => {
+          console.error('Failed to record job unassignment in worker history:', error);
+        });
+      }
+      // Worker was reassigned to different worker
+      else if (oldWorkerId && newWorkerId && oldWorkerId !== newWorkerId) {
+        if (job.scheduled_date) {
+          await this.workerHistoryService.recordJobReassigned(
+            newWorkerId,
+            job.id,
+            'CLEANING',
+            job.property?.property_name,
+            job.scheduled_date.toISOString().split('T')[0]
+          ).catch((error) => {
+            console.error('Failed to record job reassignment in worker history:', error);
+          });
+        }
+
+        // Also record unassignment for old worker
+        await this.workerHistoryService.recordJobUnassigned(
+          oldWorkerId,
+          job.id,
+          'CLEANING',
+          job.property?.property_name
+        ).catch((error) => {
+          console.error('Failed to record job unassignment in worker history:', error);
+        });
+      }
+      // Worker was newly assigned (wasn't assigned before)
+      else if (!oldWorkerId && newWorkerId) {
+        if (job.scheduled_date) {
+          await this.workerHistoryService.recordJobAssigned(
+            newWorkerId,
+            job.id,
+            'CLEANING',
+            job.property?.property_name,
+            job.scheduled_date.toISOString().split('T')[0]
+          ).catch((error) => {
+            console.error('Failed to record job assignment in worker history:', error);
+          });
+        }
+      }
+    }
+
+    // Track status change to CANCELLED
+    if (oldJob.status !== 'CANCELLED' && cleanedData.status === 'CANCELLED' && oldWorkerId) {
+      await this.workerHistoryService.recordJobCancelled(
+        oldWorkerId,
+        job.id,
+        'CLEANING',
+        job.property?.property_name
+      ).catch((error) => {
+        console.error('Failed to record job cancellation in worker history:', error);
+      });
+    }
 
     return job;
   }
@@ -379,6 +476,16 @@ export class CleaningJobsService {
       console.error('Failed to record cleaning job start in property history:', error);
     });
 
+    // Record in worker history
+    await this.workerHistoryService.recordJobStarted(
+      workerId,
+      job.id,
+      'CLEANING',
+      job.property?.property_name
+    ).catch((error) => {
+      console.error('Failed to record job start in worker history:', error);
+    });
+
     return updatedJob;
   }
 
@@ -420,6 +527,24 @@ export class CleaningJobsService {
       workerName
     ).catch((error) => {
       console.error('Failed to record cleaning job completion in property history:', error);
+    });
+
+    // Record in worker history
+    // Calculate duration if we have both start and end times
+    let duration: number | undefined;
+    if (job.actual_start_time && updatedJob.actual_end_time) {
+      const durationMs = updatedJob.actual_end_time.getTime() - job.actual_start_time.getTime();
+      duration = Math.round(durationMs / (1000 * 60 * 60) * 10) / 10; // hours with 1 decimal
+    }
+
+    await this.workerHistoryService.recordJobCompleted(
+      workerId,
+      job.id,
+      'CLEANING',
+      job.property?.property_name,
+      duration
+    ).catch((error) => {
+      console.error('Failed to record job completion in worker history:', error);
     });
 
     return updatedJob;

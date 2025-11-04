@@ -79,10 +79,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ error: 'service_provider_id is required' });
     }
 
-    // Convert scheduled_date string to Date object
+    // Convert date strings to Date objects if provided
     const jobData = {
       ...req.body,
-      scheduled_date: new Date(req.body.scheduled_date),
+      ...(req.body.scheduled_date && { scheduled_date: new Date(req.body.scheduled_date) }),
     };
 
     const job = await cleaningJobsService.create(jobData, serviceProviderId);
