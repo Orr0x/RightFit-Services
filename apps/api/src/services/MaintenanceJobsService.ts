@@ -1,6 +1,8 @@
 import { prisma } from '@rightfit/database';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { InvoiceService } from './InvoiceService';
+import { CleaningJobHistoryService } from './CleaningJobHistoryService';
+import { PropertyHistoryService } from './PropertyHistoryService';
 
 export interface CreateMaintenanceJobInput {
   service_id: string;
@@ -42,6 +44,14 @@ export interface UpdateMaintenanceJobInput {
 }
 
 export class MaintenanceJobsService {
+  private cleaningJobHistoryService: CleaningJobHistoryService;
+  private propertyHistoryService: PropertyHistoryService;
+
+  constructor() {
+    this.cleaningJobHistoryService = new CleaningJobHistoryService();
+    this.propertyHistoryService = new PropertyHistoryService();
+  }
+
   async list(
     serviceProviderId: string,
     page: number = 1,
@@ -244,12 +254,22 @@ export class MaintenanceJobsService {
       },
     });
 
+    // Record in property history
+    await this.propertyHistoryService.recordMaintenanceJobCreated(
+      job.property_id,
+      job.id,
+      job.title,
+      job.priority
+    ).catch((error) => {
+      console.error('Failed to record maintenance job in property history:', error);
+    });
+
     return job;
   }
 
   async update(id: string, input: UpdateMaintenanceJobInput, serviceProviderId: string) {
     // Verify job belongs to this provider
-    await this.getById(id, serviceProviderId);
+    const existingJob = await this.getById(id, serviceProviderId);
 
     const job = await prisma.maintenanceJob.update({
       where: { id },
@@ -262,6 +282,17 @@ export class MaintenanceJobsService {
         quote: true,
       },
     });
+
+    // Record in property history if status changed to COMPLETED
+    if (input.status === 'COMPLETED' && existingJob.status !== 'COMPLETED') {
+      await this.propertyHistoryService.recordMaintenanceJobCompleted(
+        job.property_id,
+        job.id,
+        job.title
+      ).catch((error) => {
+        console.error('Failed to record maintenance job completion in property history:', error);
+      });
+    }
 
     return job;
   }
@@ -290,34 +321,29 @@ export class MaintenanceJobsService {
     const cleaningJob = await prisma.cleaningJob.findFirst({
       where: {
         id: cleaningJobId,
-        service: {
+        assigned_worker: {
           service_provider_id: serviceProviderId,
         },
       },
       include: {
-        service: {
-          include: {
-            service_provider: {
-              include: {
-                services: {
-                  where: {
-                    service_type: 'MAINTENANCE',
-                  },
-                },
-              },
-            },
-          },
-        },
+        assigned_worker: true,
       },
     });
 
     if (!cleaningJob) {
-      throw new NotFoundError('Cleaning job not found');
+      throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
     }
 
-    const maintenanceService = cleaningJob.service.service_provider.services[0];
+    // Get the maintenance service for this service provider
+    const maintenanceService = await prisma.service.findFirst({
+      where: {
+        service_provider_id: serviceProviderId,
+        service_type: 'MAINTENANCE',
+      },
+    });
+
     if (!maintenanceService) {
-      throw new ValidationError('No maintenance service configured');
+      throw new ValidationError('No maintenance service configured for this service provider');
     }
 
     // Create maintenance job
@@ -350,6 +376,26 @@ export class MaintenanceJobsService {
           increment: 1,
         },
       },
+    });
+
+    // Record in cleaning job history
+    await this.cleaningJobHistoryService.recordMaintenanceIssueCreated(
+      cleaningJobId,
+      maintenanceJob.id,
+      issueData.title,
+      issueData.priority
+    ).catch((error) => {
+      console.error('Failed to record maintenance issue in cleaning job history:', error);
+    });
+
+    // Record in property history
+    await this.propertyHistoryService.recordMaintenanceJobCreated(
+      maintenanceJob.property_id,
+      maintenanceJob.id,
+      maintenanceJob.title,
+      maintenanceJob.priority
+    ).catch((error) => {
+      console.error('Failed to record maintenance job in property history:', error);
     });
 
     return maintenanceJob;
@@ -424,6 +470,21 @@ export class MaintenanceJobsService {
         quote: true,
       },
     });
+
+    // Notify customer about quote
+    await this.createCustomerNotification(
+      updatedJob.customer_id,
+      updatedJob.id,
+      'Quote Ready for Review',
+      `A quote for your maintenance job at ${updatedJob.property.property_name} is ready for review. Total: £${Number(quoteData.total).toFixed(2)}`,
+      'QUOTE_READY',
+      {
+        property_name: updatedJob.property.property_name,
+        quote_id: quote.id,
+        quote_number: quote.quote_number,
+        quote_total: quoteData.total,
+      }
+    );
 
     return { job: updatedJob, quote };
   }
@@ -766,6 +827,21 @@ export class MaintenanceJobsService {
       const invoice = await invoiceService.generateFromMaintenanceJob(jobId, serviceProviderId);
       invoiceId = invoice.id;
     }
+
+    // Notify customer about job completion
+    await this.createCustomerNotification(
+      updatedJob.customer_id,
+      updatedJob.id,
+      'Maintenance Job Completed',
+      `Your maintenance job for ${updatedJob.property.property_name} has been completed. ${invoiceId ? 'An invoice has been generated and is ready for your review.' : ''}`,
+      'MAINTENANCE_JOB_COMPLETED',
+      {
+        property_name: updatedJob.property.property_name,
+        completed_date: updatedJob.completed_date?.toISOString(),
+        invoice_generated: !!invoiceId,
+        invoice_id: invoiceId,
+      }
+    );
 
     return {
       job: updatedJob,

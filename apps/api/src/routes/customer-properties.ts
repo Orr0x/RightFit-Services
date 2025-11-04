@@ -1,9 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { CustomerPropertiesService } from '../services/CustomerPropertiesService';
+import { PropertyHistoryService } from '../services/PropertyHistoryService';
 import { authMiddleware } from '../middleware/auth';
 
 const router: Router = Router();
 const customerPropertiesService = new CustomerPropertiesService();
+const propertyHistoryService = new PropertyHistoryService();
 
 router.use(authMiddleware);
 
@@ -29,6 +31,24 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const tenantId = req.user!.tenant_id;
     const property = await customerPropertiesService.getById(req.params.id, tenantId);
     res.json({ data: property });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/customer-properties/:id/history
+router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+    const propertyId = req.params.id;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    // Verify property belongs to tenant
+    await customerPropertiesService.getById(propertyId, tenantId);
+
+    // Get property history
+    const history = await propertyHistoryService.getPropertyHistory(propertyId, limit);
+    res.json({ data: history });
   } catch (error) {
     next(error);
   }

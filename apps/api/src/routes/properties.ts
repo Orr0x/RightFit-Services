@@ -1,10 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { PropertiesService } from '../services/PropertiesService'
+import { PropertyHistoryService } from '../services/PropertyHistoryService'
 import { createPropertySchema, updatePropertySchema } from '@rightfit/shared'
 import { authMiddleware } from '../middleware/auth'
 
 const router: Router = Router()
 const propertiesService = new PropertiesService()
+const propertyHistoryService = new PropertyHistoryService()
 
 // All routes require authentication
 router.use(authMiddleware)
@@ -31,6 +33,24 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const tenantId = req.user!.tenant_id
     const property = await propertiesService.getById(req.params.id, tenantId)
     res.json({ data: property })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// GET /api/properties/:id/history
+router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id
+    const propertyId = req.params.id
+    const limit = parseInt(req.query.limit as string) || 50
+
+    // Verify property belongs to tenant
+    await propertiesService.getById(propertyId, tenantId)
+
+    // Get property history
+    const history = await propertyHistoryService.getPropertyHistory(propertyId, limit)
+    res.json({ data: history })
   } catch (error) {
     next(error)
   }

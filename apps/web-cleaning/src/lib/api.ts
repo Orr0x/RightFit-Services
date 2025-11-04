@@ -160,6 +160,13 @@ export const propertiesAPI = {
   delete: async (id: string) => {
     await api.delete(`/api/properties/${id}`)
   },
+
+  getHistory: async (id: string, limit?: number) => {
+    const response = await api.get<{ data: PropertyHistoryEntry[] }>(`/api/properties/${id}/history`, {
+      params: { limit },
+    })
+    return response.data.data
+  },
 }
 
 // Work Orders API calls
@@ -663,6 +670,39 @@ export interface CreateCleaningJobData {
   service_provider_id: string
 }
 
+export interface JobHistoryEntry {
+  id: string
+  cleaning_job_id: string
+  changed_by_user_id?: string
+  changed_at: string
+  change_type: 'CREATED' | 'UPDATED' | 'STATUS_CHANGED' | 'WORKER_ASSIGNED' | 'WORKER_CHANGED' |
+                'WORKER_UNASSIGNED' | 'TIME_CHANGED' | 'DATE_CHANGED' | 'CHECKLIST_UPDATED' |
+                'PHOTO_ADDED' | 'NOTES_UPDATED' | 'PRICE_CHANGED' | 'MAINTENANCE_ISSUE_CREATED' | 'DELETED'
+  field_name?: string
+  old_value?: string
+  new_value?: string
+  description?: string
+  metadata?: Record<string, any>
+}
+
+export interface PropertyHistoryEntry {
+  id: string
+  property_id: string
+  changed_by_user_id?: string
+  changed_at: string
+  change_type: 'PROPERTY_CREATED' | 'PROPERTY_UPDATED' | 'ACCESS_INSTRUCTIONS_UPDATED' | 'STATUS_CHANGED' |
+                'CLEANING_JOB_SCHEDULED' | 'CLEANING_JOB_STARTED' | 'CLEANING_JOB_COMPLETED' | 'CLEANING_JOB_CANCELLED' |
+                'MAINTENANCE_JOB_CREATED' | 'MAINTENANCE_JOB_SCHEDULED' | 'MAINTENANCE_JOB_COMPLETED' | 'MAINTENANCE_JOB_CANCELLED' |
+                'CONTRACT_CREATED' | 'CONTRACT_RENEWED' | 'CONTRACT_UPDATED' | 'CONTRACT_CANCELLED' |
+                'CERTIFICATE_UPLOADED' | 'CERTIFICATE_EXPIRING_SOON' | 'CERTIFICATE_EXPIRED' | 'CERTIFICATE_RENEWED' |
+                'PHOTO_UPLOADED' | 'TENANT_MOVED_IN' | 'TENANT_MOVED_OUT' | 'WORK_ORDER_CREATED' | 'WORK_ORDER_COMPLETED'
+  field_name?: string
+  old_value?: string
+  new_value?: string
+  description?: string
+  metadata?: Record<string, any>
+}
+
 // Cleaning Jobs API calls
 export const cleaningJobsAPI = {
   list: async (serviceProviderId: string, filters?: {
@@ -702,6 +742,13 @@ export const cleaningJobsAPI = {
     await api.delete(`/api/cleaning-jobs/${id}`, {
       params: { service_provider_id: serviceProviderId },
     })
+  },
+
+  getHistory: async (id: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: JobHistoryEntry[] }>(`/api/cleaning-jobs/${id}/history`, {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
   },
 }
 
@@ -855,7 +902,21 @@ export interface Worker {
   max_weekly_hours?: number
   jobs_completed: number
   average_rating?: number
+  photo_url?: string
   created_at: string
+  updated_at: string
+}
+
+export interface WorkerCertificate {
+  id: string
+  worker_id: string
+  name: string
+  file_url: string
+  s3_key: string
+  file_type: string
+  file_size: number
+  expiry_date?: string
+  uploaded_at: string
   updated_at: string
 }
 
@@ -888,6 +949,57 @@ export const workersAPI = {
     await api.delete(`/api/workers/${id}`, {
       params: { service_provider_id: serviceProviderId },
     })
+  },
+
+  // Photo operations
+  uploadPhoto: async (workerId: string, file: File) => {
+    const formData = new FormData()
+    formData.append('photo', file)
+
+    const response = await api.post<{ data: { photo_url: string } }>(`/api/workers/${workerId}/photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data.data
+  },
+
+  deletePhoto: async (workerId: string) => {
+    await api.delete(`/api/workers/${workerId}/photo`)
+  },
+
+  // Certificate operations
+  listCertificates: async (workerId: string) => {
+    const response = await api.get<{ data: WorkerCertificate[] }>(`/api/workers/${workerId}/certificates`)
+    return response.data.data
+  },
+
+  uploadCertificate: async (workerId: string, file: File, data: { name?: string; expiry_date?: string }) => {
+    const formData = new FormData()
+    formData.append('certificate', file)
+    if (data.name) formData.append('name', data.name)
+    if (data.expiry_date) formData.append('expiry_date', data.expiry_date)
+
+    const response = await api.post<{ data: WorkerCertificate }>(`/api/workers/${workerId}/certificates`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data.data
+  },
+
+  getCertificate: async (workerId: string, certificateId: string) => {
+    const response = await api.get<{ data: WorkerCertificate }>(`/api/workers/${workerId}/certificates/${certificateId}`)
+    return response.data.data
+  },
+
+  updateCertificate: async (workerId: string, certificateId: string, data: { name?: string; expiry_date?: string }) => {
+    const response = await api.put<{ data: WorkerCertificate }>(`/api/workers/${workerId}/certificates/${certificateId}`, data)
+    return response.data.data
+  },
+
+  deleteCertificate: async (workerId: string, certificateId: string) => {
+    await api.delete(`/api/workers/${workerId}/certificates/${certificateId}`)
   },
 }
 
@@ -1007,6 +1119,16 @@ export interface CreateCustomerPropertyData {
   access_code?: string
   cleaning_checklist_template_id?: string
   guest_portal_enabled?: boolean
+  // Enhanced property details
+  photo_urls?: any // JSON array of {url, caption, type}
+  utility_locations?: any // JSON object with utility locations
+  emergency_contacts?: any // JSON array of emergency contacts
+  cleaner_notes?: string
+  wifi_ssid?: string
+  wifi_password?: string
+  parking_info?: string
+  pet_info?: string
+  special_requirements?: string
 }
 
 export const customerPropertiesAPI = {
@@ -1039,5 +1161,54 @@ export const customerPropertiesAPI = {
 
   delete: async (id: string) => {
     await api.delete(`/api/customer-properties/${id}`)
+  },
+
+  getHistory: async (id: string, limit?: number) => {
+    const response = await api.get<{ data: PropertyHistoryEntry[] }>(`/api/customer-properties/${id}/history`, {
+      params: { limit },
+    })
+    return response.data.data
+  },
+}
+
+// Services API
+export interface Service {
+  id: string
+  service_provider_id: string
+  service_type: string
+  name: string
+  description?: string
+  pricing_model: string
+  default_rate: number
+  is_active: boolean
+}
+
+export const servicesAPI = {
+  list: async (serviceProviderId: string) => {
+    const response = await api.get<{ data: Service[] }>('/api/services', {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
+  },
+}
+
+// Checklist Templates API
+export interface ChecklistTemplate {
+  id: string
+  service_provider_id: string
+  customer_id?: string
+  template_name: string
+  property_type: string
+  sections: any
+  estimated_duration_minutes: number
+  is_active: boolean
+}
+
+export const checklistTemplatesAPI = {
+  list: async (serviceProviderId: string) => {
+    const response = await api.get<{ data: ChecklistTemplate[] }>('/api/checklist-templates', {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
   },
 }

@@ -1,7 +1,7 @@
 # RightFit Services - Current Status
 
-**Last Updated:** 2025-11-03 (After Maintenance-First Sprint)
-**Current State:** Phase 2.5 Complete ✅ | Phase 3 Complete ✅ | **MAINTENANCE-FIRST SPRINT COMPLETE** ✅ + Additional Features
+**Last Updated:** 2025-11-04 (After Property History Implementation)
+**Current State:** Phase 2.5 Complete ✅ | Phase 3 Complete ✅ | **MAINTENANCE-FIRST SPRINT COMPLETE** ✅ | **CLEANING TIMESHEET COMPLETE** ✅ | **WORKER PROFILE MANAGEMENT** ✅ | **JOB HISTORY** ✅ | **PROPERTY HISTORY** ✅
 
 ---
 
@@ -43,6 +43,223 @@
   - ReportIssue 3-step wizard
   - DIYGuide step-by-step instructions
   - KnowledgeBase with search
+
+---
+
+## 🧹 Cleaning Workflow: Phase 3 Timesheet & Completion ✅ COMPLETE
+
+**Completion Date**: 2025-11-03
+
+### Backend Implementation ✅
+**CleaningJobTimesheetService** - Full timesheet management:
+- Create timesheet entries when workers start jobs
+- Automatic total hours calculation from start/end times
+- Update timesheet with work performed and notes
+- Complete timesheet and mark job COMPLETED
+- Photo management (before/after/issue photos)
+- Worker performance statistics (total hours, completed jobs, avg hours per job)
+- Automatic job status transitions: SCHEDULED → IN_PROGRESS → COMPLETED
+
+**API Routes** - Complete REST API:
+- POST /api/cleaning-timesheets - Create timesheet
+- GET /api/cleaning-timesheets/:id - Get timesheet by ID
+- GET /api/cleaning-timesheets/job/:jobId - Get all timesheets for a job
+- GET /api/cleaning-timesheets/worker/:workerId - Get worker's timesheets
+- PUT /api/cleaning-timesheets/:id - Update timesheet
+- POST /api/cleaning-timesheets/:id/complete - Complete timesheet
+- POST /api/cleaning-timesheets/:id/photos - Add photos
+- GET /api/cleaning-timesheets/worker/:workerId/stats - Worker performance stats
+- DELETE /api/cleaning-timesheets/:id - Delete timesheet
+
+### Frontend Implementation ✅
+**Timesheet Modals**:
+- StartJobModal.tsx - Workers can start jobs and create timesheet entries
+- CompleteJobModal.tsx - Workers can complete jobs with work description
+
+**CleaningJobDetails.tsx Integration**:
+- Full timesheet history display for each job
+- Worker information (name, start/end times, duration)
+- Work performed and notes display
+- Photo count tracking (before/after/issue)
+- Conditional action buttons:
+  - SCHEDULED jobs: "Start Job" button
+  - IN_PROGRESS jobs: "Complete Job" button
+  - COMPLETED jobs: Readonly timesheet display
+
+### Key Features ✅
+- **Automatic time tracking**: Total hours calculated from start/end timestamps
+- **Job status automation**: Status updates automatically on timesheet create/complete
+- **Photo management**: Support for before/after/issue photo arrays
+- **Worker validation**: Only assigned workers can start/complete their jobs
+- **Duplicate prevention**: Cannot complete already-completed timesheets
+- **Performance tracking**: Worker stats endpoint for hours and job counts
+
+### Files Created ✅
+- Backend:
+  - [CleaningJobTimesheetService.ts](apps/api/src/services/CleaningJobTimesheetService.ts)
+  - [cleaning-timesheets.ts](apps/api/src/routes/cleaning-timesheets.ts)
+  - Route registered in [index.ts](apps/api/src/index.ts)
+- Frontend:
+  - [StartJobModal.tsx](apps/web-cleaning/src/components/timesheet/StartJobModal.tsx)
+  - [CompleteJobModal.tsx](apps/web-cleaning/src/components/timesheet/CompleteJobModal.tsx)
+  - Updated [CleaningJobDetails.tsx](apps/web-cleaning/src/pages/cleaning/CleaningJobDetails.tsx)
+
+---
+
+## 👷 Worker Profile Management ✅ COMPLETE (Frontend)
+
+**Completion Date**: 2025-11-04
+
+### Frontend Implementation ✅
+**Comprehensive Worker Details Page** - Full worker profile management:
+- ✅ Worker profile page with photo upload interface
+- ✅ Certificate management (upload, view, delete)
+- ✅ Work schedule display (upcoming and completed jobs)
+- ✅ 4-tab interface: Overview, Schedule, Certificates, Availability
+- ✅ Stat cards: Hourly Rate, Jobs Completed, Upcoming Jobs, Rating
+- ✅ Multiple navigation paths: Workers list, Calendar worker cards
+- ✅ Photo preview with drag & drop support
+- ✅ Certificate file handling (PDF, JPG, PNG)
+
+**PropertyCalendar.tsx Improvements**:
+- ✅ Summary stats moved to legend bar (Total Jobs, Scheduled, In Progress, Completed)
+- ✅ Property cards section below calendar with job counts
+- ✅ Worker cards section below calendar with job counts
+- ✅ Clickable worker cards navigate to worker details
+- ✅ Enhanced layout for better information density
+
+**Navigation & Integration**:
+- ✅ Route added: `/workers/:id`
+- ✅ Workers list page: "View Details" button
+- ✅ Calendar worker cards: Click to navigate
+- ✅ React warning fixes: ID-based tab system
+
+### Current Status ⚠️
+**Frontend:** 95% complete (UI fully functional)
+**Backend:** 0% complete (needs API implementation)
+
+**Data Persistence:**
+- ⚠️ Photos stored as base64 in React state (temporary - lost on refresh)
+- ⚠️ Certificates stored as blob URLs in React state (temporary - lost on refresh)
+- ❌ No database persistence yet
+
+### Backend Requirements 📋
+**Database Schema Needed:**
+```prisma
+model Worker {
+  photo_url     String?              @db.Text
+  certificates  WorkerCertificate[]
+}
+
+model WorkerCertificate {
+  id            String    @id @default(uuid())
+  worker_id     String
+  name          String
+  file_url      String    @db.Text
+  file_type     String
+  file_size     Int
+  expiry_date   DateTime?
+  uploaded_at   DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+```
+
+**API Endpoints Needed:**
+```typescript
+// Photo endpoints
+POST   /api/workers/:id/photo
+GET    /api/workers/:id/photo
+DELETE /api/workers/:id/photo
+
+// Certificate endpoints
+POST   /api/workers/:id/certificates
+GET    /api/workers/:id/certificates
+GET    /api/workers/:id/certificates/:certId
+DELETE /api/workers/:id/certificates/:certId
+PUT    /api/workers/:id/certificates/:certId
+```
+
+### Files Created ✅
+- Frontend:
+  - [WorkerDetails.tsx](apps/web-cleaning/src/pages/WorkerDetails.tsx) - 560 lines, complete worker profile page
+  - Updated [App.tsx](apps/web-cleaning/src/App.tsx) - Added `/workers/:id` route
+  - Updated [Workers.tsx](apps/web-cleaning/src/pages/Workers.tsx) - "View Details" navigation
+  - Updated [PropertyCalendar.tsx](apps/web-cleaning/src/pages/PropertyCalendar.tsx) - Improved layout & worker cards
+- Documentation:
+  - [STORY-WM-001-worker-profile-management.md](stories/phase-3/STORY-WM-001-worker-profile-management.md)
+  - [SESSION-SUMMARY-2025-11-04.md](SESSION-SUMMARY-2025-11-04.md)
+
+---
+
+## 📋 History & Audit Trail System ✅ COMPLETE
+
+**Completion Date:** 2025-11-04
+
+### Job History ✅
+**Status:** Production ready
+
+**Features:**
+- ✅ Complete audit trail for all cleaning job changes
+- ✅ Timeline component with icons and colors
+- ✅ Tracks: creation, status changes, worker assignments, time/date changes, photos, notes, prices, checklist updates
+- ✅ Maintenance issue tracking from cleaning jobs
+- ✅ Integrated into CleaningJobDetails page
+- ✅ Non-blocking recording (doesn't break operations)
+- ✅ Clickable links to related maintenance jobs
+
+**Files:**
+- [CleaningJobHistoryService.ts](apps/api/src/services/CleaningJobHistoryService.ts)
+- [JobHistoryTimeline.tsx](apps/web-cleaning/src/components/JobHistoryTimeline.tsx)
+- [JOB-HISTORY-IMPLEMENTATION.md](JOB-HISTORY-IMPLEMENTATION.md)
+
+### Property History ✅
+**Status:** Production ready with backfilled data
+
+**Features:**
+- ✅ Complete activity timeline for each property
+- ✅ Tracks: property creation, cleaning jobs (scheduled/started/completed), maintenance jobs
+- ✅ Ready for: contract events, certificate events, tenant moves
+- ✅ Clickable links to related jobs
+- ✅ Color-coded icons for 25 event types
+- ✅ Historical data backfilled (26 entries across 2 properties)
+- ✅ No foreign key constraints (supports both properties and customer_properties)
+- ✅ Integrated into PropertyDetails page
+
+**Files:**
+- [PropertyHistoryService.ts](apps/api/src/services/PropertyHistoryService.ts)
+- [PropertyHistoryTimeline.tsx](apps/web-cleaning/src/components/PropertyHistoryTimeline.tsx)
+- [backfill-property-history.ts](apps/api/scripts/backfill-property-history.ts)
+- [PROPERTY-HISTORY-COMPLETE.md](PROPERTY-HISTORY-COMPLETE.md)
+
+**Backfill Results:**
+```
+Lodge 7:
+  - 1 property creation
+  - 3 cleaning job entries
+  - 6 maintenance job entries
+
+Loch View Cabin:
+  - 1 property creation
+  - 18 cleaning job entries
+  - 5 maintenance job entries
+
+Total: 26 historical entries
+```
+
+### Worker History ⏳
+**Status:** Planned - [implementation plan ready](WORKER-HISTORY-IMPLEMENTATION-PLAN.md)
+
+**Planned Features:**
+- Track worker profile changes (photo, rate, contact info)
+- Track all job assignments and completions
+- Track certificate uploads, renewals, expirations
+- Track performance milestones (10th job, 100th job, etc.)
+- Track ratings and reviews
+- Track availability changes
+- Automated certificate expiry warnings
+- Performance analytics per worker
+
+**Estimated Implementation:** 2-3 days
 
 ---
 
@@ -546,19 +763,49 @@ apps/
 
 ---
 
-**Overall Project Status: 82% Complete**
+**Overall Project Status: 90% Complete**
 
 **Phase 2.5:** ✅ Complete
-**Phase 3:** 🔨 In Progress (62% complete)
+**Phase 3:** 🔨 In Progress (85% complete)
   - ✅ Dashboards built
   - ✅ Quote submission and approval workflow tested end-to-end
   - ✅ Cleanup Sprint 1 complete (17/18 stories)
-  - ⏭️ Cleaning job details page (next)
-  - ⏭️ Worker scheduling and assignment
-  - ⏭️ Job completion workflow
+  - ✅ Cleaning job timesheet & completion workflow
+  - ✅ Job history tracking (NEW!)
+  - ✅ Property history tracking (NEW!)
+  - ⏳ Worker history tracking (planned)
+  - ⏭️ Cleaning job scheduling and worker assignment (next)
+  - ⏭️ Property calendar integration
 **Phase 4:** ❌ Not started (mobile apps)
+
+**Cleaning Workflow Progress:**
+- ✅ Phase 1: Contract Foundation (100%)
+- 🔨 Phase 2: Scheduling & Assignment (30% - Calendar improvements, worker cards)
+- ✅ Phase 3: Timesheet & Completion (100%)
+- 🔨 Phase 3.5: Worker Profile Management (60% - Frontend complete, backend needed)
+- ⏸️ Phase 4: Customer Portal Integration (0%)
+- ⏸️ Phase 5: Monthly Invoicing (0%)
+
+**Worker Management Progress:**
+- ✅ Worker Details UI (100%)
+- ✅ Calendar Integration (100%)
+- ✅ Photo Upload Interface (100%)
+- ✅ Certificate Management Interface (100%)
+- ✅ Work Schedule Display (100%)
+- ❌ Photo Upload Backend (0%)
+- ❌ Certificate Management Backend (0%)
+- ⏸️ Availability Calendar (0%)
+
+**History & Audit Trail Progress:**
+- ✅ Job History (100%) - Cleaning jobs fully tracked
+- ✅ Property History (100%) - All property events tracked + backfilled
+- ⏳ Worker History (0%) - Plan ready, ready to implement
 
 ---
 
-*Last updated: 2025-11-02*
+*Last updated: 2025-11-04*
 *Ready for end-to-end testing and integration!*
+*Cleaning timesheet workflow ready for production use!*
+*Worker profile management frontend complete - backend implementation pending!*
+*Job & Property history tracking live and functional!*
+*Worker history plan ready - estimated 2-3 days to implement!*

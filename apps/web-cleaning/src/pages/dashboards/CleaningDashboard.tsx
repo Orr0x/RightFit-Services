@@ -5,7 +5,7 @@ import { cleaningJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 
 // HARDCODED for demo - In production, get from auth context
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 export default function CleaningDashboard() {
   const [todaysJobs, setTodaysJobs] = useState<CleaningJob[]>([])
@@ -15,12 +15,17 @@ export default function CleaningDashboard() {
     in_progress: 0,
     completed: 0,
   })
+  const [weeklyStats, setWeeklyStats] = useState({
+    jobsScheduled: 0,
+    revenue: 0,
+  })
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
     loadTodaysJobs()
+    loadWeeklyStats()
   }, [])
 
   const loadTodaysJobs = () => {
@@ -46,6 +51,42 @@ export default function CleaningDashboard() {
         console.error('Load jobs error:', err)
       }
     })
+  }
+
+  const loadWeeklyStats = async () => {
+    try {
+      // Get start of week (Monday)
+      const now = new Date()
+      const dayOfWeek = now.getDay()
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+      const monday = new Date(now)
+      monday.setDate(now.getDate() + diffToMonday)
+      monday.setHours(0, 0, 0, 0)
+
+      // Get end of week (Sunday)
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      sunday.setHours(23, 59, 59, 999)
+
+      const result = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID, {
+        from_date: monday.toISOString().split('T')[0],
+        to_date: sunday.toISOString().split('T')[0],
+      })
+
+      const weekJobs = result.data
+
+      // Calculate revenue from completed jobs
+      const revenue = weekJobs
+        .filter(j => j.status === 'COMPLETED')
+        .reduce((sum, j) => sum + (j.actual_price || j.quoted_price), 0)
+
+      setWeeklyStats({
+        jobsScheduled: weekJobs.length,
+        revenue: revenue,
+      })
+    } catch (err) {
+      console.error('Failed to load weekly stats:', err)
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -151,11 +192,11 @@ export default function CleaningDashboard() {
 
                   <div className="text-right">
                     <div className="text-2xl font-bold text-green-600">
-                      £{job.quoted_price.toFixed(2)}
+                      £{Number(job.quoted_price).toFixed(2)}
                     </div>
                     {job.actual_price && job.actual_price !== job.quoted_price && (
                       <div className="text-sm text-gray-500">
-                        Actual: £{job.actual_price.toFixed(2)}
+                        Actual: £{Number(job.actual_price).toFixed(2)}
                       </div>
                     )}
                   </div>
@@ -183,8 +224,14 @@ export default function CleaningDashboard() {
         <Card className="p-4">
           <h3 className="font-semibold mb-2">This Week</h3>
           <div className="text-sm text-gray-600">
-            <div>Jobs Scheduled: Loading...</div>
-            <div>Revenue: £0.00</div>
+            <div className="mb-1">
+              <span className="font-medium">Jobs Scheduled:</span>{' '}
+              <span className="text-blue-600 font-semibold">{weeklyStats.jobsScheduled}</span>
+            </div>
+            <div>
+              <span className="font-medium">Revenue:</span>{' '}
+              <span className="text-green-600 font-semibold">£{weeklyStats.revenue.toFixed(2)}</span>
+            </div>
           </div>
         </Card>
 

@@ -382,27 +382,29 @@ model Service {
 }
 
 model Customer {
-  id                          String              @id @default(uuid())
+  id                          String               @id @default(uuid())
   service_provider_id         String
-  business_name               String              @db.VarChar(100)
-  contact_name                String              @db.VarChar(100)
-  email                       String              @db.VarChar(255)
-  phone                       String              @db.VarChar(20)
+  business_name               String               @db.VarChar(100)
+  contact_name                String               @db.VarChar(100)
+  email                       String               @db.VarChar(255)
+  phone                       String               @db.VarChar(20)
   address                     String?
   customer_type               CustomerType
-  has_cleaning_contract       Boolean             @default(false)
-  has_maintenance_contract    Boolean             @default(false)
-  bundled_discount_percentage Decimal             @default(0) @db.Decimal(5, 2)
-  payment_terms               PaymentTerms        @default(NET_14)
-  payment_reliability_score   Int                 @default(50)
+  has_cleaning_contract       Boolean              @default(false)
+  has_maintenance_contract    Boolean              @default(false)
+  bundled_discount_percentage Decimal              @default(0) @db.Decimal(5, 2)
+  payment_terms               PaymentTerms         @default(NET_14)
+  payment_reliability_score   Int                  @default(50)
   satisfaction_score          Int?
-  cross_sell_potential        String              @default("MEDIUM") @db.VarChar(20)
-  created_at                  DateTime            @default(now())
-  updated_at                  DateTime            @updatedAt
+  cross_sell_potential        String               @default("MEDIUM") @db.VarChar(20)
+  created_at                  DateTime             @default(now())
+  updated_at                  DateTime             @updatedAt
   checklist_templates         ChecklistTemplate[]
   cleaning_jobs               CleaningJob[]
+  cleaning_contracts          CleaningContract[]
+  cleaning_invoices           CleaningInvoice[]
   customer_properties         CustomerProperty[]
-  service_provider            ServiceProvider     @relation(fields: [service_provider_id], references: [id])
+  service_provider            ServiceProvider      @relation(fields: [service_provider_id], references: [id])
   maintenance_jobs            MaintenanceJob[]
   quotes                      Quote[]
   invoices                    Invoice[]
@@ -414,28 +416,40 @@ model Customer {
 }
 
 model CustomerProperty {
-  id                             String             @id @default(uuid())
+  id                             String                  @id @default(uuid())
   customer_id                    String
-  property_name                  String             @db.VarChar(100)
+  property_name                  String                  @db.VarChar(100)
   address                        String
-  postcode                       String             @db.VarChar(10)
-  property_type                  String             @db.VarChar(50)
-  bedrooms                       Int                @default(0)
-  bathrooms                      Int                @default(0)
+  postcode                       String                  @db.VarChar(10)
+  property_type                  String                  @db.VarChar(50)
+  bedrooms                       Int                     @default(0)
+  bathrooms                      Int                     @default(0)
   access_instructions            String?
-  access_code                    String?            @db.VarChar(255)
+  access_code                    String?                 @db.VarChar(255)
   cleaning_checklist_template_id String?
-  guest_portal_enabled           Boolean            @default(false)
-  guest_portal_qr_code_url       String?            @db.VarChar(500)
-  is_active                      Boolean            @default(true)
-  created_at                     DateTime           @default(now())
-  updated_at                     DateTime           @updatedAt
+  guest_portal_enabled           Boolean                 @default(false)
+  guest_portal_qr_code_url       String?                 @db.VarChar(500)
+  is_active                      Boolean                 @default(true)
+  // Enhanced property details for service providers
+  photo_urls                     Json?                   // Array of photo URLs [{url, caption, type}]
+  utility_locations              Json?                   // {stopTap, waterMeter, gasMeter, fuseBox, etc.}
+  emergency_contacts             Json?                   // Array of emergency contacts [{name, phone, relation}]
+  cleaner_notes                  String?                 // General notes for cleaners
+  wifi_ssid                      String?                 @db.VarChar(100)
+  wifi_password                  String?                 @db.VarChar(100)
+  parking_info                   String?                 // Where to park
+  pet_info                       String?                 // Info about pets
+  special_requirements           String?                 // Any special requirements or sensitivities
+  created_at                     DateTime                @default(now())
+  updated_at                     DateTime                @updatedAt
   cleaning_jobs                  CleaningJob[]
-  customer                       Customer           @relation(fields: [customer_id], references: [id])
+  contract_properties            ContractProperty[]
+  customer                       Customer                @relation(fields: [customer_id], references: [id])
   guest_issue_reports            GuestIssueReport[]
   maintenance_jobs               MaintenanceJob[]
   guest_sessions                 GuestSession[]
   knowledge_base                 PropertyKnowledgeBase[]
+  property_calendars             PropertyCalendar[]
 
   @@index([customer_id])
   @@index([postcode])
@@ -443,29 +457,50 @@ model CustomerProperty {
 }
 
 model Worker {
-  id                  String           @id @default(uuid())
+  id                  String                 @id @default(uuid())
   service_provider_id String
   user_id             String?
-  first_name          String           @db.VarChar(100)
-  last_name           String           @db.VarChar(100)
-  email               String           @db.VarChar(255)
-  phone               String           @db.VarChar(20)
+  first_name          String                 @db.VarChar(100)
+  last_name           String                 @db.VarChar(100)
+  email               String                 @db.VarChar(255)
+  phone               String                 @db.VarChar(20)
   worker_type         WorkerType
   employment_type     EmploymentType
-  hourly_rate         Decimal          @db.Decimal(10, 2)
-  is_active           Boolean          @default(true)
+  hourly_rate         Decimal                @db.Decimal(10, 2)
+  is_active           Boolean                @default(true)
   max_weekly_hours    Int?
-  jobs_completed      Int              @default(0)
-  average_rating      Decimal?         @db.Decimal(3, 2)
-  created_at          DateTime         @default(now())
-  updated_at          DateTime         @updatedAt
+  jobs_completed      Int                    @default(0)
+  average_rating      Decimal?               @db.Decimal(3, 2)
+  photo_url           String?                @db.Text
+  created_at          DateTime               @default(now())
+  updated_at          DateTime               @updatedAt
+  certificates        WorkerCertificate[]
   cleaning_jobs       CleaningJob[]
+  cleaning_timesheets CleaningJobTimesheet[]
   maintenance_jobs    MaintenanceJob[]
-  service_provider    ServiceProvider  @relation(fields: [service_provider_id], references: [id])
+  service_provider    ServiceProvider        @relation(fields: [service_provider_id], references: [id])
 
   @@index([service_provider_id])
   @@index([worker_type])
   @@map("workers")
+}
+
+model WorkerCertificate {
+  id          String    @id @default(uuid())
+  worker_id   String
+  name        String    @db.VarChar(255)
+  file_url    String    @db.Text
+  s3_key      String    @db.Text
+  file_type   String    @db.VarChar(50)
+  file_size   Int
+  expiry_date DateTime?
+  uploaded_at DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  worker      Worker    @relation(fields: [worker_id], references: [id], onDelete: Cascade)
+
+  @@index([worker_id])
+  @@index([expiry_date])
+  @@map("worker_certificates")
 }
 
 model ExternalContractor {
@@ -493,41 +528,47 @@ model ExternalContractor {
 }
 
 model CleaningJob {
-  id                           String           @id @default(uuid())
-  service_id                   String
+  id                           String                 @id @default(uuid())
+  service_id                   String?
   property_id                  String
   customer_id                  String
+  contract_id                  String?
   assigned_worker_id           String?
-  scheduled_date               DateTime         @db.Date
-  scheduled_start_time         String           @db.VarChar(10)
-  scheduled_end_time           String           @db.VarChar(10)
+  quote_id                     String?
+  scheduled_date               DateTime               @db.Date
+  scheduled_start_time         String                 @db.VarChar(10)
+  scheduled_end_time           String                 @db.VarChar(10)
   actual_start_time            DateTime?
   actual_end_time              DateTime?
   checklist_template_id        String?
   checklist_items              Json?
-  checklist_completed_items    Int              @default(0)
-  checklist_total_items        Int              @default(0)
-  status                       JobStatus        @default(SCHEDULED)
+  checklist_completed_items    Int                    @default(0)
+  checklist_total_items        Int                    @default(0)
+  status                       JobStatus              @default(SCHEDULED)
   completion_notes             String?
-  before_photos                String[]         @db.VarChar(500)
-  after_photos                 String[]         @db.VarChar(500)
-  issue_photos                 String[]         @db.VarChar(500)
-  pricing_type                 String           @db.VarChar(50)
-  quoted_price                 Decimal          @db.Decimal(10, 2)
-  actual_price                 Decimal?         @db.Decimal(10, 2)
-  maintenance_issues_found     Int              @default(0)
-  maintenance_quotes_generated Int              @default(0)
-  created_at                   DateTime         @default(now())
-  updated_at                   DateTime         @updatedAt
-  assigned_worker              Worker?          @relation(fields: [assigned_worker_id], references: [id])
-  customer                     Customer         @relation(fields: [customer_id], references: [id])
-  property                     CustomerProperty @relation(fields: [property_id], references: [id])
-  service                      Service          @relation(fields: [service_id], references: [id])
+  before_photos                String[]               @db.VarChar(500)
+  after_photos                 String[]               @db.VarChar(500)
+  issue_photos                 String[]               @db.VarChar(500)
+  pricing_type                 String                 @db.VarChar(50)
+  quoted_price                 Decimal                @db.Decimal(10, 2)
+  actual_price                 Decimal?               @db.Decimal(10, 2)
+  maintenance_issues_found     Int                    @default(0)
+  maintenance_quotes_generated Int                    @default(0)
+  created_at                   DateTime               @default(now())
+  updated_at                   DateTime               @updatedAt
+  assigned_worker              Worker?                @relation(fields: [assigned_worker_id], references: [id])
+  contract                     CleaningContract?      @relation(fields: [contract_id], references: [id])
+  customer                     Customer               @relation(fields: [customer_id], references: [id])
+  property                     CustomerProperty       @relation(fields: [property_id], references: [id])
+  service                      Service?               @relation(fields: [service_id], references: [id])
   maintenance_jobs             MaintenanceJob[]
+  timesheets                   CleaningJobTimesheet[]
+  history                      CleaningJobHistory[]
 
   @@index([service_id])
   @@index([property_id])
   @@index([customer_id])
+  @@index([contract_id])
   @@index([assigned_worker_id])
   @@index([status])
   @@index([scheduled_date])
@@ -618,27 +659,27 @@ model Quote {
 }
 
 model Invoice {
-  id                    String        @id @default(uuid())
-  customer_id           String
-  maintenance_job_id    String?       @unique
-  cleaning_job_id       String?       @unique
-  invoice_number        String        @unique @db.VarChar(50)
-  invoice_date          DateTime      @db.Date
-  due_date              DateTime      @db.Date
-  line_items            Json
-  subtotal              Decimal       @db.Decimal(10, 2)
-  tax_percentage        Decimal       @default(20) @db.Decimal(5, 2)
-  tax_amount            Decimal       @db.Decimal(10, 2)
-  total                 Decimal       @db.Decimal(10, 2)
-  status                InvoiceStatus @default(PENDING)
-  payment_method        String?       @db.VarChar(50)
-  paid_at               DateTime?
-  payment_reference     String?       @db.VarChar(100)
-  notes                 String?
-  created_at            DateTime       @default(now())
-  updated_at            DateTime       @updatedAt
-  customer              Customer       @relation(fields: [customer_id], references: [id])
-  maintenance_job       MaintenanceJob? @relation(fields: [maintenance_job_id], references: [id])
+  id                 String          @id @default(uuid())
+  customer_id        String
+  maintenance_job_id String?         @unique
+  cleaning_job_id    String?         @unique
+  invoice_number     String          @unique @db.VarChar(50)
+  invoice_date       DateTime        @db.Date
+  due_date           DateTime        @db.Date
+  line_items         Json
+  subtotal           Decimal         @db.Decimal(10, 2)
+  tax_percentage     Decimal         @default(20) @db.Decimal(5, 2)
+  tax_amount         Decimal         @db.Decimal(10, 2)
+  total              Decimal         @db.Decimal(10, 2)
+  status             InvoiceStatus   @default(PENDING)
+  payment_method     String?         @db.VarChar(50)
+  paid_at            DateTime?
+  payment_reference  String?         @db.VarChar(100)
+  notes              String?
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+  customer           Customer        @relation(fields: [customer_id], references: [id])
+  maintenance_job    MaintenanceJob? @relation(fields: [maintenance_job_id], references: [id])
 
   @@index([customer_id])
   @@index([status])
@@ -945,24 +986,35 @@ enum ShareType {
   GENERAL
 }
 
+enum ContractStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+enum ContractType {
+  FLAT_MONTHLY
+  PER_PROPERTY
+}
+
 // ============================================================================
 // PHASE 2.5: CUSTOMER PORTAL & GUEST AI DASHBOARD
 // ============================================================================
 
 // Customer Portal - Authentication and Preferences
 model CustomerPortalUser {
-  id                String                 @id @default(uuid())
-  customer_id       String                 @unique
-  email             String                 @unique @db.VarChar(255)
-  password_hash     String                 @db.VarChar(255)
-  last_login        DateTime?
-  theme_preference  String                 @default("light")
-  language          String                 @default("en")
-  created_at        DateTime               @default(now())
-  updated_at        DateTime               @updatedAt
+  id               String    @id @default(uuid())
+  customer_id      String    @unique
+  email            String    @unique @db.VarChar(255)
+  password_hash    String    @db.VarChar(255)
+  last_login       DateTime?
+  theme_preference String    @default("light")
+  language         String    @default("en")
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
 
-  customer          Customer               @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  notifications     CustomerNotification[]
+  customer      Customer               @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  notifications CustomerNotification[]
 
   @@index([customer_id])
   @@index([email])
@@ -970,92 +1022,92 @@ model CustomerPortalUser {
 }
 
 model CustomerNotification {
-  id                     String               @id @default(uuid())
+  id                      String           @id @default(uuid())
   customer_portal_user_id String
-  notification_type      NotificationType
-  title                  String               @db.VarChar(255)
-  body                   String
-  data                   Json?
-  sent_at                DateTime             @default(now())
-  read_at                DateTime?
+  notification_type       NotificationType
+  title                   String           @db.VarChar(255)
+  body                    String
+  data                    Json?
+  sent_at                 DateTime         @default(now())
+  read_at                 DateTime?
 
-  customer_portal_user   CustomerPortalUser   @relation(fields: [customer_portal_user_id], references: [id], onDelete: Cascade)
+  customer_portal_user CustomerPortalUser @relation(fields: [customer_portal_user_id], references: [id], onDelete: Cascade)
 
   @@index([customer_portal_user_id, read_at])
   @@map("customer_notifications")
 }
 
 model CustomerPreferences {
-  id                      String   @id @default(uuid())
-  customer_id             String   @unique
-  auto_pay_enabled        Boolean  @default(false)
-  notification_email      Boolean  @default(true)
-  notification_sms        Boolean  @default(false)
-  calendar_sync_enabled   Boolean  @default(false)
-  quote_auto_approve_limit Float?  
-  created_at              DateTime @default(now())
-  updated_at              DateTime @updatedAt
-  
-  customer                Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  
+  id                       String   @id @default(uuid())
+  customer_id              String   @unique
+  auto_pay_enabled         Boolean  @default(false)
+  notification_email       Boolean  @default(true)
+  notification_sms         Boolean  @default(false)
+  calendar_sync_enabled    Boolean  @default(false)
+  quote_auto_approve_limit Float?
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  customer Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+
   @@index([customer_id])
   @@map("customer_preferences")
 }
 
 // Guest AI Dashboard - Sessions and Interactions
 model GuestSession {
-  id                 String          @id @default(uuid())
+  id                 String    @id @default(uuid())
   property_id        String
   device_id          String?
-  session_start      DateTime        @default(now())
+  session_start      DateTime  @default(now())
   session_end        DateTime?
-  interactions_count Int             @default(0)
-  
-  property           CustomerProperty @relation(fields: [property_id], references: [id], onDelete: Cascade)
-  questions          GuestQuestion[]
-  issues             GuestIssue[]
-  
+  interactions_count Int       @default(0)
+
+  property  CustomerProperty @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  questions GuestQuestion[]
+  issues    GuestIssue[]
+
   @@index([property_id])
   @@index([session_start])
   @@map("guest_sessions")
 }
 
 model GuestQuestion {
-  id              String        @id @default(uuid())
-  session_id      String
-  question        String        @db.Text
-  answer          String        @db.Text
-  answered_by     String        @db.VarChar(20) // 'AI' or 'human'
-  confidence      Float?
-  helpful_rating  Int?          // 1-5
-  created_at      DateTime      @default(now())
-  
-  session         GuestSession  @relation(fields: [session_id], references: [id], onDelete: Cascade)
-  
+  id             String   @id @default(uuid())
+  session_id     String
+  question       String   @db.Text
+  answer         String   @db.Text
+  answered_by    String   @db.VarChar(20) // 'AI' or 'human'
+  confidence     Float?
+  helpful_rating Int? // 1-5
+  created_at     DateTime @default(now())
+
+  session GuestSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+
   @@index([session_id])
   @@index([created_at])
   @@map("guest_questions")
 }
 
 model GuestIssue {
-  id                     String             @id @default(uuid())
-  session_id             String
-  category               String             @db.VarChar(50)
-  description            String             @db.Text
-  severity               String             @db.VarChar(20) // 'critical', 'high', 'medium', 'low'
-  ai_confidence          Float
-  photos                 Json?              // Array of photo URLs
-  recommended_action     String             @db.VarChar(50) // 'diy', 'send_tech', 'notify_manager'
-  guest_selected_action  String?            @db.VarChar(50)
-  maintenance_job_id     String?
-  resolved_at            DateTime?
-  created_at             DateTime           @default(now())
-  
-  session                GuestSession       @relation(fields: [session_id], references: [id], onDelete: Cascade)
-  maintenance_job        MaintenanceJob?    @relation(fields: [maintenance_job_id], references: [id])
-  assessment             AIAssessment?
-  diy_attempts           DIYAttempt[]
-  
+  id                    String    @id @default(uuid())
+  session_id            String
+  category              String    @db.VarChar(50)
+  description           String    @db.Text
+  severity              String    @db.VarChar(20) // 'critical', 'high', 'medium', 'low'
+  ai_confidence         Float
+  photos                Json? // Array of photo URLs
+  recommended_action    String    @db.VarChar(50) // 'diy', 'send_tech', 'notify_manager'
+  guest_selected_action String?   @db.VarChar(50)
+  maintenance_job_id    String?
+  resolved_at           DateTime?
+  created_at            DateTime  @default(now())
+
+  session         GuestSession    @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  maintenance_job MaintenanceJob? @relation(fields: [maintenance_job_id], references: [id])
+  assessment      AIAssessment?
+  diy_attempts    DIYAttempt[]
+
   @@index([session_id])
   @@index([maintenance_job_id])
   @@index([created_at])
@@ -1063,93 +1115,320 @@ model GuestIssue {
 }
 
 model AIAssessment {
-  id              String      @id @default(uuid())
-  issue_id        String      @unique
-  diagnosis       String      @db.Text
-  confidence      Float
-  severity        String      @db.VarChar(20)
-  estimated_cost  Float?
-  estimated_time  Int?        // minutes
-  created_at      DateTime    @default(now())
-  
-  issue           GuestIssue  @relation(fields: [issue_id], references: [id], onDelete: Cascade)
-  
+  id             String   @id @default(uuid())
+  issue_id       String   @unique
+  diagnosis      String   @db.Text
+  confidence     Float
+  severity       String   @db.VarChar(20)
+  estimated_cost Float?
+  estimated_time Int? // minutes
+  created_at     DateTime @default(now())
+
+  issue GuestIssue @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+
   @@index([issue_id])
   @@map("ai_assessments")
 }
 
 model DIYGuide {
-  id              String        @id @default(uuid())
-  issue_type      String        @db.VarChar(100)
-  title           String        @db.VarChar(200)
-  steps           Json          // Array of step objects
-  video_url       String?       @db.VarChar(500)
-  difficulty      String        @db.VarChar(20) // 'easy', 'medium', 'hard'
-  estimated_time  Int           // minutes
-  success_rate    Float?
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
-  
-  attempts        DIYAttempt[]
-  
+  id             String   @id @default(uuid())
+  issue_type     String   @db.VarChar(100)
+  title          String   @db.VarChar(200)
+  steps          Json // Array of step objects
+  video_url      String?  @db.VarChar(500)
+  difficulty     String   @db.VarChar(20) // 'easy', 'medium', 'hard'
+  estimated_time Int // minutes
+  success_rate   Float?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  attempts DIYAttempt[]
+
   @@index([issue_type])
   @@map("diy_guides")
 }
 
 model DIYAttempt {
-  id             String      @id @default(uuid())
-  issue_id       String
-  guide_id       String
-  successful     Boolean
-  time_spent     Int?        // seconds
-  escalated      Boolean     @default(false)
-  feedback       String?     @db.Text
-  created_at     DateTime    @default(now())
-  
-  issue          GuestIssue  @relation(fields: [issue_id], references: [id], onDelete: Cascade)
-  guide          DIYGuide    @relation(fields: [guide_id], references: [id])
-  
+  id         String   @id @default(uuid())
+  issue_id   String
+  guide_id   String
+  successful Boolean
+  time_spent Int? // seconds
+  escalated  Boolean  @default(false)
+  feedback   String?  @db.Text
+  created_at DateTime @default(now())
+
+  issue GuestIssue @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+  guide DIYGuide   @relation(fields: [guide_id], references: [id])
+
   @@index([issue_id])
   @@index([guide_id])
   @@map("diy_attempts")
 }
 
 model PropertyKnowledgeBase {
-  id              String            @id @default(uuid())
-  property_id     String
-  category        String            @db.VarChar(100)
-  title           String            @db.VarChar(200)
-  content         String            @db.Text
-  video_url       String?           @db.VarChar(500)
-  pdf_url         String?           @db.VarChar(500)
-  embedding       Json?             // Vector for RAG
-  view_count      Int               @default(0)
-  created_at      DateTime          @default(now())
-  updated_at      DateTime          @updatedAt
-  
-  property        CustomerProperty  @relation(fields: [property_id], references: [id], onDelete: Cascade)
-  
+  id          String   @id @default(uuid())
+  property_id String
+  category    String   @db.VarChar(100)
+  title       String   @db.VarChar(200)
+  content     String   @db.Text
+  video_url   String?  @db.VarChar(500)
+  pdf_url     String?  @db.VarChar(500)
+  embedding   Json? // Vector for RAG
+  view_count  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  property CustomerProperty @relation(fields: [property_id], references: [id], onDelete: Cascade)
+
   @@index([property_id])
   @@index([category])
   @@map("property_knowledge_base")
 }
 
 model LocalRecommendation {
-  id                    String   @id @default(uuid())
-  category              String   @db.VarChar(50) // 'restaurant', 'attraction', 'grocery', etc.
-  name                  String   @db.VarChar(200)
-  description           String   @db.Text
-  address               String?  @db.VarChar(500)
-  distance_description  String?  @db.VarChar(100) // "5 min drive"
-  rating                Float?
-  reviews_count         Int?
-  map_url               String?  @db.VarChar(500)
-  phone                 String?  @db.VarChar(20)
-  website               String?  @db.VarChar(500)
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
-  
+  id                   String   @id @default(uuid())
+  category             String   @db.VarChar(50) // 'restaurant', 'attraction', 'grocery', etc.
+  name                 String   @db.VarChar(200)
+  description          String   @db.Text
+  address              String?  @db.VarChar(500)
+  distance_description String?  @db.VarChar(100) // "5 min drive"
+  rating               Float?
+  reviews_count        Int?
+  map_url              String?  @db.VarChar(500)
+  phone                String?  @db.VarChar(20)
+  website              String?  @db.VarChar(500)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
   @@index([category])
   @@map("local_recommendations")
 }
 
+// ============================================================================
+// PHASE 3: CLEANING CONTRACT-BASED WORKFLOW
+// ============================================================================
+
+model CleaningContract {
+  id                  String         @id @default(uuid())
+  customer_id         String
+  service_provider_id String
+  contract_type       ContractType   @default(FLAT_MONTHLY)
+  contract_start_date DateTime       @db.Date
+  contract_end_date   DateTime?      @db.Date
+  monthly_fee         Decimal        @db.Decimal(10, 2)
+  billing_day         Int // 1-31, day of month to invoice
+  status              ContractStatus @default(ACTIVE)
+  notes               String?
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+
+  customer           Customer           @relation(fields: [customer_id], references: [id])
+  cleaning_jobs      CleaningJob[]
+  invoices           CleaningInvoice[]
+  property_contracts ContractProperty[]
+
+  @@index([customer_id])
+  @@index([service_provider_id])
+  @@index([status])
+  @@map("cleaning_contracts")
+}
+
+model ContractProperty {
+  id                   String   @id @default(uuid())
+  contract_id          String
+  property_id          String
+  property_monthly_fee Decimal? @db.Decimal(10, 2) // For PER_PROPERTY pricing
+  is_active            Boolean  @default(true)
+  created_at           DateTime @default(now())
+
+  contract CleaningContract @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  property CustomerProperty @relation(fields: [property_id], references: [id])
+
+  @@unique([contract_id, property_id])
+  @@index([contract_id])
+  @@index([property_id])
+  @@map("contract_properties")
+}
+
+model CleaningJobTimesheet {
+  id                        String    @id @default(uuid())
+  cleaning_job_id           String
+  worker_id                 String
+  work_performed            String?   @db.Text
+  checklist_items_completed Json? // Array of completed checklist items
+  start_time                DateTime
+  end_time                  DateTime?
+  total_hours               Decimal?  @db.Decimal(10, 2)
+  before_photos             String[]  @db.VarChar(500)
+  after_photos              String[]  @db.VarChar(500)
+  issue_photos              String[]  @db.VarChar(500)
+  notes                     String?   @db.Text
+  created_at                DateTime  @default(now())
+  updated_at                DateTime  @updatedAt
+
+  cleaning_job CleaningJob @relation(fields: [cleaning_job_id], references: [id], onDelete: Cascade)
+  worker       Worker      @relation(fields: [worker_id], references: [id])
+
+  @@index([cleaning_job_id])
+  @@index([worker_id])
+  @@index([start_time])
+  @@map("cleaning_job_timesheets")
+}
+
+model CleaningInvoice {
+  id                     String        @id @default(uuid())
+  contract_id            String
+  customer_id            String
+  invoice_number         String        @unique @db.VarChar(50)
+  billing_period_start   DateTime      @db.Date
+  billing_period_end     DateTime      @db.Date
+  total_cleans_completed Int           @default(0)
+  contract_monthly_fee   Decimal       @db.Decimal(10, 2)
+  additional_charges     Decimal       @default(0) @db.Decimal(10, 2)
+  subtotal               Decimal       @db.Decimal(10, 2)
+  tax_percentage         Decimal       @default(20) @db.Decimal(5, 2)
+  tax_amount             Decimal       @db.Decimal(10, 2)
+  total_amount           Decimal       @db.Decimal(10, 2)
+  status                 InvoiceStatus @default(PENDING)
+  due_date               DateTime      @db.Date
+  paid_at                DateTime?
+  payment_method         String?       @db.VarChar(50)
+  payment_reference      String?       @db.VarChar(100)
+  notes                  String?
+  created_at             DateTime      @default(now())
+  updated_at             DateTime      @updatedAt
+
+  contract CleaningContract @relation(fields: [contract_id], references: [id])
+  customer Customer         @relation(fields: [customer_id], references: [id])
+
+  @@index([contract_id])
+  @@index([customer_id])
+  @@index([status])
+  @@index([billing_period_start])
+  @@index([billing_period_end])
+  @@map("cleaning_invoices")
+}
+
+model PropertyCalendar {
+  id                          String   @id @default(uuid())
+  property_id                 String
+  guest_checkout_datetime     DateTime
+  next_guest_checkin_datetime DateTime
+  clean_window_start          DateTime // Calculated from checkout
+  clean_window_end            DateTime // Calculated from checkin
+  cleaning_job_id             String?
+  notes                       String?  @db.Text
+  created_at                  DateTime @default(now())
+  updated_at                  DateTime @updatedAt
+
+  property CustomerProperty @relation(fields: [property_id], references: [id], onDelete: Cascade)
+
+  @@index([property_id])
+  @@index([guest_checkout_datetime])
+  @@index([next_guest_checkin_datetime])
+  @@map("property_calendars")
+}
+
+// ============================================================================
+// JOB HISTORY & AUDIT TRAIL
+// ============================================================================
+
+model CleaningJobHistory {
+  id                 String              @id @default(uuid())
+  cleaning_job_id    String
+  changed_by_user_id String?             // User who made the change (can be null for system changes)
+  changed_at         DateTime            @default(now())
+  change_type        JobHistoryChangeType
+  field_name         String?             @db.VarChar(100) // Which field changed (e.g., "assigned_worker_id", "scheduled_date")
+  old_value          String?             @db.Text // Previous value (JSON string or simple value)
+  new_value          String?             @db.Text // New value (JSON string or simple value)
+  description        String?             @db.VarChar(500) // Human-readable description (e.g., "Worker changed from John to Sarah")
+  metadata           Json?               // Additional context (IP address, user agent, etc.)
+
+  cleaning_job CleaningJob @relation(fields: [cleaning_job_id], references: [id], onDelete: Cascade)
+
+  @@index([cleaning_job_id])
+  @@index([changed_at])
+  @@index([change_type])
+  @@map("cleaning_job_history")
+}
+
+enum JobHistoryChangeType {
+  CREATED              // Job was created
+  UPDATED              // General update
+  STATUS_CHANGED       // Status field changed
+  WORKER_ASSIGNED      // Worker assigned (from null)
+  WORKER_CHANGED       // Worker changed (from one to another)
+  WORKER_UNASSIGNED    // Worker removed (to null)
+  TIME_CHANGED         // Start or end time changed
+  DATE_CHANGED         // Scheduled date changed
+  CHECKLIST_UPDATED    // Checklist modified
+  PHOTO_ADDED          // Photo uploaded
+  NOTES_UPDATED        // Completion notes or other notes changed
+  PRICE_CHANGED        // Price modified
+  MAINTENANCE_ISSUE_CREATED // Maintenance issue reported from this job
+  DELETED              // Job marked as deleted
+}
+
+// ============================================================================
+// PROPERTY HISTORY & ACTIVITY LOG
+// ============================================================================
+
+model PropertyHistory {
+  id                 String                    @id @default(uuid())
+  property_id        String
+  changed_by_user_id String?                   // User who made the change (can be null for system changes)
+  changed_at         DateTime                  @default(now())
+  change_type        PropertyHistoryChangeType
+  field_name         String?                   @db.VarChar(100) // Which field changed
+  old_value          String?                   @db.Text // Previous value
+  new_value          String?                   @db.Text // New value
+  description        String?                   @db.VarChar(500) // Human-readable description
+  metadata           Json?                     // Additional context (job IDs, contract IDs, etc.)
+
+  // No foreign key - allows tracking any property from any table (properties, customer_properties, etc.)
+
+  @@index([property_id])
+  @@index([changed_at])
+  @@index([change_type])
+  @@map("property_history")
+}
+
+enum PropertyHistoryChangeType {
+  PROPERTY_CREATED           // Property was created
+  PROPERTY_UPDATED           // Property details updated
+  ACCESS_INSTRUCTIONS_UPDATED // Access instructions changed
+  STATUS_CHANGED             // Property status changed
+
+  // Cleaning events
+  CLEANING_JOB_SCHEDULED     // Cleaning job scheduled for property
+  CLEANING_JOB_STARTED       // Cleaning job started
+  CLEANING_JOB_COMPLETED     // Cleaning job completed
+  CLEANING_JOB_CANCELLED     // Cleaning job cancelled
+
+  // Maintenance events
+  MAINTENANCE_JOB_CREATED    // Maintenance job created
+  MAINTENANCE_JOB_SCHEDULED  // Maintenance job scheduled
+  MAINTENANCE_JOB_COMPLETED  // Maintenance job completed
+  MAINTENANCE_JOB_CANCELLED  // Maintenance job cancelled
+
+  // Contract events
+  CONTRACT_CREATED           // Cleaning contract created
+  CONTRACT_RENEWED           // Contract renewed
+  CONTRACT_UPDATED           // Contract terms updated
+  CONTRACT_CANCELLED         // Contract cancelled
+
+  // Certificate events
+  CERTIFICATE_UPLOADED       // New certificate uploaded
+  CERTIFICATE_EXPIRING_SOON  // Certificate expiring soon (auto)
+  CERTIFICATE_EXPIRED        // Certificate expired (auto)
+  CERTIFICATE_RENEWED        // Certificate renewed
+
+  // Other events
+  PHOTO_UPLOADED             // Property photo uploaded
+  TENANT_MOVED_IN            // New tenant moved in
+  TENANT_MOVED_OUT           // Tenant moved out
+  WORK_ORDER_CREATED         // Work order created
+  WORK_ORDER_COMPLETED       // Work order completed
+}
