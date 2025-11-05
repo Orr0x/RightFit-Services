@@ -487,6 +487,7 @@ model Worker {
   cleaning_timesheets CleaningJobTimesheet[]
   maintenance_jobs    MaintenanceJob[]
   history             WorkerHistory[]
+  availability        WorkerAvailability[]
   service_provider    ServiceProvider        @relation(fields: [service_provider_id], references: [id])
 
   @@index([service_provider_id])
@@ -510,6 +511,24 @@ model WorkerCertificate {
   @@index([worker_id])
   @@index([expiry_date])
   @@map("worker_certificates")
+}
+
+model WorkerAvailability {
+  id         String   @id @default(uuid())
+  worker_id  String
+  start_date DateTime @db.Date
+  end_date   DateTime @db.Date
+  reason     String?  @db.VarChar(255)
+  status     WorkerAvailabilityStatus @default(BLOCKED)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  worker     Worker   @relation(fields: [worker_id], references: [id], onDelete: Cascade)
+
+  @@index([worker_id])
+  @@index([start_date])
+  @@index([end_date])
+  @@index([status])
+  @@map("worker_availability")
 }
 
 model ExternalContractor {
@@ -930,6 +949,11 @@ enum EmploymentType {
   FULL_TIME
   PART_TIME
   CONTRACTOR
+}
+
+enum WorkerAvailabilityStatus {
+  BLOCKED
+  AVAILABLE
 }
 
 enum JobStatus {

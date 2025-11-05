@@ -21,16 +21,31 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
 
+    // Handle scheduled_date as both from_date and to_date (for single day filtering)
+    const scheduledDate = req.query.scheduled_date as string;
+    const fromDateParam = req.query.from_date || req.query.start_date || scheduledDate;
+    const toDateParam = req.query.to_date || req.query.end_date || scheduledDate;
+
     const filters = {
       status: req.query.status as string,
-      worker_id: req.query.worker_id as string,
+      worker_id: (req.query.worker_id || req.query.assigned_worker_id) as string,
       property_id: req.query.property_id as string,
       customer_id: req.query.customer_id as string,
-      from_date: req.query.from_date ? new Date(req.query.from_date as string) : undefined,
-      to_date: req.query.to_date ? new Date(req.query.to_date as string) : undefined,
+      from_date: fromDateParam ? new Date(fromDateParam as string) : undefined,
+      to_date: toDateParam ? new Date(toDateParam as string) : undefined,
     };
 
+    console.log('Cleaning Jobs Filter - worker_id:', filters.worker_id);
+    console.log('Cleaning Jobs Filter - query params:', {
+      worker_id: req.query.worker_id,
+      assigned_worker_id: req.query.assigned_worker_id
+    });
+
     const result = await cleaningJobsService.list(serviceProviderId, page, limit, filters);
+
+    console.log('Cleaning Jobs Result - total jobs:', result.data.length);
+    console.log('Cleaning Jobs Result - first job worker:', result.data[0]?.assigned_worker_id);
+
     res.json({ data: result.data, pagination: result.pagination });
   } catch (error) {
     next(error);

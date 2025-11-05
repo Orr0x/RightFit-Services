@@ -5,12 +5,29 @@ import { authMiddleware } from '../middleware/auth';
 import { upload, uploadDocument } from '../middleware/upload';
 import workerPhotosService from '../services/WorkerPhotosService';
 import workerCertificatesService from '../services/WorkerCertificatesService';
+import { prisma } from '@rightfit/database';
 
 const router: Router = Router();
 const workersService = new WorkersService();
 const workerHistoryService = new WorkerHistoryService();
 
 router.use(authMiddleware);
+
+// GET /api/workers/me - Get current worker's profile by email
+router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Find worker by email (across all service providers for this tenant)
+    const worker = await workersService.getByEmail(userEmail);
+    res.json({ data: worker });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET /api/workers
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -28,6 +45,82 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const workers = await workersService.list(serviceProviderId, filters);
     res.json({ data: workers });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/workers/:id/stats - Get worker dashboard stats
+router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const serviceProviderId = req.query.service_provider_id as string;
+    if (!serviceProviderId) {
+      return res.status(400).json({ error: 'service_provider_id is required' });
+    }
+
+    const workerId = req.params.id;
+
+    // Verify worker exists and belongs to service provider
+    await workersService.getById(workerId, serviceProviderId);
+
+    // Get today's date for counting today's jobs
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Count today's jobs
+    const todaysJobs = await prisma.cleaningJob.count({
+      where: {
+        assigned_worker_id: workerId,
+        scheduled_date: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+    });
+
+    // Get this week's hours (sum of hours from timesheets)
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+
+    // Aggregate total hours worked this week
+    const timesheets = await prisma.cleaningJobTimesheet.aggregate({
+      where: {
+        worker_id: workerId,
+        created_at: {
+          gte: startOfWeek,
+        },
+        end_time: {
+          not: null,
+        },
+      },
+      _sum: {
+        total_hours: true,
+      },
+    });
+
+    // Count completed jobs this month
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const completedThisMonth = await prisma.cleaningJob.count({
+      where: {
+        assigned_worker_id: workerId,
+        status: 'COMPLETED',
+        scheduled_date: {
+          gte: startOfMonth,
+        },
+      },
+    });
+
+    res.json({
+      data: {
+        upcomingJobs: todaysJobs,
+        hoursThisWeek: Number(timesheets._sum.total_hours) || 0,
+        completedThisMonth: completedThisMonth,
+      },
+    });
   } catch (error) {
     next(error);
   }

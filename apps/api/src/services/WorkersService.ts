@@ -37,6 +37,29 @@ export class WorkersService {
     return workers;
   }
 
+  async getByEmail(email: string) {
+    const worker = await prisma.worker.findFirst({
+      where: {
+        email: email.toLowerCase(),
+      },
+      include: {
+        service_provider: true,
+        _count: {
+          select: {
+            cleaning_jobs: true,
+            maintenance_jobs: true,
+          },
+        },
+      },
+    });
+
+    if (!worker) {
+      throw new NotFoundError('Worker not found');
+    }
+
+    return worker;
+  }
+
   async getById(id: string, serviceProviderId: string) {
     const worker = await prisma.worker.findFirst({
       where: {

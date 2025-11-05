@@ -37,6 +37,7 @@ import cleaningTimesheetsRoutes from './routes/cleaning-timesheets'
 import servicesRoutes from './routes/services'
 import checklistTemplatesRoutes from './routes/checklist-templates'
 import globalActivityRoutes from './routes/global-activity'
+import workerAvailabilityRoutes from './routes/worker-availability'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -147,6 +148,7 @@ app.use('/api/cleaning-timesheets', cleaningTimesheetsRoutes)
 app.use('/api/services', servicesRoutes)
 app.use('/api/checklist-templates', checklistTemplatesRoutes)
 app.use('/api/global-activity', globalActivityRoutes)
+app.use('/api/worker-availability', workerAvailabilityRoutes)
 // Property sharing routes
 app.use('/api/property-shares', propertySharesRoutes)
 

@@ -1,7 +1,7 @@
 # 🗺️ RightFit Services - Project Navigation Map
 
-**Last Updated**: 2025-11-04 (After Code Review)
-**Current Phase**: Business Management Sprint - Implementation Starting
+**Last Updated**: 2025-11-05 (Worker App Sprint Added)
+**Current Phase**: Business Management Sprint - Implementation Starting + Worker App Sprint Planned
 
 ---
 
@@ -109,6 +109,16 @@ Location: [stories/](stories/)
 - [STORY-PM-001-property-management.md](stories/phase-3/STORY-PM-001-property-management.md) - Property Add/Edit forms (detailed)
 - [STORY-WM-001-worker-profile-management.md](stories/phase-3/STORY-WM-001-worker-profile-management.md) - Worker profiles
 
+**Phase 4**: Worker Web Application
+- [WORKER-APP-SPRINT-PLAN.md](stories/phase-4/worker-app-sprint/WORKER-APP-SPRINT-PLAN.md) - **15 stories, 52 points, 12-15 days**
+- [WORKER-APP-ANALYSIS.md](stories/phase-4/worker-app-sprint/WORKER-APP-ANALYSIS.md) - Requirements analysis & user research
+- [WORKER-APP-TECHNICAL-SPEC.md](stories/phase-4/worker-app-sprint/WORKER-APP-TECHNICAL-SPEC.md) - Technical architecture & API design
+- Story Files:
+  - [STORY-WA-001-006-DASHBOARD-AND-JOBS.md](stories/phase-4/worker-app-sprint/STORY-WA-001-006-DASHBOARD-AND-JOBS.md) - Foundation & Dashboard (22 pts)
+  - [STORY-WA-008-010-JOB-WORKFLOW.md](stories/phase-4/worker-app-sprint/STORY-WA-008-010-JOB-WORKFLOW.md) - Job Workflow & Photos (16 pts)
+  - [STORY-WA-011-013-SCHEDULE-AND-AVAILABILITY.md](stories/phase-4/worker-app-sprint/STORY-WA-011-013-SCHEDULE-AND-AVAILABILITY.md) - Schedule & Availability (12 pts)
+  - [STORY-WA-014-015-PROFILE-AND-POLISH.md](stories/phase-4/worker-app-sprint/STORY-WA-014-015-PROFILE-AND-POLISH.md) - Profile & Polish (4 pts)
+
 ---
 
 ## 🗃️ Archived Documentation
@@ -160,6 +170,9 @@ npm run dev:customer     # Port 5176
 
 # Guest Tablet
 npm run dev:guest        # Port 5177
+
+# Worker App (Planned - Phase 4)
+npm run dev:worker       # Port 5178 ← Worker web app
 ```
 
 ### Tech Stack
@@ -250,7 +263,8 @@ CustomerProperty (1) → (Many) PropertyCalendar ← For turnover tracking
 - Phase 2: Customer Portal ✅ 100%
 - Phase 2.5: Guest AI Dashboard ✅ 100%
 - Phase 3: Job Management 🔨 85%
-- **NEW: Business Management Sprint** 🎯 0% (Planning complete)
+- **NEW: Business Management Sprint** 🎯 0% (Planning complete, 14 stories, 42 pts)
+- **NEW: Worker App Sprint** 📋 0% (Planning complete, 15 stories, 52 pts)
 - Phase 4: Mobile Apps ❌ 0%
 
 **Lines of Code**: ~50,000+
@@ -258,10 +272,11 @@ CustomerProperty (1) → (Many) PropertyCalendar ← For turnover tracking
 **API Endpoints**: 100+ endpoints
 **Frontend Pages**: 30+ pages
 **Stories Completed**: 50+ stories
+**Stories Planned**: 29 stories (Business Management + Worker App)
 
 ---
 
 *This is your single source of truth for navigating the RightFit Services project.*
 *Bookmark this page!*
 
-**Last Updated**: 2025-11-04
+**Last Updated**: 2025-11-05
