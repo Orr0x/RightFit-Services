@@ -383,12 +383,18 @@ model Service {
 
 model Customer {
   id                          String               @id @default(uuid())
+  customer_number             String?              @unique @db.VarChar(50)
   service_provider_id         String
   business_name               String               @db.VarChar(100)
   contact_name                String               @db.VarChar(100)
   email                       String               @db.VarChar(255)
   phone                       String               @db.VarChar(20)
   address                     String?
+  address_line1               String?              @db.VarChar(255)
+  address_line2               String?              @db.VarChar(255)
+  city                        String?              @db.VarChar(100)
+  postcode                    String?              @db.VarChar(20)
+  country                     String?              @db.VarChar(100)
   customer_type               CustomerType
   has_cleaning_contract       Boolean              @default(false)
   has_maintenance_contract    Boolean              @default(false)
@@ -1214,23 +1220,30 @@ model LocalRecommendation {
 // ============================================================================
 
 model CleaningContract {
-  id                  String         @id @default(uuid())
-  customer_id         String
-  service_provider_id String
-  contract_type       ContractType   @default(FLAT_MONTHLY)
-  contract_start_date DateTime       @db.Date
-  contract_end_date   DateTime?      @db.Date
-  monthly_fee         Decimal        @db.Decimal(10, 2)
-  billing_day         Int // 1-31, day of month to invoice
-  status              ContractStatus @default(ACTIVE)
-  notes               String?
-  created_at          DateTime       @default(now())
-  updated_at          DateTime       @updatedAt
+  id                     String         @id @default(uuid())
+  contract_number        String?        @unique @db.VarChar(50)
+  customer_id            String
+  service_provider_id    String
+  contract_type          ContractType   @default(FLAT_MONTHLY)
+  contract_start_date    DateTime       @db.Date
+  contract_end_date      DateTime?      @db.Date
+  monthly_fee            Decimal        @db.Decimal(10, 2)
+  billing_day            Int // 1-31, day of month to invoice
+  status                 ContractStatus @default(ACTIVE)
+  notes                  String?
+  customer_address_line1 String?        @db.VarChar(255)
+  customer_address_line2 String?        @db.VarChar(255)
+  customer_city          String?        @db.VarChar(100)
+  customer_postcode      String?        @db.VarChar(20)
+  customer_country       String?        @db.VarChar(100)
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @updatedAt
 
   customer           Customer           @relation(fields: [customer_id], references: [id])
   cleaning_jobs      CleaningJob[]
   invoices           CleaningInvoice[]
   property_contracts ContractProperty[]
+  files              ContractFile[]
 
   @@index([customer_id])
   @@index([service_provider_id])
@@ -1253,6 +1266,23 @@ model ContractProperty {
   @@index([contract_id])
   @@index([property_id])
   @@map("contract_properties")
+}
+
+model ContractFile {
+  id           String   @id @default(uuid())
+  contract_id  String
+  file_name    String
+  file_path    String
+  file_type    String // MIME type (image/png, application/pdf, etc.)
+  file_size    Int // Size in bytes
+  description  String? // Optional description of the file
+  uploaded_by  String? // User ID who uploaded
+  created_at   DateTime @default(now())
+
+  contract CleaningContract @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+
+  @@index([contract_id])
+  @@map("contract_files")
 }
 
 model CleaningJobTimesheet {

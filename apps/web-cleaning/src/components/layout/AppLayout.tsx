@@ -85,6 +85,32 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
+      id: 'customers',
+      label: 'Customers',
+      path: '/customers',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Customers">
+          <path
+            d="M17 19v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="10"
+            cy="7"
+            r="4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       id: 'workers',
       label: 'Workers',
       path: '/workers',
@@ -121,6 +147,62 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'invoices',
+      label: 'Invoices',
+      path: '/invoices',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Invoices">
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8l4-4V4a2 2 0 0 0-2-2z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M14 14v4l4-4h-4zM8 6h4M8 10h4M8 14h2"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'quotes',
+      label: 'Quotes',
+      path: '/quotes',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Quotes">
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7 7h6M7 11h6M7 15h4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="15"
+            cy="15"
+            r="3"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
           />
         </svg>
       ),
@@ -307,20 +389,55 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         },
         {
           id: '4',
+          title: 'Customers',
+          subtitle: 'Manage customer information and contracts',
+          category: 'Page',
+          path: '/customers',
+        },
+        {
+          id: '5',
           title: 'Workers',
           subtitle: 'Manage your cleaning team',
           category: 'Page',
           path: '/workers',
         },
         {
-          id: '5',
+          id: '6',
+          title: 'Contracts',
+          subtitle: 'View and manage cleaning contracts',
+          category: 'Page',
+          path: '/contracts',
+        },
+        {
+          id: '7',
+          title: 'Invoices',
+          subtitle: 'Manage customer invoices and payments',
+          category: 'Page',
+          path: '/invoices',
+        },
+        {
+          id: '8',
+          title: 'Quotes',
+          subtitle: 'Create and manage customer quotes',
+          category: 'Page',
+          path: '/quotes',
+        },
+        {
+          id: '9',
+          title: 'Calendar',
+          subtitle: 'Schedule and view property bookings',
+          category: 'Page',
+          path: '/calendar',
+        },
+        {
+          id: '10',
           title: 'Financial',
           subtitle: 'Job history and earnings',
           category: 'Page',
           path: '/financial',
         },
         {
-          id: '6',
+          id: '11',
           title: 'Certificates',
           subtitle: 'Certifications and compliance',
           category: 'Page',

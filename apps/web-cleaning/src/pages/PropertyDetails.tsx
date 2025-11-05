@@ -15,6 +15,7 @@ import LocalParkingIcon from '@mui/icons-material/LocalParking'
 import PetsIcon from '@mui/icons-material/Pets'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EditIcon from '@mui/icons-material/Edit'
+import '../pages/ContractDetails.css'
 
 interface PropertyPhoto {
   url: string
@@ -153,57 +154,116 @@ export default function PropertyDetails() {
       )}
 
       {/* Basic Info */}
-      <Card className="p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <HomeIcon /> Property Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Property Type</div>
-            <div className="font-semibold">{property.property_type}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Bedrooms</div>
-            <div className="font-semibold">{property.bedrooms}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Bathrooms</div>
-            <div className="font-semibold">{property.bathrooms}</div>
-          </div>
-        </div>
-
-        {property.customer && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Customer</div>
-            <div className="font-semibold">{property.customer.business_name}</div>
-            <div className="text-sm text-gray-500">{property.customer.contact_name}</div>
-          </div>
-        )}
-      </Card>
-
-      {/* Access Information */}
-      <Card className="p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <KeyIcon /> Access Information
-        </h2>
-        {property.access_instructions && (
-          <div className="mb-4">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Instructions</div>
-            <p className="text-gray-800 dark:text-gray-200">{property.access_instructions}</p>
-          </div>
-        )}
-        {property.access_code && (
-          <div className="mb-4">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Access Code</div>
-            <div className="font-mono font-semibold text-lg bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded inline-block">
-              {property.access_code}
+      <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+        <span className="text-2xl">🏠</span>
+        Property Information
+      </h2>
+      <div className="customer-info-grid mb-6">
+        {/* Property Type Card */}
+        <Card className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">🏘️</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">Property Type</p>
+              <p className="text-lg font-extrabold text-blue-900 dark:text-blue-100">
+                {property.property_type}
+              </p>
             </div>
           </div>
+        </Card>
+
+        {/* Bedrooms Card */}
+        <Card className="p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-purple-200 dark:bg-purple-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">🛏️</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide mb-1">Bedrooms</p>
+              <p className="text-2xl font-extrabold text-purple-900 dark:text-purple-100">
+                {property.bedrooms}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Bathrooms Card */}
+        <Card className="p-5 bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-cyan-200 dark:bg-cyan-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">🚿</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wide mb-1">Bathrooms</p>
+              <p className="text-2xl font-extrabold text-cyan-900 dark:text-cyan-100">
+                {property.bathrooms}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Customer Card */}
+        {property.customer && (
+          <Card className="p-5 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800 md:col-span-2">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">👤</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase tracking-wide mb-1">Customer</p>
+                <p className="text-lg font-extrabold text-green-900 dark:text-green-100">
+                  {property.customer.business_name}
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-400 mt-1">{property.customer.contact_name}</p>
+              </div>
+            </div>
+          </Card>
         )}
-        {!property.access_instructions && !property.access_code && (
-          <p className="text-gray-500 italic">No access information provided</p>
-        )}
-      </Card>
+      </div>
+
+      {/* Access Information */}
+      {(property.access_instructions || property.access_code) && (
+        <>
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <span className="text-2xl">🔑</span>
+            Access Information
+          </h2>
+          <div className="customer-info-grid mb-6">
+            {property.access_instructions && (
+              <Card className="p-5 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800 md:col-span-2">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-amber-200 dark:bg-amber-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl">📋</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide mb-1">Instructions</p>
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                      {property.access_instructions}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+            {property.access_code && (
+              <Card className="p-5 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-emerald-200 dark:bg-emerald-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl">🔐</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide mb-1">Access Code</p>
+                    <p className="text-2xl font-extrabold text-emerald-900 dark:text-emerald-100 font-mono">
+                      {property.access_code}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Utility Locations */}
       {(utilityLocations.stopTap || utilityLocations.waterMeter || utilityLocations.gasMeter || utilityLocations.fuseBox || utilityLocations.boiler) && (
@@ -327,46 +387,90 @@ export default function PropertyDetails() {
 
       {/* Recent Jobs */}
       {recentJobs.length > 0 && (
-        <Card className="p-6 mb-6">
+        <>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Recent Cleaning Jobs</h2>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span className="text-2xl">🧹</span>
+              Recent Cleaning Jobs
+            </h2>
             <Button size="sm" variant="outline" onClick={() => navigate(`/jobs?property_id=${id}`)}>
               View All
             </Button>
           </div>
-          <div className="space-y-3">
-            {recentJobs.map((job) => (
-              <div
-                key={job.id}
-                className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => navigate(`/jobs/${job.id}`)}
-              >
-                <div>
-                  <div className="font-medium">
-                    {new Date(job.scheduled_date).toLocaleDateString('en-GB', {
-                      weekday: 'short',
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {job.assigned_worker?.first_name} {job.assigned_worker?.last_name}
-                  </div>
-                </div>
-                <Badge
-                  color={
-                    job.status === 'COMPLETED' ? 'green' :
-                    job.status === 'IN_PROGRESS' ? 'blue' :
-                    job.status === 'SCHEDULED' ? 'yellow' : 'gray'
-                  }
+          <div className="customer-info-grid mb-6">
+            {recentJobs.map((job) => {
+              const isCompleted = job.status === 'COMPLETED'
+              const isInProgress = job.status === 'IN_PROGRESS'
+              const isScheduled = job.status === 'SCHEDULED'
+
+              const gradient = isCompleted
+                ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+                : isInProgress
+                ? 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
+                : isScheduled
+                ? 'from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800'
+                : 'from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-700'
+
+              const iconBg = isCompleted
+                ? 'bg-green-200 dark:bg-green-800'
+                : isInProgress
+                ? 'bg-blue-200 dark:bg-blue-800'
+                : isScheduled
+                ? 'bg-amber-200 dark:bg-amber-800'
+                : 'bg-gray-300 dark:bg-gray-700'
+
+              const textColor = isCompleted
+                ? 'text-green-900 dark:text-green-100'
+                : isInProgress
+                ? 'text-blue-900 dark:text-blue-100'
+                : isScheduled
+                ? 'text-amber-900 dark:text-amber-100'
+                : 'text-gray-900 dark:text-gray-100'
+
+              const labelColor = isCompleted
+                ? 'text-green-700 dark:text-green-300'
+                : isInProgress
+                ? 'text-blue-700 dark:text-blue-300'
+                : isScheduled
+                ? 'text-amber-700 dark:text-amber-300'
+                : 'text-gray-700 dark:text-gray-300'
+
+              const icon = isCompleted ? '✅' : isInProgress ? '🔄' : isScheduled ? '📅' : '📋'
+
+              return (
+                <Card
+                  key={job.id}
+                  className={`p-5 cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br ${gradient}`}
+                  onClick={() => navigate(`/jobs/${job.id}`)}
                 >
-                  {job.status.replace('_', ' ')}
-                </Badge>
-              </div>
-            ))}
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-xl">{icon}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-xs font-bold ${labelColor} uppercase tracking-wide mb-1`}>
+                        {new Date(job.scheduled_date).toLocaleDateString('en-GB', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </p>
+                      <p className={`text-lg font-extrabold ${textColor} mb-2`}>
+                        {job.status.replace('_', ' ')}
+                      </p>
+                      {job.assigned_worker && (
+                        <p className={`text-sm font-medium ${labelColor}`}>
+                          👤 {job.assigned_worker.first_name} {job.assigned_worker.last_name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )
+            })}
           </div>
-        </Card>
+        </>
       )}
 
       {/* Guest Turnover Calendar */}

@@ -2,6 +2,81 @@ import { prisma } from '@rightfit/database';
 import { NotFoundError, ValidationError } from '../utils/errors';
 
 export class InvoiceService {
+  /**
+   * Create a standalone invoice with line items
+   */
+  async create(
+    data: {
+      customer_id: string
+      cleaning_job_id?: string
+      invoice_date: string
+      due_date: string
+      line_items: Array<{
+        description: string
+        quantity: number
+        unit_price: number
+      }>
+      notes?: string
+    },
+    serviceProviderId: string
+  ) {
+    // Verify customer belongs to this service provider
+    const customer = await prisma.customer.findFirst({
+      where: {
+        id: data.customer_id,
+        service_provider_id: serviceProviderId,
+      },
+    });
+
+    if (!customer) {
+      throw new NotFoundError('Customer not found');
+    }
+
+    // Generate invoice number
+    const invoiceNumber = await this.generateInvoiceNumber();
+
+    // Calculate line item totals and subtotal
+    const invoiceLineItems = data.line_items.map((item) => {
+      const total = Number(item.quantity) * Number(item.unit_price);
+      return {
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        total,
+      };
+    });
+
+    const subtotal = invoiceLineItems.reduce((sum, item) => sum + item.total, 0);
+
+    // Calculate tax (20% VAT)
+    const taxPercentage = 20;
+    const taxAmount = (subtotal * taxPercentage) / 100;
+    const total = subtotal + taxAmount;
+
+    // Create invoice
+    const invoice = await prisma.invoice.create({
+      data: {
+        customer_id: data.customer_id,
+        cleaning_job_id: data.cleaning_job_id || undefined,
+        invoice_number: invoiceNumber,
+        invoice_date: new Date(data.invoice_date),
+        due_date: new Date(data.due_date),
+        line_items: invoiceLineItems,
+        subtotal,
+        tax_percentage: taxPercentage,
+        tax_amount: taxAmount,
+        total,
+        status: 'PENDING',
+        notes: data.notes || undefined,
+      },
+      include: {
+        customer: true,
+      },
+    });
+
+    return invoice;
+  }
+
   async generateFromMaintenanceJob(
     maintenanceJobId: string,
     serviceProviderId: string
@@ -263,5 +338,96 @@ export class InvoiceService {
     });
 
     return invoice;
+  }
+
+  async update(
+    id: string,
+    data: {
+      invoice_date?: string
+      due_date?: string
+      line_items?: Array<{
+        description: string
+        quantity: number
+        unit_price: number
+      }>
+      notes?: string
+    },
+    serviceProviderId: string
+  ) {
+    // Verify invoice exists and belongs to this provider
+    const existingInvoice = await this.getById(id, serviceProviderId);
+
+    // Don't allow editing paid invoices
+    if (existingInvoice.status === 'PAID') {
+      throw new ValidationError('Cannot edit a paid invoice');
+    }
+
+    // Build update data
+    const updateData: any = {
+      updated_at: new Date(),
+    };
+
+    if (data.invoice_date) {
+      updateData.invoice_date = new Date(data.invoice_date);
+    }
+    if (data.due_date) {
+      updateData.due_date = new Date(data.due_date);
+    }
+    if (data.notes !== undefined) {
+      updateData.notes = data.notes || undefined;
+    }
+
+    // If line items are being updated, recalculate totals
+    if (data.line_items) {
+      const invoiceLineItems = data.line_items.map((item) => {
+        const total = Number(item.quantity) * Number(item.unit_price);
+        return {
+          description: item.description,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unit_price),
+          total,
+        };
+      });
+
+      const subtotal = invoiceLineItems.reduce((sum, item) => sum + item.total, 0);
+
+      // Calculate tax (20% VAT)
+      const taxPercentage = 20;
+      const taxAmount = (subtotal * taxPercentage) / 100;
+      const total = subtotal + taxAmount;
+
+      updateData.line_items = invoiceLineItems;
+      updateData.subtotal = subtotal;
+      updateData.tax_percentage = taxPercentage;
+      updateData.tax_amount = taxAmount;
+      updateData.total = total;
+    }
+
+    // Update invoice
+    const invoice = await prisma.invoice.update({
+      where: { id },
+      data: updateData,
+      include: {
+        customer: true,
+        maintenance_job: true,
+      },
+    });
+
+    return invoice;
+  }
+
+  async delete(id: string, serviceProviderId: string) {
+    // Verify invoice exists and belongs to this provider
+    const existingInvoice = await this.getById(id, serviceProviderId);
+
+    // Don't allow deleting paid invoices
+    if (existingInvoice.status === 'PAID') {
+      throw new ValidationError('Cannot delete a paid invoice');
+    }
+
+    // Delete invoice
+    await prisma.invoice.delete({
+      where: { id },
+    });
   }
 }

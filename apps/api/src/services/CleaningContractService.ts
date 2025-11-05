@@ -5,6 +5,7 @@ const prisma = new PrismaClient()
 export interface CreateContractDTO {
   customer_id: string
   service_provider_id: string
+  contract_number?: string
   contract_type: ContractType
   contract_start_date: Date
   contract_end_date?: Date
@@ -13,6 +14,11 @@ export interface CreateContractDTO {
   property_ids?: string[] // Properties to link to contract
   property_fees?: Record<string, number> // For PER_PROPERTY pricing
   notes?: string
+  customer_address_line1?: string
+  customer_address_line2?: string
+  customer_city?: string
+  customer_postcode?: string
+  customer_country?: string
 }
 
 export interface UpdateContractDTO {
@@ -22,6 +28,12 @@ export interface UpdateContractDTO {
   billing_day?: number
   status?: ContractStatus
   notes?: string
+  contract_number?: string | null
+  customer_address_line1?: string | null
+  customer_address_line2?: string | null
+  customer_city?: string | null
+  customer_postcode?: string | null
+  customer_country?: string | null
 }
 
 export interface LinkPropertyDTO {

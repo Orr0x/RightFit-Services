@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import BusinessIcon from '@mui/icons-material/Business'
@@ -11,6 +10,7 @@ import { useToast } from '../ui/Toast'
 import { Spinner } from '../ui/Spinner'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
+import { Modal } from '../ui/Modal'
 
 interface ContractDetailsModalProps {
   contract: {
@@ -174,28 +174,25 @@ export function ContractDetailsModal({ contract, onClose, onUpdate }: ContractDe
   )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Contract Details
-            </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {contract.customer.business_name}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-          >
-            <CloseIcon sx={{ fontSize: 24 }} />
-          </button>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={
+        <div>
+          <div className="text-xl font-semibold">Contract Details</div>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {contract.customer.business_name}
+          </p>
         </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
+      }
+      size="lg"
+      footer={
+        <div className="flex justify-end">
+          <Button onClick={onClose}>Close</Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
           {/* Contract Info */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -347,12 +344,6 @@ export function ContractDetailsModal({ contract, onClose, onUpdate }: ContractDe
             )}
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-          <Button onClick={onClose}>Close</Button>
-        </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

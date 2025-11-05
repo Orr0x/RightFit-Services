@@ -1,0 +1,51 @@
+/**
+ * Cleaning Contracts Page Styles
+ */
+
+.cleaning-contracts-page {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Stats Dashboard */
+.contracts-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+/* Contracts List Grid */
+.contracts-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-4);
+}
+
+/* Contracts List View */
+.contracts-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contracts-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contracts-list-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .contracts-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .contracts-list-grid {
+    grid-template-columns: 1fr;
+  }
+}

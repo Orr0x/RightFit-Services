@@ -19,6 +19,7 @@ export interface Tab {
 export interface TabsProps {
   tabs: Tab[]
   defaultTab?: string
+  activeTab?: string
   onChange?: (tabId: string) => void
   className?: string
 }
@@ -26,14 +27,18 @@ export interface TabsProps {
 export const Tabs: React.FC<TabsProps> = ({
   tabs,
   defaultTab,
+  activeTab: controlledActiveTab,
   onChange,
   className = '',
 }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id)
+
+  // Use controlled activeTab if provided, otherwise use internal state
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab
 
   const handleTabChange = (tabId: string) => {
     if (tabs.find(t => t.id === tabId)?.disabled) return
-    setActiveTab(tabId)
+    setInternalActiveTab(tabId)
     onChange?.(tabId)
   }
 

@@ -3,6 +3,10 @@ import { authenticate } from '../middleware/auth'
 import CleaningContractService from '../services/CleaningContractService'
 import logger from '../utils/logger'
 import { prisma } from '@rightfit/database'
+import { upload, deleteFile, getFilePath } from '../utils/storage'
+import { generateContractNumber } from '../utils/idGenerator'
+import path from 'path'
+import fs from 'fs'
 
 const router = express.Router()
 
@@ -18,6 +22,7 @@ router.post('/', async (req, res) => {
     const {
       customer_id,
       service_provider_id,
+      contract_number,
       contract_type,
       contract_start_date,
       contract_end_date,
@@ -26,6 +31,11 @@ router.post('/', async (req, res) => {
       property_ids,
       property_fees,
       notes,
+      customer_address_line1,
+      customer_address_line2,
+      customer_city,
+      customer_postcode,
+      customer_country,
     } = req.body
 
     // Validation
@@ -47,9 +57,13 @@ router.post('/', async (req, res) => {
       })
     }
 
+    // Auto-generate contract number if not provided
+    const finalContractNumber = contract_number || await generateContractNumber(serviceProvider.id)
+
     const contract = await CleaningContractService.createContract({
       customer_id,
       service_provider_id: serviceProvider.id,
+      contract_number: finalContractNumber,
       contract_type,
       contract_start_date: new Date(contract_start_date),
       contract_end_date: contract_end_date ? new Date(contract_end_date) : undefined,
@@ -58,6 +72,11 @@ router.post('/', async (req, res) => {
       property_ids,
       property_fees,
       notes,
+      customer_address_line1,
+      customer_address_line2,
+      customer_city,
+      customer_postcode,
+      customer_country,
     })
 
     logger.info(`Created cleaning contract ${contract.id} for customer ${customer_id}`)
@@ -328,6 +347,160 @@ router.get('/:id/monthly-fee', async (req, res) => {
   } catch (error: any) {
     logger.error(`Error calculating monthly fee for contract ${req.params.id}:`, error)
     res.status(500).json({ error: error.message || 'Failed to calculate monthly fee' })
+  }
+})
+
+/**
+ * POST /api/cleaning-contracts/:id/upload
+ * Upload a file for a contract
+ */
+router.post('/:id/upload', upload.single('file'), async (req, res) => {
+  try {
+    const { id } = req.params
+    const file = req.file
+    const { description } = req.body
+
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' })
+    }
+
+    // Verify contract exists
+    const contract = await prisma.cleaningContract.findUnique({
+      where: { id },
+    })
+
+    if (!contract) {
+      // Delete uploaded file if contract doesn't exist
+      await deleteFile(file.filename)
+      return res.status(404).json({ error: 'Contract not found' })
+    }
+
+    // Save file metadata to database
+    const contractFile = await prisma.contractFile.create({
+      data: {
+        contract_id: id,
+        file_name: file.originalname,
+        file_path: file.filename,
+        file_type: file.mimetype,
+        file_size: file.size,
+        description: description || null,
+        uploaded_by: (req as any).user?.id || null,
+      },
+    })
+
+    logger.info(`File ${file.originalname} uploaded for contract ${id}`)
+
+    res.status(201).json({
+      data: contractFile,
+    })
+  } catch (error: any) {
+    logger.error(`Error uploading file for contract ${req.params.id}:`, error)
+
+    // Clean up file if database save failed
+    if (req.file) {
+      await deleteFile(req.file.filename).catch((err) => {
+        logger.error('Error deleting file after failed upload:', err)
+      })
+    }
+
+    res.status(500).json({ error: error.message || 'Failed to upload file' })
+  }
+})
+
+/**
+ * GET /api/cleaning-contracts/:id/files
+ * Get all files for a contract
+ */
+router.get('/:id/files', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const files = await prisma.contractFile.findMany({
+      where: { contract_id: id },
+      orderBy: { created_at: 'desc' },
+    })
+
+    res.json({ data: files })
+  } catch (error: any) {
+    logger.error(`Error fetching files for contract ${req.params.id}:`, error)
+    res.status(500).json({ error: 'Failed to fetch files' })
+  }
+})
+
+/**
+ * GET /api/cleaning-contracts/:id/files/:fileId/download
+ * Download a specific file
+ */
+router.get('/:id/files/:fileId/download', async (req, res) => {
+  try {
+    const { id, fileId } = req.params
+
+    const file = await prisma.contractFile.findFirst({
+      where: {
+        id: fileId,
+        contract_id: id,
+      },
+    })
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' })
+    }
+
+    const filePath = getFilePath(file.file_path)
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      logger.error(`File not found on disk: ${filePath}`)
+      return res.status(404).json({ error: 'File not found on server' })
+    }
+
+    // Set headers for download
+    res.setHeader('Content-Type', file.file_type)
+    res.setHeader('Content-Disposition', `attachment; filename="${file.file_name}"`)
+    res.setHeader('Content-Length', file.file_size.toString())
+
+    // Stream file to response
+    const fileStream = fs.createReadStream(filePath)
+    fileStream.pipe(res)
+  } catch (error: any) {
+    logger.error(`Error downloading file ${req.params.fileId}:`, error)
+    res.status(500).json({ error: 'Failed to download file' })
+  }
+})
+
+/**
+ * DELETE /api/cleaning-contracts/:id/files/:fileId
+ * Delete a specific file
+ */
+router.delete('/:id/files/:fileId', async (req, res) => {
+  try {
+    const { id, fileId } = req.params
+
+    const file = await prisma.contractFile.findFirst({
+      where: {
+        id: fileId,
+        contract_id: id,
+      },
+    })
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' })
+    }
+
+    // Delete file from disk
+    await deleteFile(file.file_path)
+
+    // Delete from database
+    await prisma.contractFile.delete({
+      where: { id: fileId },
+    })
+
+    logger.info(`Deleted file ${file.file_name} from contract ${id}`)
+
+    res.json({ message: 'File deleted successfully' })
+  } catch (error: any) {
+    logger.error(`Error deleting file ${req.params.fileId}:`, error)
+    res.status(500).json({ error: 'Failed to delete file' })
   }
 })
 

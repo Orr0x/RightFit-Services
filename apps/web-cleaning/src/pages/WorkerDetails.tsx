@@ -9,6 +9,7 @@ import WorkIcon from '@mui/icons-material/Work'
 import BadgeIcon from '@mui/icons-material/Badge'
 import PersonIcon from '@mui/icons-material/Person'
 import HistoryIcon from '@mui/icons-material/History'
+import '../pages/ContractDetails.css'
 
 const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
@@ -332,23 +333,60 @@ export default function WorkerDetails() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <Card className="p-4">
-            <div className="text-sm text-gray-600">Hourly Rate</div>
-            <div className="text-2xl font-bold">£{worker.hourly_rate}</div>
+        <div className="customer-info-grid mt-6">
+          <Card className="p-5 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">💷</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase tracking-wide mb-1">Hourly Rate</p>
+                <p className="text-lg font-extrabold text-green-900 dark:text-green-100">
+                  £{worker.hourly_rate}
+                </p>
+              </div>
+            </div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-gray-600">Jobs Completed</div>
-            <div className="text-2xl font-bold">{worker.jobs_completed}</div>
+
+          <Card className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">✅</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">Jobs Completed</p>
+                <p className="text-lg font-extrabold text-blue-900 dark:text-blue-100">
+                  {worker.jobs_completed}
+                </p>
+              </div>
+            </div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-gray-600">Upcoming Jobs</div>
-            <div className="text-2xl font-bold">{upcomingJobs.length}</div>
+
+          <Card className="p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-purple-200 dark:bg-purple-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">📅</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide mb-1">Upcoming Jobs</p>
+                <p className="text-lg font-extrabold text-purple-900 dark:text-purple-100">
+                  {upcomingJobs.length}
+                </p>
+              </div>
+            </div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-gray-600">Rating</div>
-            <div className="text-2xl font-bold">
-              {worker.average_rating ? `⭐ ${worker.average_rating}` : 'N/A'}
+
+          <Card className="p-5 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-amber-200 dark:bg-amber-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-xl">⭐</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide mb-1">Rating</p>
+                <p className="text-lg font-extrabold text-amber-900 dark:text-amber-100">
+                  {worker.average_rating ? `${worker.average_rating}` : 'N/A'}
+                </p>
+              </div>
             </div>
           </Card>
         </div>
@@ -445,35 +483,72 @@ export default function WorkerDetails() {
             </Card>
 
             {/* Performance */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">Performance Summary</h2>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <span className="text-sm font-medium">Completed Jobs</span>
-                  <span className="text-lg font-bold text-green-700">{completedJobs.length}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                  <span className="text-sm font-medium">Upcoming Jobs</span>
-                  <span className="text-lg font-bold text-blue-700">{upcomingJobs.length}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                  <span className="text-sm font-medium">Average Rating</span>
-                  <span className="text-lg font-bold text-purple-700">
-                    {worker.average_rating ? `${worker.average_rating}/5` : 'No ratings yet'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Member Since</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {new Date(worker.created_at).toLocaleDateString('en-GB', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </span>
-                </div>
+            <div>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <span className="text-2xl">📊</span>
+                Performance Summary
+              </h2>
+              <div className="customer-info-grid">
+                <Card className="p-5 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-xl">✅</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase tracking-wide mb-1">Completed Jobs</p>
+                      <p className="text-lg font-extrabold text-green-900 dark:text-green-100">
+                        {completedJobs.length}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-xl">📅</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide mb-1">Upcoming Jobs</p>
+                      <p className="text-lg font-extrabold text-blue-900 dark:text-blue-100">
+                        {upcomingJobs.length}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-purple-200 dark:bg-purple-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-xl">⭐</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide mb-1">Average Rating</p>
+                      <p className="text-lg font-extrabold text-purple-900 dark:text-purple-100">
+                        {worker.average_rating ? `${worker.average_rating}/5` : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border-gray-200 dark:border-gray-700">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-xl">📆</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">Member Since</p>
+                      <p className="text-sm font-extrabold text-gray-900 dark:text-gray-100">
+                        {new Date(worker.created_at).toLocaleDateString('en-GB', {
+                          year: 'numeric',
+                          month: 'short'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
               </div>
-            </Card>
+            </div>
           </div>
         </TabPanel>
 

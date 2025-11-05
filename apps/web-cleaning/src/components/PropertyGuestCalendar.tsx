@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import '../pages/ContractDetails.css'
 
 interface PropertyGuestCalendarProps {
   propertyId: string
@@ -154,19 +155,26 @@ export function PropertyGuestCalendar({ propertyId }: PropertyGuestCalendarProps
 
   if (loading) {
     return (
-      <Card className="p-6 mb-6">
-        <div className="flex justify-center">
-          <Spinner />
-        </div>
-      </Card>
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <span className="text-2xl">📅</span>
+          Guest Turnover Schedule
+        </h2>
+        <Card className="p-8">
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <Card className="p-6 mb-6">
+    <div className="mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <CalendarMonthIcon /> Guest Turnover Schedule
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <span className="text-2xl">📅</span>
+          Guest Turnover Schedule
         </h2>
         {!showForm && (
           <Button size="sm" onClick={() => setShowForm(true)}>
@@ -235,123 +243,156 @@ export function PropertyGuestCalendar({ propertyId }: PropertyGuestCalendarProps
       )}
 
       {entries.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <CalendarMonthIcon style={{ fontSize: '48px', marginBottom: '8px', opacity: 0.5 }} />
-          <p>No upcoming guest turnovers scheduled</p>
-          <p className="text-sm mt-2">Add guest checkout/checkin times to schedule cleaning windows</p>
-        </div>
+        <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-700">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+              <span className="text-3xl">📅</span>
+            </div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-semibold mb-2">No upcoming guest turnovers scheduled</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Add guest checkout/checkin times to schedule cleaning windows</p>
+        </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="customer-info-grid">
           {entries.map((entry) => {
             const checkoutDate = new Date(entry.guest_checkout_datetime)
             const checkinDate = new Date(entry.next_guest_checkin_datetime)
             const cleaningWindow = calculateDuration(entry)
             const isSameDay = isSameDayTurnover(entry)
 
+            // Determine gradient based on job status
+            const hasJob = !!entry.cleaning_job_id
+            const gradient = hasJob
+              ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+              : isSameDay
+              ? 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
+              : 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
+
+            const iconBg = hasJob
+              ? 'bg-green-200 dark:bg-green-800'
+              : isSameDay
+              ? 'bg-orange-200 dark:bg-orange-800'
+              : 'bg-blue-200 dark:bg-blue-800'
+
+            const textColor = hasJob
+              ? 'text-green-900 dark:text-green-100'
+              : isSameDay
+              ? 'text-orange-900 dark:text-orange-100'
+              : 'text-blue-900 dark:text-blue-100'
+
+            const labelColor = hasJob
+              ? 'text-green-700 dark:text-green-300'
+              : isSameDay
+              ? 'text-orange-700 dark:text-orange-300'
+              : 'text-blue-700 dark:text-blue-300'
+
             return (
-              <div
+              <Card
                 key={entry.id}
-                className="p-4 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700"
+                className={`p-5 bg-gradient-to-br ${gradient} md:col-span-2`}
               >
                 <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      {isSameDay && (
-                        <Badge color="orange">Same-Day Turnover</Badge>
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-xl">🏠</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {isSameDay && (
+                          <Badge color="orange">Same-Day Turnover</Badge>
+                        )}
+                        {entry.cleaning_job_id && (
+                          <Badge
+                            color="green"
+                            onClick={() => navigate(`/jobs/${entry.cleaning_job_id}`)}
+                            className="cursor-pointer"
+                          >
+                            Job Scheduled
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <p className={`text-xs font-bold ${labelColor} uppercase tracking-wide mb-1`}>
+                            Guest Checkout
+                          </p>
+                          <p className={`text-sm font-extrabold ${textColor}`}>
+                            {checkoutDate.toLocaleDateString('en-GB', {
+                              weekday: 'short',
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </p>
+                          <p className={`text-sm font-medium ${labelColor}`}>
+                            {checkoutDate.toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className={`text-xs font-bold ${labelColor} uppercase tracking-wide mb-1`}>
+                            Next Guest Check-in
+                          </p>
+                          <p className={`text-sm font-extrabold ${textColor}`}>
+                            {checkinDate.toLocaleDateString('en-GB', {
+                              weekday: 'short',
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </p>
+                          <p className={`text-sm font-medium ${labelColor}`}>
+                            {checkinDate.toLocaleTimeString('en-GB', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={`pt-3 border-t ${hasJob ? 'border-green-200 dark:border-green-700' : isSameDay ? 'border-orange-200 dark:border-orange-700' : 'border-blue-200 dark:border-blue-700'}`}>
+                        <p className={`text-sm font-bold ${labelColor}`}>
+                          ⏱️ Cleaning Window: <span className={`${textColor}`}>{cleaningWindow} hours</span>
+                        </p>
+                        <p className={`text-xs ${labelColor} mt-1`}>
+                          Must finish 2 hours before check-in
+                        </p>
+                      </div>
+
+                      {entry.notes && (
+                        <div className={`mt-2 text-sm ${labelColor} italic`}>
+                          📝 {entry.notes}
+                        </div>
                       )}
-                      {entry.cleaning_job_id && (
-                        <Badge
-                          color="green"
-                          onClick={() => navigate(`/jobs/${entry.cleaning_job_id}`)}
-                          className="cursor-pointer"
-                        >
-                          Job Scheduled
-                        </Badge>
-                      )}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <div className="font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                          Guest Checkout
-                        </div>
-                        <div className="text-gray-900 dark:text-gray-100">
-                          {checkoutDate.toLocaleDateString('en-GB', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </div>
-                        <div className="text-gray-600 dark:text-gray-400">
-                          {checkoutDate.toLocaleTimeString('en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                          Next Guest Check-in
-                        </div>
-                        <div className="text-gray-900 dark:text-gray-100">
-                          {checkinDate.toLocaleDateString('en-GB', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </div>
-                        <div className="text-gray-600 dark:text-gray-400">
-                          {checkinDate.toLocaleTimeString('en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <div className="text-sm">
-                        <span className="font-semibold text-blue-600 dark:text-blue-400">
-                          Cleaning Window: {cleaningWindow} hours
-                        </span>
-                        <span className="text-gray-600 dark:text-gray-400 ml-2">
-                          (Must finish 2 hours before check-in)
-                        </span>
-                      </div>
-                    </div>
-
-                    {entry.notes && (
-                      <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 italic">
-                        Note: {entry.notes}
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => handleEdit(entry)}
-                      className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+                      className="p-2 hover:bg-white/50 dark:hover:bg-black/20 rounded transition-colors"
                       title="Edit"
                     >
                       <EditIcon style={{ fontSize: '18px' }} />
                     </button>
                     <button
                       onClick={() => handleDelete(entry.id)}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded text-red-600"
+                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/40 rounded text-red-600 transition-colors"
                       title="Delete"
                     >
                       <DeleteIcon style={{ fontSize: '18px' }} />
                     </button>
                   </div>
                 </div>
-              </div>
+              </Card>
             )
           })}
         </div>
       )}
-    </Card>
+    </div>
   )
 }

@@ -81,6 +81,7 @@
   --z-dropdown: 1000;
   --z-sticky: 1100;
   --z-modal: 1400;
+  --z-toast: 1500;
 
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);

@@ -5,6 +5,7 @@ import { cleaningJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
+import './CleaningJobs.css'
 
 const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
@@ -107,39 +108,68 @@ export default function CleaningJobs() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header with Stats */}
-      <div className="mb-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-3">Cleaning Jobs</h1>
-            <div className="flex gap-3 text-sm">
-              <div className="flex items-center gap-1.5">
-                <span className="text-gray-600">Total Jobs:</span>
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded font-semibold">{jobs.length}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-gray-600">Pending:</span>
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded font-semibold">{jobs.filter(j => j.status === 'PENDING').length}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-gray-600">Scheduled:</span>
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold">{jobs.filter(j => j.status === 'SCHEDULED').length}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-gray-600">In Progress:</span>
-                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded font-semibold">{jobs.filter(j => j.status === 'IN_PROGRESS').length}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-gray-600">Completed:</span>
-                <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-semibold">{jobs.filter(j => j.status === 'COMPLETED').length}</span>
-              </div>
+    <div className="cleaning-jobs-page container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Cleaning Jobs</h1>
+        <Button onClick={() => navigate('/jobs/new')}>
+          Create Job
+        </Button>
+      </div>
+
+      {/* Stats Dashboard */}
+      <div className="jobs-stats">
+        <Card className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Jobs</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{jobs.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">📋</span>
             </div>
           </div>
-          <Button onClick={() => navigate('/jobs/new')}>
-            Create Job
-          </Button>
-        </div>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">All cleaning jobs</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Scheduled</p>
+              <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">{jobs.filter(j => j.status === 'SCHEDULED').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">📅</span>
+            </div>
+          </div>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">{jobs.filter(j => j.status === 'PENDING').length} pending assignment</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">In Progress</p>
+              <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">{jobs.filter(j => j.status === 'IN_PROGRESS').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-200 dark:bg-yellow-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">⚡</span>
+            </div>
+          </div>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">Currently active</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">Completed</p>
+              <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">{jobs.filter(j => j.status === 'COMPLETED').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-200 dark:bg-green-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+          </div>
+          <p className="text-xs text-green-600 dark:text-green-400 mt-2">Successfully finished</p>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -201,7 +231,7 @@ export default function CleaningJobs() {
           description="Schedule a new cleaning job to get started"
         />
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="jobs-list-grid">
           {filteredJobs.map((job) => (
             <Card
               key={job.id}
@@ -308,7 +338,7 @@ export default function CleaningJobs() {
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="jobs-list-view">
           {filteredJobs.map((job) => (
             <Card
               key={job.id}

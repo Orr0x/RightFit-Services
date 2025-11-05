@@ -1,5 +1,6 @@
 import { prisma, CustomerType, PaymentTerms } from '@rightfit/database';
 import { NotFoundError } from '../utils/errors';
+import { generateCustomerNumber } from '../utils/idGenerator';
 
 export interface CreateCustomerData {
   business_name: string;
@@ -7,6 +8,11 @@ export interface CreateCustomerData {
   email: string;
   phone: string;
   address?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  postcode?: string;
+  country?: string;
   customer_type: CustomerType;
   has_cleaning_contract?: boolean;
   has_maintenance_contract?: boolean;
@@ -20,6 +26,11 @@ export interface UpdateCustomerData {
   email?: string;
   phone?: string;
   address?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  postcode?: string;
+  country?: string;
   customer_type?: CustomerType;
   has_cleaning_contract?: boolean;
   has_maintenance_contract?: boolean;
@@ -136,9 +147,13 @@ export class CustomersService {
   async create(data: CreateCustomerData, tenantId: string) {
     const serviceProviderId = await this.getServiceProviderId(tenantId);
 
+    // Auto-generate customer number
+    const customer_number = await generateCustomerNumber(serviceProviderId);
+
     const customer = await prisma.customer.create({
       data: {
         ...data,
+        customer_number,
         service_provider_id: serviceProviderId,
       },
     });

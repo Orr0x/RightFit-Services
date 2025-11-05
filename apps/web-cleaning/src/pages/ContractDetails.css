@@ -1,0 +1,48 @@
+/**
+ * Contract Details Page Styles
+ */
+
+:root {
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+}
+
+/* Contract Info Grid */
+.contract-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+/* Customer Info Grid */
+.customer-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contract-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .customer-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .contract-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-info-grid {
+    grid-template-columns: 1fr;
+  }
+}

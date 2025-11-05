@@ -1,0 +1,29 @@
+/**
+ * Property Calendar Page Styles
+ */
+
+.property-calendar-page {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Stats Dashboard */
+.calendar-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .calendar-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-stats {
+    grid-template-columns: 1fr;
+  }
+}

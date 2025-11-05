@@ -37,6 +37,11 @@ export function CreateContractModal({ onClose, onSuccess }: CreateContractModalP
     monthly_fee: '',
     billing_day: '1',
     notes: '',
+    customer_address_line1: '',
+    customer_address_line2: '',
+    customer_city: '',
+    customer_postcode: '',
+    customer_country: '',
   })
 
   useEffect(() => {
@@ -92,6 +97,11 @@ export function CreateContractModal({ onClose, onSuccess }: CreateContractModalP
         monthly_fee: Number(formData.monthly_fee),
         billing_day: billingDay,
         notes: formData.notes || undefined,
+        customer_address_line1: formData.customer_address_line1 || undefined,
+        customer_address_line2: formData.customer_address_line2 || undefined,
+        customer_city: formData.customer_city || undefined,
+        customer_postcode: formData.customer_postcode || undefined,
+        customer_country: formData.customer_country || undefined,
       }
 
       await api.post('/api/cleaning-contracts', payload)
@@ -146,6 +156,54 @@ export function CreateContractModal({ onClose, onSuccess }: CreateContractModalP
                 required
               />
             )}
+          </div>
+
+          {/* Contract Number - Auto-generated */}
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+              <span className="font-semibold">Contract Number:</span> Will be auto-generated (e.g., CT-2025-0001)
+            </p>
+          </div>
+
+          {/* Customer Address */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Customer Address (Optional)
+            </label>
+            <div className="space-y-3">
+              <Input
+                type="text"
+                value={formData.customer_address_line1}
+                onChange={(e) => setFormData({ ...formData, customer_address_line1: e.target.value })}
+                placeholder="Address Line 1"
+              />
+              <Input
+                type="text"
+                value={formData.customer_address_line2}
+                onChange={(e) => setFormData({ ...formData, customer_address_line2: e.target.value })}
+                placeholder="Address Line 2"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="text"
+                  value={formData.customer_city}
+                  onChange={(e) => setFormData({ ...formData, customer_city: e.target.value })}
+                  placeholder="City"
+                />
+                <Input
+                  type="text"
+                  value={formData.customer_postcode}
+                  onChange={(e) => setFormData({ ...formData, customer_postcode: e.target.value })}
+                  placeholder="Postcode"
+                />
+              </div>
+              <Input
+                type="text"
+                value={formData.customer_country}
+                onChange={(e) => setFormData({ ...formData, customer_country: e.target.value })}
+                placeholder="Country"
+              />
+            </div>
           </div>
 
           {/* Contract Type */}

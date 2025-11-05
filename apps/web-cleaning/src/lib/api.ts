@@ -1051,12 +1051,18 @@ export const workersAPI = {
 // Customers API - Service provider customers
 export interface Customer {
   id: string
+  customer_number?: string
   service_provider_id: string
   business_name: string
   contact_name: string
   email: string
   phone: string
   address?: string
+  address_line1?: string
+  address_line2?: string
+  city?: string
+  postcode?: string
+  country?: string
   customer_type: 'INDIVIDUAL' | 'PROPERTY_MANAGER' | 'VACATION_RENTAL'
   has_cleaning_contract: boolean
   has_maintenance_contract: boolean
@@ -1082,6 +1088,11 @@ export interface CreateCustomerData {
   email: string
   phone: string
   address?: string
+  address_line1: string
+  address_line2?: string
+  city: string
+  postcode: string
+  country?: string
   customer_type: 'INDIVIDUAL' | 'PROPERTY_MANAGER' | 'VACATION_RENTAL'
   has_cleaning_contract?: boolean
   has_maintenance_contract?: boolean
@@ -1528,5 +1539,257 @@ export const cleaningContractsAPI = {
   calculateMonthlyFee: async (id: string): Promise<number> => {
     const response = await api.get<{ data: { contract_id: string; monthly_fee: number } }>(`/api/cleaning-contracts/${id}/monthly-fee`)
     return response.data.data.monthly_fee
+  },
+}
+
+// Cleaning Invoices API
+export interface CleaningInvoice {
+  id: string
+  invoice_number: string
+  customer_id: string
+  contract_id?: string | null
+  service_provider_id: string
+  issue_date: string
+  due_date: string
+  billing_period_start: string
+  billing_period_end: string
+  subtotal: number
+  tax_rate: number
+  tax_amount: number
+  total: number
+  status: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED'
+  sent_date?: string | null
+  paid_date?: string | null
+  payment_method?: string | null
+  notes?: string | null
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+    payment_terms: string
+  }
+  invoice_line_items?: InvoiceLineItem[]
+}
+
+export interface InvoiceLineItem {
+  id: string
+  invoice_id: string
+  description: string
+  quantity: number
+  unit_price: number
+  line_total: number
+}
+
+export interface CreateInvoiceLineItemData {
+  description: string
+  quantity: number
+  unit_price: number
+}
+
+export interface GenerateInvoiceFromContractData {
+  contract_id: string
+  billing_period_start: string
+  billing_period_end: string
+  service_provider_id: string
+  line_items?: CreateInvoiceLineItemData[]
+}
+
+export interface CreateInvoiceData {
+  customer_id: string
+  service_provider_id: string
+  issue_date: string
+  billing_period_start: string
+  billing_period_end: string
+  line_items: CreateInvoiceLineItemData[]
+  notes?: string
+}
+
+export interface CustomerInvoiceStats {
+  total_invoices: number
+  total_amount: number
+  paid_amount: number
+  outstanding_amount: number
+  overdue_amount: number
+}
+
+export const cleaningInvoicesAPI = {
+  list: async (filters?: {
+    service_provider_id?: string
+    customer_id?: string
+    status?: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED'
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: CleaningInvoice[]; pagination: any }>('/api/invoices', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: CleaningInvoice }>(`/api/invoices/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateInvoiceData) => {
+    // Handled directly in CreateInvoice component now
+    const response = await api.post<{ data: CleaningInvoice }>('/api/invoices', data)
+    return response.data.data
+  },
+
+  generateFromContract: async (data: GenerateInvoiceFromContractData) => {
+    // This still uses cleaning-invoices for contract-based invoices
+    const response = await api.post<{ data: CleaningInvoice }>('/api/cleaning-invoices/generate', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateInvoiceData>) => {
+    const response = await api.patch<{ data: CleaningInvoice }>(`/api/invoices/${id}`, data)
+    return response.data.data
+  },
+
+  markAsPaid: async (id: string, data: { paid_date: string; payment_method?: string }) => {
+    const response = await api.put<{ data: CleaningInvoice }>(`/api/invoices/${id}/mark-paid`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/invoices/${id}`)
+  },
+
+  getCustomerStats: async (customerId: string) => {
+    // This may not exist for generic invoices, keeping for compatibility
+    const response = await api.get<{ data: CustomerInvoiceStats }>(`/api/invoices/customer/${customerId}/stats`)
+    return response.data.data
+  },
+}
+
+// Cleaning Quotes API
+export interface CleaningQuote {
+  id: string
+  quote_number: string
+  customer_id: string
+  service_provider_id: string
+  quote_date: string
+  valid_until: string
+  property_id?: string | null
+  service_description: string
+  subtotal: number
+  discount_percentage: number
+  discount_amount: number
+  tax_rate: number
+  tax_amount: number
+  total: number
+  status: 'DRAFT' | 'SENT' | 'APPROVED' | 'DECLINED' | 'EXPIRED'
+  sent_date?: string | null
+  approved_date?: string | null
+  declined_date?: string | null
+  declined_reason?: string | null
+  notes?: string | null
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+  }
+  property?: {
+    id: string
+    property_name: string
+    address: string
+  }
+  quote_line_items?: QuoteLineItem[]
+}
+
+export interface QuoteLineItem {
+  id: string
+  quote_id: string
+  description: string
+  quantity: number
+  unit_price: number
+  line_total: number
+}
+
+export interface CreateQuoteLineItemData {
+  description: string
+  quantity: number
+  unit_price: number
+}
+
+export interface CreateQuoteData {
+  customer_id: string
+  service_provider_id: string
+  property_id?: string
+  service_description: string
+  valid_until: string
+  discount_percentage?: number
+  line_items: CreateQuoteLineItemData[]
+  notes?: string
+}
+
+export interface CustomerQuoteStats {
+  total_quotes: number
+  approved_quotes: number
+  declined_quotes: number
+  pending_quotes: number
+  total_value: number
+  approved_value: number
+}
+
+export const cleaningQuotesAPI = {
+  list: async (filters?: {
+    service_provider_id?: string
+    customer_id?: string
+    status?: 'DRAFT' | 'SENT' | 'APPROVED' | 'DECLINED' | 'EXPIRED'
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: CleaningQuote[] }>('/api/cleaning-quotes', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: CleaningQuote }>(`/api/cleaning-quotes/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateQuoteData) => {
+    const response = await api.post<{ data: CleaningQuote }>('/api/cleaning-quotes', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateQuoteData>) => {
+    const response = await api.patch<{ data: CleaningQuote }>(`/api/cleaning-quotes/${id}`, data)
+    return response.data.data
+  },
+
+  approve: async (id: string) => {
+    const response = await api.post<{ data: CleaningQuote }>(`/api/cleaning-quotes/${id}/approve`)
+    return response.data.data
+  },
+
+  decline: async (id: string, reason?: string) => {
+    const response = await api.post<{ data: CleaningQuote }>(`/api/cleaning-quotes/${id}/decline`, { reason })
+    return response.data.data
+  },
+
+  send: async (id: string) => {
+    const response = await api.post<{ data: CleaningQuote }>(`/api/cleaning-quotes/${id}/send`)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/cleaning-quotes/${id}`)
+  },
+
+  getCustomerStats: async (customerId: string) => {
+    const response = await api.get<{ data: CustomerQuoteStats }>(`/api/cleaning-quotes/customer/${customerId}/stats`)
+    return response.data.data
   },
 }

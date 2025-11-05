@@ -5,6 +5,8 @@ import { cleaningJobsAPI, type CleaningJob } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
 import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
+import './PropertyCalendar.css'
+import './ContractDetails.css'
 
 const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
@@ -648,7 +650,7 @@ export default function PropertyCalendar() {
   )
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="property-calendar-page container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -672,86 +674,114 @@ export default function PropertyCalendar() {
         </div>
       </div>
 
-      {/* Legend with Stats */}
-      <Card className="p-4 mb-6">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <div className="text-sm font-medium text-gray-700">Status Legend:</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#dbeafe',
-                  border: '2px solid #93c5fd',
-                  borderRadius: '4px'
-                }}
-              ></div>
-              <span className="text-sm">Scheduled</span>
+      {/* Stats Dashboard */}
+      <div className="calendar-stats">
+        <Card className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Jobs</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{monthJobs.length}</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#fef3c7',
-                  border: '2px solid #fcd34d',
-                  borderRadius: '4px'
-                }}
-              ></div>
-              <span className="text-sm">In Progress</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#d1fae5',
-                  border: '2px solid #6ee7b7',
-                  borderRadius: '4px'
-                }}
-              ></div>
-              <span className="text-sm">Completed</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  backgroundColor: '#fee2e2',
-                  border: '2px solid #fca5a5',
-                  borderRadius: '4px'
-                }}
-              ></div>
-              <span className="text-sm">Cancelled</span>
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">📋</span>
             </div>
           </div>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">This month</p>
+        </Card>
 
-          {/* Summary Stats */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="text-sm font-medium text-gray-700">Total Jobs:</span>
-              <span className="text-lg font-bold">{monthJobs.length}</span>
+        <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Scheduled</p>
+              <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">{monthJobs.filter(j => j.status === 'SCHEDULED').length}</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="text-sm font-medium" style={{ color: '#1d4ed8' }}>Scheduled:</span>
-              <span className="text-lg font-bold" style={{ color: '#1d4ed8' }}>
-                {monthJobs.filter(j => j.status === 'SCHEDULED').length}
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="text-sm font-medium" style={{ color: '#b45309' }}>In Progress:</span>
-              <span className="text-lg font-bold" style={{ color: '#b45309' }}>
-                {monthJobs.filter(j => j.status === 'IN_PROGRESS').length}
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="text-sm font-medium" style={{ color: '#065f46' }}>Completed:</span>
-              <span className="text-lg font-bold" style={{ color: '#065f46' }}>
-                {monthJobs.filter(j => j.status === 'COMPLETED').length}
-              </span>
+            <div className="w-12 h-12 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">📅</span>
             </div>
           </div>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">Awaiting start</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">In Progress</p>
+              <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">{monthJobs.filter(j => j.status === 'IN_PROGRESS').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-200 dark:bg-yellow-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">⚡</span>
+            </div>
+          </div>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">Currently active</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">Completed</p>
+              <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">{monthJobs.filter(j => j.status === 'COMPLETED').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-200 dark:bg-green-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+          </div>
+          <p className="text-xs text-green-600 dark:text-green-400 mt-2">Successfully finished</p>
+        </Card>
+      </div>
+
+      {/* Status Legend */}
+      <Card className="p-4 mb-6">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+          <div className="text-sm font-medium text-gray-700">Status Legend:</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                backgroundColor: '#dbeafe',
+                border: '2px solid #93c5fd',
+                borderRadius: '4px'
+              }}
+            ></div>
+            <span className="text-sm">Scheduled</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                backgroundColor: '#fef3c7',
+                border: '2px solid #fcd34d',
+                borderRadius: '4px'
+              }}
+            ></div>
+            <span className="text-sm">In Progress</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                backgroundColor: '#d1fae5',
+                border: '2px solid #6ee7b7',
+                borderRadius: '4px'
+              }}
+            ></div>
+            <span className="text-sm">Completed</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '20px',
+                height: '20px',
+                backgroundColor: '#fee2e2',
+                border: '2px solid #fca5a5',
+                borderRadius: '4px'
+              }}
+            ></div>
+            <span className="text-sm">Cancelled</span>
+          </div>
+          <div className="text-sm text-gray-600 ml-auto">💡 Drag & drop to reschedule jobs</div>
         </div>
       </Card>
 
@@ -789,35 +819,42 @@ export default function PropertyCalendar() {
 
       {/* Properties Section */}
       <div className="mt-8">
-        <h2 className="text-xl font-bold mb-4">Properties This Month</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <span className="text-2xl">🏘️</span>
+          Properties This Month
+        </h2>
+        <div className="customer-info-grid">
           {Array.from(uniqueProperties).map((propertyName) => {
             const propertyJobs = monthJobs.filter(job => job.property?.property_name === propertyName)
             const property = propertyJobs[0]?.property
+            const completedCount = propertyJobs.filter(j => j.status === 'COMPLETED').length
 
             return (
               <Card
                 key={propertyName}
-                className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => property?.id && navigate(`/properties/${property.id}`)}
               >
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl">🏠</span>
+                  </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{propertyName}</h3>
+                    <h3 className="font-bold text-blue-900 dark:text-blue-100">{propertyName}</h3>
                     {property?.address && (
-                      <p className="text-sm text-gray-600 mt-1">{property.address}</p>
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">{property.address}</p>
                     )}
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Jobs this month:</span>
-                    <span className="font-semibold">{propertyJobs.length}</span>
+                <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Jobs this month</span>
+                    <span className="text-lg font-extrabold text-blue-900 dark:text-blue-100">{propertyJobs.length}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-gray-600">Completed:</span>
-                    <span className="font-semibold text-green-600">
-                      {propertyJobs.filter(j => j.status === 'COMPLETED').length}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-green-700 dark:text-green-300 uppercase tracking-wide">Completed</span>
+                    <span className="text-lg font-extrabold text-green-700 dark:text-green-300">
+                      {completedCount}
                     </span>
                   </div>
                 </div>
@@ -834,42 +871,50 @@ export default function PropertyCalendar() {
 
       {/* Workers Section */}
       <div className="mt-8 mb-8">
-        <h2 className="text-xl font-bold mb-4">Workers This Month</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <span className="text-2xl">👷</span>
+          Workers This Month
+        </h2>
+        <div className="customer-info-grid">
           {uniqueWorkers.map((worker) => {
             const workerJobs = monthJobs.filter(
               job => job.assigned_worker?.id === worker.id
             )
+            const completedCount = workerJobs.filter(j => j.status === 'COMPLETED').length
+            const inProgressCount = workerJobs.filter(j => j.status === 'IN_PROGRESS').length
 
             return (
               <Card
                 key={worker.id}
-                className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+                className="p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => navigate(`/workers/${worker.id}`)}
               >
-                <div className="flex items-start mb-2">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 bg-purple-200 dark:bg-purple-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl">👤</span>
+                  </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-bold text-purple-900 dark:text-purple-100">
                       {worker.first_name} {worker.last_name}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">{worker.email}</p>
+                    <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">{worker.email}</p>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Jobs assigned:</span>
-                    <span className="font-semibold">{workerJobs.length}</span>
+                <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-700 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide">Jobs assigned</span>
+                    <span className="text-lg font-extrabold text-purple-900 dark:text-purple-100">{workerJobs.length}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-gray-600">Completed:</span>
-                    <span className="font-semibold text-green-600">
-                      {workerJobs.filter(j => j.status === 'COMPLETED').length}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-green-700 dark:text-green-300 uppercase tracking-wide">Completed</span>
+                    <span className="text-lg font-extrabold text-green-700 dark:text-green-300">
+                      {completedCount}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-gray-600">In progress:</span>
-                    <span className="font-semibold text-yellow-600">
-                      {workerJobs.filter(j => j.status === 'IN_PROGRESS').length}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">In Progress</span>
+                    <span className="text-lg font-extrabold text-amber-700 dark:text-amber-300">
+                      {inProgressCount}
                     </span>
                   </div>
                 </div>
