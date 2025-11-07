@@ -49,8 +49,7 @@ export class CustomerPropertiesService {
   /**
    * List all customer properties for a service provider
    */
-  async list(tenantId: string, page: number = 1, limit: number = 20, search?: string, customerId?: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
+  async list(serviceProviderId: string, page: number = 1, limit: number = 20, search?: string, customerId?: string) {
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -112,8 +111,7 @@ export class CustomerPropertiesService {
   /**
    * Get a specific customer property
    */
-  async getById(id: string, tenantId: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
+  async getById(id: string, serviceProviderId: string) {
 
     const property = await prisma.customerProperty.findFirst({
       where: {
@@ -153,8 +151,7 @@ export class CustomerPropertiesService {
   /**
    * Create a new customer property
    */
-  async create(data: CreateCustomerPropertyData, tenantId: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
+  async create(data: CreateCustomerPropertyData, serviceProviderId: string) {
 
     // Verify customer belongs to this service provider
     const customer = await prisma.customer.findFirst({
@@ -187,8 +184,7 @@ export class CustomerPropertiesService {
   /**
    * Update a customer property
    */
-  async update(id: string, data: UpdateCustomerPropertyData, tenantId: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
+  async update(id: string, data: UpdateCustomerPropertyData, serviceProviderId: string) {
 
     // Verify property exists and belongs to this service provider
     const existing = await prisma.customerProperty.findFirst({
@@ -224,8 +220,7 @@ export class CustomerPropertiesService {
   /**
    * Delete a customer property (soft delete)
    */
-  async delete(id: string, tenantId: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
+  async delete(id: string, serviceProviderId: string) {
 
     // Verify property exists and belongs to this service provider
     const existing = await prisma.customerProperty.findFirst({

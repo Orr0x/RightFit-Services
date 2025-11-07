@@ -15,6 +15,8 @@ interface LineItem extends CreateQuoteLineItemData {
   id: string
 }
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function EditQuote() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -118,7 +120,7 @@ export default function EditQuote() {
 
       try {
         setLoadingProperties(true)
-        const result = await customerPropertiesAPI.list({ customer_id: customerId })
+        const result = await customerPropertiesAPI.list({ customer_id: customerId, service_provider_id: SERVICE_PROVIDER_ID })
         const options = (result.data || []).map((property) => ({
           value: property.id,
           label: property.property_name,

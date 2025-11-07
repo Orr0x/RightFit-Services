@@ -106,7 +106,7 @@ export default function CreateCleaningJob() {
           service_provider_id: user.tenant_id,  // Use tenant_id, not ServiceProvider.id
           status: 'ACTIVE',
         }),
-        customerPropertiesAPI.list(),
+        customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID }),
         servicesAPI.list(SERVICE_PROVIDER_ID),
         workersAPI.list(SERVICE_PROVIDER_ID),
         checklistTemplatesAPI.list(SERVICE_PROVIDER_ID),

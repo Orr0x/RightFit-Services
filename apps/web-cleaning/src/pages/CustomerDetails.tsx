@@ -25,6 +25,8 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import WorkIcon from '@mui/icons-material/Work'
 import './ContractDetails.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -63,7 +65,7 @@ export default function CustomerDetails() {
     if (!id) return
 
     try {
-      const result = await customerPropertiesAPI.list({ customer_id: id })
+      const result = await customerPropertiesAPI.list({ customer_id: id, service_provider_id: SERVICE_PROVIDER_ID })
       setProperties(result.data)
     } catch (err) {
       console.log('No properties found for customer')

@@ -38,14 +38,14 @@ router.get('/:id', requireServiceProvider, async (req: Request, res: Response, n
 });
 
 // GET /api/customer-properties/:id/history
-router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/history', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tenantId = req.user!.tenant_id;
+    const serviceProviderId = req.serviceProvider!.id;
     const propertyId = req.params.id;
     const limit = parseInt(req.query.limit as string) || 50;
 
-    // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    // Verify property belongs to service provider
+    await customerPropertiesService.getById(propertyId, serviceProviderId);
 
     // Get property history
     const history = await propertyHistoryService.getPropertyHistory(propertyId, limit);
