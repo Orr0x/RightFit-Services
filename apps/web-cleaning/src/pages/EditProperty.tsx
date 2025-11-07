@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, Input, Select, Textarea, Spinner, useToast, Modal, type SelectOption } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import { customerPropertiesAPI, customersAPI, type CreateCustomerPropertyData, type Customer, type CustomerProperty } from '../lib/api'
 
 interface UtilityLocations {
@@ -25,6 +26,7 @@ export default function EditProperty() {
   const navigate = useNavigate()
   const toast = useToast()
   const { isLoading, withLoading } = useLoading()
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
 
   // Property loading state
   const [property, setProperty] = useState<CustomerProperty | null>(null)
@@ -92,7 +94,7 @@ export default function EditProperty() {
   const loadProperty = async () => {
     try {
       setLoadingProperty(true)
-      const propertyData = await customerPropertiesAPI.get(id!)
+      const propertyData = await customerPropertiesAPI.get(id!, SERVICE_PROVIDER_ID)
       setProperty(propertyData)
 
       // Parse utility locations from JSON

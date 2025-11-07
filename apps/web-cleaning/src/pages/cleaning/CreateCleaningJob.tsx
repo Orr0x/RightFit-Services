@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Button, Input, Card, useToast, Spinner, Select, Badge, type SelectOption } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { useAuth } from '../../contexts/AuthContext'
+import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import {
   cleaningJobsAPI,
   cleaningContractsAPI,
@@ -21,11 +22,10 @@ import {
 } from '../../lib/api'
 import { useNavigate, useParams } from 'react-router-dom'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
-
 type JobTab = 'contract' | 'oneoff'
 
 export default function CreateCleaningJob() {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const isEditMode = Boolean(id)
@@ -102,10 +102,10 @@ export default function CreateCleaningJob() {
     try {
       const [contractsData, propsData, servicesData, workersData, templatesData] = await Promise.all([
         cleaningContractsAPI.list({
-          service_provider_id: user.tenant_id,  // Use tenant_id, not ServiceProvider.id
+          service_provider_id: SERVICE_PROVIDER_ID,
           status: 'ACTIVE',
         }),
-        customerPropertiesAPI.list(),
+        customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID }),
         servicesAPI.list(SERVICE_PROVIDER_ID),
         workersAPI.list(SERVICE_PROVIDER_ID),
         checklistTemplatesAPI.list(SERVICE_PROVIDER_ID),

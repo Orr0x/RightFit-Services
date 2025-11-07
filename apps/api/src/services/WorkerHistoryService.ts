@@ -230,6 +230,33 @@ export class WorkerHistoryService {
     });
   }
 
+  async recordJobRescheduled(
+    workerId: string,
+    jobId: string,
+    jobType: 'CLEANING' | 'MAINTENANCE',
+    propertyName: string | undefined,
+    oldDate: string,
+    newDate: string,
+    userId?: string
+  ) {
+    return await this.recordChange({
+      worker_id: workerId,
+      changed_by_user_id: userId,
+      change_type: 'JOB_ASSIGNED' as WorkerHistoryChangeType, // Reuse JOB_ASSIGNED for rescheduling
+      description: `Job rescheduled${propertyName ? ` at ${propertyName}` : ''}: ${new Date(oldDate).toLocaleDateString('en-GB')} → ${new Date(newDate).toLocaleDateString('en-GB')}`,
+      old_value: oldDate,
+      new_value: newDate,
+      metadata: {
+        job_id: jobId,
+        job_type: jobType,
+        property_name: propertyName,
+        old_date: oldDate,
+        new_date: newDate,
+        is_reschedule: true,
+      },
+    });
+  }
+
   // ============================================================================
   // CERTIFICATE EVENTS
   // ============================================================================

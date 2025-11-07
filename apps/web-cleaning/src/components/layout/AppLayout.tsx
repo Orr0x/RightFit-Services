@@ -44,47 +44,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'jobs',
-      label: 'Cleaning Jobs',
-      path: '/jobs',
-      onClick: handleNavigation,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Cleaning Jobs">
-          <path
-            d="M14.5 2h-9A1.5 1.5 0 0 0 4 3.5v13A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 2z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M7 6h6M7 10h6M7 14h3"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 'properties',
-      label: 'Properties',
-      path: '/properties',
-      onClick: handleNavigation,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Properties">
-          <path
-            d="M3 9l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
       id: 'customers',
       label: 'Customers',
       path: '/customers',
@@ -111,14 +70,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'workers',
-      label: 'Workers',
-      path: '/workers',
+      id: 'properties',
+      label: 'Properties',
+      path: '/properties',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Workers">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Properties">
           <path
-            d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 16c-4 0-6 2-6 2v1h12v-1s-2-2-6-2z"
+            d="M3 9l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
@@ -152,25 +111,118 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'invoices',
-      label: 'Invoices',
-      path: '/invoices',
+      id: 'checklist-templates',
+      label: 'Checklists',
+      path: '/checklist-templates',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Invoices">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Checklists">
           <path
-            d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8l4-4V4a2 2 0 0 0-2-2z"
+            d="M9 2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M14 14v4l4-4h-4zM8 6h4M8 10h4M8 14h2"
+            d="M9 2v5h5M7 10h2M7 14h2M11 10h2M11 14h2"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'jobs',
+      label: 'Jobs',
+      path: '/jobs',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Jobs">
+          <path
+            d="M14.5 2h-9A1.5 1.5 0 0 0 4 3.5v13A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 14.5 2z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7 6h6M7 10h6M7 14h3"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'workers',
+      label: 'Team Members',
+      path: '/workers',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Team Members">
+          <path
+            d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 16c-4 0-6 2-6 2v1h12v-1s-2-2-6-2z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'calendar',
+      label: 'Calendar',
+      path: '/calendar',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Calendar">
+          <rect
+            x="3"
+            y="4"
+            width="14"
+            height="14"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M3 8h14M7 2v4M13 2v4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'financial',
+      label: 'Financial',
+      path: '/financial',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Financial">
+          <path
+            d="M10 2v16M6 6h8M6 14h8"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle
+            cx="10"
+            cy="10"
+            r="7"
+            stroke="currentColor"
+            strokeWidth="2"
           />
         </svg>
       ),
@@ -208,88 +260,36 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'calendar',
-      label: 'Calendar',
-      path: '/calendar',
+      id: 'invoices',
+      label: 'Invoices',
+      path: '/invoices',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Calendar">
-          <rect
-            x="3"
-            y="4"
-            width="14"
-            height="14"
-            rx="2"
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Invoices">
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8l4-4V4a2 2 0 0 0-2-2z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d="M3 8h14M7 2v4M13 2v4"
+            d="M14 14v4l4-4h-4zM8 6h4M8 10h4M8 14h2"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 'checklist-templates',
-      label: 'Checklists',
-      path: '/checklist-templates',
-      onClick: handleNavigation,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Checklist Templates">
-          <path
-            d="M9 2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9 2v5h5M7 10h2M7 14h2M11 10h2M11 14h2"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: 'financial',
-      label: 'Financial',
-      path: '/financial',
-      onClick: handleNavigation,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Financial">
-          <path
-            d="M10 2v16M6 6h8M6 14h8"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="10"
-            cy="10"
-            r="7"
-            stroke="currentColor"
-            strokeWidth="2"
           />
         </svg>
       ),
     },
     {
       id: 'certificates',
-      label: 'Certificates',
+      label: 'Documentation',
       path: '/certificates',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Certificates">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Documentation">
           <path
             d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"
             stroke="currentColor"
@@ -399,10 +399,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         },
         {
           id: '2',
-          title: 'Cleaning Jobs',
-          subtitle: 'View and manage cleaning jobs',
+          title: 'Customers',
+          subtitle: 'Manage customer information and contracts',
           category: 'Page',
-          path: '/jobs',
+          path: '/customers',
         },
         {
           id: '3',
@@ -413,63 +413,63 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         },
         {
           id: '4',
-          title: 'Customers',
-          subtitle: 'Manage customer information and contracts',
-          category: 'Page',
-          path: '/customers',
-        },
-        {
-          id: '5',
-          title: 'Workers',
-          subtitle: 'Manage your cleaning team',
-          category: 'Page',
-          path: '/workers',
-        },
-        {
-          id: '6',
           title: 'Contracts',
           subtitle: 'View and manage cleaning contracts',
           category: 'Page',
           path: '/contracts',
         },
         {
-          id: '7',
-          title: 'Invoices',
-          subtitle: 'Manage customer invoices and payments',
-          category: 'Page',
-          path: '/invoices',
-        },
-        {
-          id: '8',
-          title: 'Quotes',
-          subtitle: 'Create and manage customer quotes',
-          category: 'Page',
-          path: '/quotes',
-        },
-        {
-          id: '9',
-          title: 'Calendar',
-          subtitle: 'Schedule and view property bookings',
-          category: 'Page',
-          path: '/calendar',
-        },
-        {
-          id: '10',
+          id: '5',
           title: 'Checklists',
           subtitle: 'Manage checklist templates for jobs and contracts',
           category: 'Page',
           path: '/checklist-templates',
         },
         {
-          id: '11',
+          id: '6',
+          title: 'Jobs',
+          subtitle: 'View and manage cleaning jobs',
+          category: 'Page',
+          path: '/jobs',
+        },
+        {
+          id: '7',
+          title: 'Team Members',
+          subtitle: 'Manage your cleaning team',
+          category: 'Page',
+          path: '/workers',
+        },
+        {
+          id: '8',
+          title: 'Calendar',
+          subtitle: 'Schedule and view property bookings',
+          category: 'Page',
+          path: '/calendar',
+        },
+        {
+          id: '9',
           title: 'Financial',
           subtitle: 'Job history and earnings',
           category: 'Page',
           path: '/financial',
         },
         {
+          id: '10',
+          title: 'Quotes',
+          subtitle: 'Create and manage customer quotes',
+          category: 'Page',
+          path: '/quotes',
+        },
+        {
+          id: '11',
+          title: 'Invoices',
+          subtitle: 'Manage customer invoices and payments',
+          category: 'Page',
+          path: '/invoices',
+        },
+        {
           id: '12',
-          title: 'Certificates',
+          title: 'Documentation',
           subtitle: 'Certifications and compliance',
           category: 'Page',
           path: '/certificates',
@@ -557,7 +557,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           <div className="app-header-search">
             <SearchBar
-              placeholder="Search jobs, properties, workers..."
+              placeholder="Search jobs, properties, team members..."
               onSearch={handleSearch}
               onSelect={handleSearchSelect}
               results={searchResults}

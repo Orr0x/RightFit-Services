@@ -7,6 +7,7 @@ export interface User {
   email: string
   tenant_id: string
   tenant_name: string
+  service_provider_id: string | null
   role: 'ADMIN' | 'MEMBER' | 'CONTRACTOR'
 }
 
@@ -65,13 +66,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authAPI.login(credentials)
 
-      // API wraps response in { data: { user, tenant, access_token, refresh_token } }
-      const { access_token, refresh_token, user: userData, tenant } = response.data
+      // API wraps response in { data: { user, tenant, service_provider_id, access_token, refresh_token } }
+      const { access_token, refresh_token, user: userData, tenant, service_provider_id } = response.data
 
-      // Add tenant_name to user object for display
+      // Add tenant_name and service_provider_id to user object
       const userWithTenant = {
         ...userData,
         tenant_name: tenant.tenant_name,
+        service_provider_id: service_provider_id || null,
       }
 
       // Store tokens
@@ -90,13 +92,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authAPI.register(data)
 
-      // API wraps response in { data: { user, tenant, access_token, refresh_token } }
-      const { access_token, refresh_token, user: userData, tenant } = response.data
+      // API wraps response in { data: { user, tenant, service_provider_id, access_token, refresh_token } }
+      const { access_token, refresh_token, user: userData, tenant, service_provider_id } = response.data
 
-      // Add tenant_name to user object for display
+      // Add tenant_name and service_provider_id to user object
       const userWithTenant = {
         ...userData,
         tenant_name: tenant.tenant_name,
+        service_provider_id: service_provider_id || null,
       }
 
       // Store tokens

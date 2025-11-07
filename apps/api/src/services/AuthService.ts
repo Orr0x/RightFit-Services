@@ -72,7 +72,13 @@ export class AuthService {
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: input.email.toLowerCase() },
-      include: { tenant: true },
+      include: {
+        tenant: {
+          include: {
+            service_provider: true
+          }
+        }
+      },
     })
 
     if (!user) {
@@ -109,6 +115,7 @@ export class AuthService {
     return {
       user: userWithoutPassword as any,
       tenant: user.tenant as any,
+      service_provider_id: user.tenant.service_provider?.id || null,
       access_token,
       refresh_token,
     }

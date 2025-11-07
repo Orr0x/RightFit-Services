@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
@@ -54,6 +55,7 @@ export function CreateJobFromCalendarModal({
   onClose,
   onSuccess,
 }: CreateJobFromCalendarModalProps) {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [workers, setWorkers] = useState<Worker[]>([])
@@ -92,8 +94,6 @@ export function CreateJobFromCalendarModal({
   const fetchData = async () => {
     try {
       setLoadingData(true)
-
-      const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
       // Fetch workers and contract in parallel
       const [workersRes, contractsRes] = await Promise.all([
@@ -151,8 +151,6 @@ export function CreateJobFromCalendarModal({
 
     try {
       setLoading(true)
-
-      const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
       // Create cleaning job
       const jobPayload = {

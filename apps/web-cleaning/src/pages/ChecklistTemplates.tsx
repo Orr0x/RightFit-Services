@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
-import { checklistTemplatesAPI, customersAPI, type ChecklistTemplate, type ChecklistSection, type CreateChecklistTemplateData } from '../lib/api'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
+import { checklistTemplatesAPI, customersAPI, type ChecklistTemplate, type ChecklistSection, type ChecklistItem, type CreateChecklistTemplateData } from '../lib/api'
 import './Quotes.css'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 interface FormSection {
   title: string
-  items: string[]
+  items: ChecklistItem[]
   images: string[]
 }
 
 export default function ChecklistTemplates() {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [filteredTemplates, setFilteredTemplates] = useState<ChecklistTemplate[]>([])
   const { isLoading, withLoading } = useLoading()
@@ -32,7 +32,7 @@ export default function ChecklistTemplates() {
   })
 
   const [sections, setSections] = useState<FormSection[]>([
-    { title: '', items: [''], images: [] }
+    { title: '', items: [{ label: '', completed: false }], images: [] }
   ])
   const [uploadingImage, setUploadingImage] = useState(false)
 
@@ -85,9 +85,9 @@ export default function ChecklistTemplates() {
       const templateSections = Array.isArray(template.sections) ? template.sections : []
       setSections(templateSections.length > 0 ? templateSections.map(s => ({
         title: s.title,
-        items: s.items && s.items.length > 0 ? s.items : [''],
+        items: s.items && s.items.length > 0 ? s.items : [{ label: '', completed: false }],
         images: s.images || []
-      })) : [{ title: '', items: [''], images: [] }])
+      })) : [{ title: '', items: [{ label: '', completed: false }], images: [] }])
     } else {
       setEditingTemplate(null)
       setFormData({
@@ -97,7 +97,7 @@ export default function ChecklistTemplates() {
         is_active: true,
         customer_id: '',
       })
-      setSections([{ title: '', items: [''], images: [] }])
+      setSections([{ title: '', items: [{ label: '', completed: false }], images: [] }])
     }
     setOpenDialog(true)
   }
@@ -127,7 +127,7 @@ export default function ChecklistTemplates() {
     try {
       const sectionsData: ChecklistSection[] = validSections.map(s => ({
         title: s.title,
-        items: s.items.filter(item => item.trim() !== ''),
+        items: s.items.filter(item => item.label.trim() !== ''),
         images: s.images || []
       }))
 
@@ -176,7 +176,7 @@ export default function ChecklistTemplates() {
   }
 
   const addSection = () => {
-    setSections([...sections, { title: '', items: [''], images: [] }])
+    setSections([...sections, { title: '', items: [{ label: '', completed: false }], images: [] }])
   }
 
   const removeSection = (index: number) => {
@@ -195,7 +195,7 @@ export default function ChecklistTemplates() {
 
   const addItem = (sectionIndex: number) => {
     const newSections = [...sections]
-    newSections[sectionIndex].items.push('')
+    newSections[sectionIndex].items.push({ label: '', completed: false })
     setSections(newSections)
   }
 
@@ -211,7 +211,7 @@ export default function ChecklistTemplates() {
 
   const updateItem = (sectionIndex: number, itemIndex: number, value: string) => {
     const newSections = [...sections]
-    newSections[sectionIndex].items[itemIndex] = value
+    newSections[sectionIndex].items[itemIndex] = { label: value, completed: false }
     setSections(newSections)
   }
 
@@ -539,7 +539,7 @@ export default function ChecklistTemplates() {
                     {section.items.map((item, itemIdx) => (
                       <div key={itemIdx} className="flex gap-2">
                         <Input
-                          value={item}
+                          value={item.label}
                           onChange={(e) => updateItem(sectionIdx, itemIdx, e.target.value)}
                           placeholder="e.g., Clean countertops"
                           className="flex-1"

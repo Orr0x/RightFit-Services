@@ -304,13 +304,21 @@ export class CleaningJobsService {
     const { service_provider_id, ...validData } = input;
 
     // Convert empty strings to null for optional foreign key fields
-    const cleanedData = {
-      ...validData,
-      service_id: validData.service_id === '' ? null : validData.service_id,
-      assigned_worker_id: validData.assigned_worker_id === '' ? null : validData.assigned_worker_id,
-      contract_id: validData.contract_id === '' ? null : validData.contract_id,
-      checklist_template_id: validData.checklist_template_id === '' ? null : validData.checklist_template_id,
-    };
+    const cleanedData: Record<string, any> = {};
+
+    // Only include fields that were actually provided (not undefined)
+    Object.keys(validData).forEach((key) => {
+      const value = validData[key as keyof typeof validData];
+      if (value !== undefined) {
+        // Convert empty strings to null for optional foreign key fields
+        if ((key === 'service_id' || key === 'assigned_worker_id' ||
+             key === 'contract_id' || key === 'checklist_template_id') && value === '') {
+          cleanedData[key] = null;
+        } else {
+          cleanedData[key] = value;
+        }
+      }
+    });
 
     const job = await prisma.cleaningJob.update({
       where: { id },
@@ -327,9 +335,9 @@ export class CleaningJobsService {
       console.error('Failed to record job history:', error);
     });
 
-    // Track worker assignment changes
+    // Track worker assignment changes (only if assigned_worker_id was provided in the update)
     const oldWorkerId = oldJob.assigned_worker_id;
-    const newWorkerId = cleanedData.assigned_worker_id;
+    const newWorkerId = 'assigned_worker_id' in cleanedData ? cleanedData.assigned_worker_id : oldWorkerId;
 
     if (oldWorkerId !== newWorkerId) {
       // Worker was unassigned (removed from job)
@@ -380,6 +388,32 @@ export class CleaningJobsService {
             console.error('Failed to record job assignment in worker history:', error);
           });
         }
+      }
+    }
+
+    // Track schedule changes (if worker is assigned and date changed)
+    if (
+      newWorkerId && // Worker is assigned
+      cleanedData.scheduled_date && // New date was provided
+      oldJob.scheduled_date // Old date exists
+    ) {
+      const oldDate = new Date(oldJob.scheduled_date).toISOString().split('T')[0];
+      const newDate = typeof cleanedData.scheduled_date === 'string'
+        ? cleanedData.scheduled_date
+        : new Date(cleanedData.scheduled_date).toISOString().split('T')[0];
+
+      if (oldDate !== newDate) {
+        await this.workerHistoryService.recordJobRescheduled(
+          newWorkerId,
+          job.id,
+          'CLEANING',
+          job.property?.property_name,
+          oldDate,
+          newDate,
+          userId
+        ).catch((error) => {
+          console.error('Failed to record job reschedule in worker history:', error);
+        });
       }
     }
 

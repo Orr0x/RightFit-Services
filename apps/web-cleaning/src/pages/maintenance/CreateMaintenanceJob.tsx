@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Button, Input, Card, Textarea, useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
+import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import { maintenanceJobsAPI, type CreateMaintenanceJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
-
 export default function CreateMaintenanceJob() {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [formData, setFormData] = useState<CreateMaintenanceJobData>({
     service_id: '',
     property_id: '',

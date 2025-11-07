@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Spinner, EmptyState, useToast, Button } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import { customerPropertiesAPI, type CustomerProperty } from '../lib/api'
 import './Properties.css'
 
 export default function Properties() {
   const [customerProperties, setCustomerProperties] = useState<CustomerProperty[]>([])
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
@@ -14,12 +16,12 @@ export default function Properties() {
 
   useEffect(() => {
     loadCustomerProperties()
-  }, [])
+  }, [SERVICE_PROVIDER_ID])
 
   const loadCustomerProperties = () => {
     withLoading(async () => {
       try {
-        const result = await customerPropertiesAPI.list()
+        const result = await customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID })
         setCustomerProperties(result.data)
       } catch (err: any) {
         toast.error('Failed to load customer properties')

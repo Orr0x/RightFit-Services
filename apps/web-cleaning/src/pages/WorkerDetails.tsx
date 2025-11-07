@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Input, Spinner, useToast, Tabs, TabPanel, Badge, Modal } from '../components/ui'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import { workersAPI, cleaningJobsAPI, workerAvailabilityAPI, type Worker, type CleaningJob, type WorkerCertificate, type WorkerAvailability } from '../lib/api'
 import { WorkerHistoryTimeline } from '../components/WorkerHistoryTimeline'
 import Calendar from 'react-calendar'
@@ -14,9 +15,8 @@ import HistoryIcon from '@mui/icons-material/History'
 import '../pages/ContractDetails.css'
 import './Quotes.css'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
-
 export default function WorkerDetails() {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const toast = useToast()
@@ -76,6 +76,14 @@ export default function WorkerDetails() {
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [skillInput, setSkillInput] = useState('')
+
+  // Block period modal state
+  const [blockPeriodModalOpen, setBlockPeriodModalOpen] = useState(false)
+  const [blockPeriodData, setBlockPeriodData] = useState({
+    start_date: '',
+    end_date: '',
+    reason: '',
+  })
 
   useEffect(() => {
     if (id) {
@@ -137,7 +145,7 @@ export default function WorkerDetails() {
 
       // Load worker's jobs
       const jobsData = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID, {
-        assigned_worker_id: id,
+        worker_id: id,
       })
       setJobs(jobsData.data || [])
 
@@ -327,6 +335,64 @@ export default function WorkerDetails() {
     }
   }
 
+  const handleBlockPeriod = async () => {
+    if (!id) return
+
+    if (!blockPeriodData.start_date || !blockPeriodData.end_date) {
+      toast.error('Please select both start and end dates')
+      return
+    }
+
+    // Validate date range
+    const start = new Date(blockPeriodData.start_date)
+    const end = new Date(blockPeriodData.end_date)
+    if (start > end) {
+      toast.error('End date must be after start date')
+      return
+    }
+
+    try {
+      setSaving(true)
+      await workerAvailabilityAPI.create({
+        worker_id: id,
+        start_date: blockPeriodData.start_date,
+        end_date: blockPeriodData.end_date,
+        status: 'BLOCKED',
+        reason: blockPeriodData.reason || undefined,
+      })
+
+      toast.success('Blocked period created successfully')
+      setBlockPeriodModalOpen(false)
+      setBlockPeriodData({ start_date: '', end_date: '', reason: '' })
+
+      // Reload availability
+      loadAvailability()
+    } catch (error: any) {
+      console.error('Error creating blocked period:', error)
+      toast.error(error.response?.data?.error || 'Failed to create blocked period')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeleteBlockedPeriod = async (availabilityId: string) => {
+    if (!id) return
+
+    if (confirm('Are you sure you want to remove this blocked period?')) {
+      try {
+        setSaving(true)
+        await workerAvailabilityAPI.delete(availabilityId, id)
+        toast.success('Blocked period removed successfully')
+        loadAvailability()
+      } catch (error: any) {
+        console.error('Error deleting blocked period:', error)
+        toast.error(error.response?.data?.error || 'Failed to remove blocked period')
+      } finally {
+        setSaving(false)
+      }
+    }
+  }
+
   const isDateBlocked = (date: Date): boolean => {
     return availability.some(avail => {
       const start = new Date(avail.start_date)
@@ -358,11 +424,16 @@ export default function WorkerDetails() {
     return null
   }
 
-  const upcomingJobs = jobs.filter(job =>
-    new Date(job.scheduled_date) >= new Date() &&
-    job.status !== 'COMPLETED' &&
-    job.status !== 'CANCELLED'
-  )
+  const upcomingJobs = jobs.filter(job => {
+    // Compare dates only (ignore time component)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const jobDate = new Date(job.scheduled_date)
+    jobDate.setHours(0, 0, 0, 0)
+    return jobDate >= today &&
+      job.status !== 'COMPLETED' &&
+      job.status !== 'CANCELLED'
+  })
 
   const completedJobs = jobs.filter(job => job.status === 'COMPLETED')
 
@@ -1347,7 +1418,7 @@ export default function WorkerDetails() {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => {/* TODO: Add block period handler */}}
+                        onClick={() => setBlockPeriodModalOpen(true)}
                         fullWidth
                       >
                         + Block Period
@@ -1398,6 +1469,16 @@ export default function WorkerDetails() {
                                   </div>
                                 </div>
                               )}
+                              <div className="mt-3">
+                                <Button
+                                  size="sm"
+                                  variant="danger"
+                                  onClick={() => handleDeleteBlockedPeriod(item.id)}
+                                  fullWidth
+                                >
+                                  Remove Block
+                                </Button>
+                              </div>
                             </Card>
                           )
                         })}
@@ -1414,6 +1495,69 @@ export default function WorkerDetails() {
           {id && <WorkerHistoryTimeline workerId={id} />}
         </TabPanel>
       </div>
+
+      {/* Block Period Modal */}
+      <Modal
+        isOpen={blockPeriodModalOpen}
+        onClose={() => {
+          setBlockPeriodModalOpen(false)
+          setBlockPeriodData({ start_date: '', end_date: '', reason: '' })
+        }}
+        title="Block Unavailable Period"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Block out dates when this worker will not be available for jobs.
+          </p>
+
+          <Input
+            label="Start Date"
+            type="date"
+            value={blockPeriodData.start_date}
+            onChange={(e) => setBlockPeriodData({ ...blockPeriodData, start_date: e.target.value })}
+            required
+          />
+
+          <Input
+            label="End Date"
+            type="date"
+            value={blockPeriodData.end_date}
+            onChange={(e) => setBlockPeriodData({ ...blockPeriodData, end_date: e.target.value })}
+            required
+          />
+
+          <div className="input-wrapper input-wrapper-full-width">
+            <label className="input-label">Reason (Optional)</label>
+            <textarea
+              value={blockPeriodData.reason}
+              onChange={(e) => setBlockPeriodData({ ...blockPeriodData, reason: e.target.value })}
+              rows={3}
+              className="input input-md input-default resize-none"
+              placeholder="e.g., Holiday, Personal leave, Training..."
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setBlockPeriodModalOpen(false)
+              setBlockPeriodData({ start_date: '', end_date: '', reason: '' })
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleBlockPeriod}
+            disabled={saving || !blockPeriodData.start_date || !blockPeriodData.end_date}
+          >
+            {saving ? <Spinner size="sm" /> : 'Block Period'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

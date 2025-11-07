@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Spinner, useToast, Badge, Tabs, TabPanel, Select } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import {
   customerPropertiesAPI,
   cleaningJobsAPI,
@@ -74,7 +75,7 @@ export default function PropertyDetails() {
   const [addingTemplate, setAddingTemplate] = useState(false)
   const [linkedTemplateIds, setLinkedTemplateIds] = useState<string[]>([])
 
-  const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
 
   useEffect(() => {
     if (id) {
@@ -95,7 +96,7 @@ export default function PropertyDetails() {
 
     withLoading(async () => {
       try {
-        const data = await customerPropertiesAPI.get(id)
+        const data = await customerPropertiesAPI.get(id, SERVICE_PROVIDER_ID)
         setProperty(data)
       } catch (err: any) {
         toast.error('Failed to load property details')
@@ -108,7 +109,7 @@ export default function PropertyDetails() {
     if (!id) return
 
     try {
-      const result = await cleaningJobsAPI.list('8aeb5932-907c-41b3-a2bc-05b27ed0dc87', {
+      const result = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID, {
         property_id: id,
         page: 1,
         limit: 5

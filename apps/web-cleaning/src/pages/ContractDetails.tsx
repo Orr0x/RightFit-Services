@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Spinner, Badge, Input, Select, useToast, Tabs, TabPanel } from '../components/ui'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import {
   api,
   cleaningContractsAPI,
@@ -81,6 +82,7 @@ interface ContractFile {
 }
 
 export default function ContractDetails() {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const toast = useToast()
@@ -187,7 +189,10 @@ export default function ContractDetails() {
   const fetchAvailableProperties = async (customerId: string) => {
     try {
       const response = await api.get(`/api/customer-properties`, {
-        params: { customer_id: customerId },
+        params: {
+          customer_id: customerId,
+          service_provider_id: SERVICE_PROVIDER_ID,
+        },
       })
       setProperties(response.data.data || [])
     } catch (error) {
@@ -203,8 +208,6 @@ export default function ContractDetails() {
 
       // Load checklists
       if (activeTab === 'checklists') {
-        // Use the service provider ID (there's only one in the database)
-        const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
         const checklistsData = await checklistTemplatesAPI.list(SERVICE_PROVIDER_ID)
         const allChecklists = checklistsData || []
         setAvailableChecklists(allChecklists)

@@ -62,12 +62,12 @@ export default function CleaningContracts() {
   }, [statusFilter])
 
   const fetchContracts = async () => {
-    if (!user) return
+    if (!user || !user.service_provider_id) return
 
     try {
       setLoading(true)
       const params: any = {
-        service_provider_id: user.tenant_id,
+        service_provider_id: user.service_provider_id,
       }
       if (statusFilter !== 'ALL') {
         params.status = statusFilter

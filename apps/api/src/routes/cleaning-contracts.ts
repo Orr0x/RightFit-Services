@@ -45,24 +45,27 @@ router.post('/', async (req, res) => {
       })
     }
 
-    // Look up the ServiceProvider by tenant_id to get the actual service_provider_id
-    const serviceProvider = await prisma.serviceProvider.findUnique({
-      where: { tenant_id: service_provider_id },
+    // Validate service_provider_id belongs to user's tenant
+    const serviceProvider = await prisma.serviceProvider.findFirst({
+      where: {
+        id: service_provider_id,
+        tenant_id: req.user?.tenant_id,
+      },
       select: { id: true },
     })
 
     if (!serviceProvider) {
       return res.status(404).json({
-        error: 'Service provider not found',
+        error: 'Service provider not found for this tenant',
       })
     }
 
     // Auto-generate contract number if not provided
-    const finalContractNumber = contract_number || await generateContractNumber(serviceProvider.id)
+    const finalContractNumber = contract_number || await generateContractNumber(service_provider_id)
 
     const contract = await CleaningContractService.createContract({
       customer_id,
-      service_provider_id: serviceProvider.id,
+      service_provider_id: service_provider_id,
       contract_number: finalContractNumber,
       contract_type,
       contract_start_date: new Date(contract_start_date),
@@ -131,20 +134,23 @@ router.get('/', async (req, res) => {
         status as any
       )
     } else {
-      // Look up the ServiceProvider by tenant_id to get the actual service_provider_id
-      const serviceProvider = await prisma.serviceProvider.findUnique({
-        where: { tenant_id: service_provider_id as string },
+      // Validate service_provider_id belongs to user's tenant
+      const serviceProvider = await prisma.serviceProvider.findFirst({
+        where: {
+          id: service_provider_id as string,
+          tenant_id: req.user?.tenant_id,
+        },
         select: { id: true },
       })
 
       if (!serviceProvider) {
         return res.status(404).json({
-          error: 'Service provider not found',
+          error: 'Service provider not found for this tenant',
         })
       }
 
       contracts = await CleaningContractService.listContractsByProvider(
-        serviceProvider.id,
+        service_provider_id as string,
         status as any
       )
     }

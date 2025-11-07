@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Button, Card, Spinner, useToast, Badge, Tabs, TabPanel } from '../../components/ui'
+import { Button, Card, Spinner, useToast, Badge, Tabs, TabPanel, Select } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
+import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import {
   cleaningJobsAPI,
   cleaningContractsAPI,
@@ -25,8 +26,6 @@ import AddIcon from '@mui/icons-material/Add'
 import '../ContractDetails.css'
 import '../PropertyDetails.css'
 import '../Quotes.css'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 interface Timesheet {
   id: string
@@ -61,11 +60,13 @@ export default function CleaningJobDetails() {
   // Tab state
   const [activeTab, setActiveTab] = useState('details')
   const [contracts, setContracts] = useState<CleaningContract[]>([])
+  const [allCustomerContracts, setAllCustomerContracts] = useState<CleaningContract[]>([])
   const [maintenanceJobs, setMaintenanceJobs] = useState<MaintenanceJob[]>([])
   const [checklists, setChecklists] = useState<ChecklistTemplate[]>([])
   const [workers, setWorkers] = useState<Worker[]>([])
   const [loadingTabData, setLoadingTabData] = useState(false)
 
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
@@ -117,12 +118,23 @@ export default function CleaningJobDetails() {
       setLoadingTabData(true)
 
       if (activeTab === 'contracts') {
-        // Load contracts for this customer
+        // Load all contracts for this customer
         if (job.customer?.id) {
           const contractsData = await cleaningContractsAPI.list({
             customer_id: job.customer.id,
+            service_provider_id: SERVICE_PROVIDER_ID,
           })
-          setContracts(contractsData.data || [])
+          setAllCustomerContracts(contractsData || [])
+          // Only show the linked contract in the cards
+          if (job.contract_id) {
+            const linkedContract = (contractsData || []).find(c => c.id === job.contract_id)
+            setContracts(linkedContract ? [linkedContract] : [])
+          } else {
+            setContracts([])
+          }
+        } else {
+          setAllCustomerContracts([])
+          setContracts([])
         }
       }
 
@@ -203,6 +215,23 @@ export default function CleaningJobDetails() {
         console.error('Create issue error:', err)
       }
     })
+  }
+
+  const handleContractChange = async (contractId: string) => {
+    if (!id) return
+
+    try {
+      await cleaningJobsAPI.update(id, {
+        contract_id: contractId || null,
+        service_provider_id: SERVICE_PROVIDER_ID,
+      })
+      toast.success('Contract updated successfully')
+      loadJob() // Reload job to get updated contract
+      loadTabData() // Reload contracts to update the card display
+    } catch (err: any) {
+      toast.error('Failed to update contract')
+      console.error('Update contract error:', err)
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -678,69 +707,91 @@ export default function CleaningJobDetails() {
               <Spinner size="lg" />
               <p className="text-gray-600 mt-3">Loading contracts...</p>
             </Card>
-          ) : contracts.length > 0 ? (
+          ) : allCustomerContracts.length > 0 ? (
             <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <span className="text-2xl">📋</span>
-                  Related Contracts ({contracts.length})
-                </h2>
-                <Button size="sm" onClick={() => navigate('/contracts/new')}>
-                  <AddIcon sx={{ fontSize: 18 }} />
-                  New Contract
-                </Button>
+              <div className="flex flex-col gap-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <span className="text-2xl">📋</span>
+                    Linked Contract {contracts.length > 0 && `(1 of ${allCustomerContracts.length})`}
+                  </h2>
+                </div>
+                <Card className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-xl">📝</span>
+                    </div>
+                    <div className="flex-1">
+                      <Select
+                        placeholder="-- No contract linked --"
+                        options={allCustomerContracts.map((contract) => ({
+                          value: contract.id,
+                          label: `${contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'} - £${Number(contract.monthly_fee).toFixed(2)}/month ${contract.status === 'ACTIVE' ? '✓' : `(${contract.status})`}`
+                        }))}
+                        value={job?.contract_id || ''}
+                        onChange={(e) => handleContractChange(e.target.value)}
+                        fullWidth
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
-              <div className="quotes-grid">
-                {contracts.map((contract) => (
-                  <Card
-                    key={contract.id}
-                    className="quote-card"
-                    onClick={() => navigate(`/contracts/${contract.id}`)}
-                  >
-                    <div className="quote-card-header">
-                      <div>
-                        <h3 className="quote-number">{contract.customer?.business_name}</h3>
-                        <p className="quote-customer">
-                          {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          contract.status === 'ACTIVE' ? 'success' :
-                          contract.status === 'PAUSED' ? 'warning' :
-                          'default'
-                        }
+              {contracts.length > 0 && (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Contract Details</h3>
+                  <div className="quotes-grid">
+                    {contracts.map((contract) => (
+                      <Card
+                        key={contract.id}
+                        className="quote-card cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/contracts/${contract.id}`)}
                       >
-                        {contract.status}
-                      </Badge>
-                    </div>
+                        <div className="quote-card-header">
+                          <div>
+                            <h3 className="quote-number">{contract.customer?.business_name}</h3>
+                            <p className="quote-customer">
+                              {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
+                            </p>
+                          </div>
+                          <Badge
+                            variant={
+                              contract.status === 'ACTIVE' ? 'success' :
+                              contract.status === 'PAUSED' ? 'warning' :
+                              'default'
+                            }
+                          >
+                            {contract.status}
+                          </Badge>
+                        </div>
 
-                    <div className="quote-details">
-                      <div className="quote-detail-item">
-                        <span className="text-gray-600">Contract Type:</span>
-                        <span className="font-medium">
-                          {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
-                        </span>
-                      </div>
-                    </div>
+                        <div className="quote-details">
+                          <div className="quote-detail-item">
+                            <span className="text-gray-600">Contract Type:</span>
+                            <span className="font-medium">
+                              {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
+                            </span>
+                          </div>
+                        </div>
 
-                    <div className="quote-footer">
-                      <div className="quote-total">
-                        <span className="text-gray-600">Monthly Fee:</span>
-                        <span className="text-2xl font-bold text-blue-600">
-                          £{Number(contract.monthly_fee).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                        <div className="quote-footer">
+                          <div className="quote-total">
+                            <span className="text-gray-600">Monthly Fee:</span>
+                            <span className="text-2xl font-bold text-blue-600">
+                              £{Number(contract.monthly_fee).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <Card className="p-12 text-center">
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Contracts</h3>
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Contracts Available</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                No contracts found for this customer
+                This customer doesn't have any contracts yet
               </p>
               <Button onClick={() => navigate('/contracts/new')}>
                 <AddIcon sx={{ fontSize: 18 }} />

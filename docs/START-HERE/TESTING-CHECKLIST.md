@@ -206,7 +206,94 @@
 
 ---
 
-## 5. **Guest Tablet App**
+## 5. **Worker Availability & Scheduling**
+
+### Worker Availability Management
+- [ ] Navigate to worker details page (Team Members)
+- [ ] Click on Availability tab
+- [ ] Calendar widget displays current month
+- [ ] Statistics show correct blocked days count
+- [ ] Statistics show current availability status (Available/Unavailable)
+- [ ] Click "+ Block Period" button opens modal
+- [ ] Modal requires start date and end date
+- [ ] Modal accepts optional reason field
+- [ ] Can create blocked period with date range
+- [ ] Blocked period appears in calendar with red markers
+- [ ] Blocked dates show in "Blocked Dates" list
+- [ ] List displays date range and reason (if provided)
+- [ ] "Remove Block" button appears on each blocked period
+- [ ] Can delete blocked period successfully
+- [ ] Deleted period removes from calendar and list
+- [ ] Statistics update after creating/deleting periods
+- [ ] Can navigate between months in calendar
+- [ ] Blocked periods spanning multiple months display correctly
+
+### Drag & Drop Schedule Protection
+- [ ] Navigate to Property Calendar
+- [ ] Create/find job with assigned worker
+- [ ] Block that worker for a specific date
+- [ ] Try to drag job to blocked date
+- [ ] System shows error: "{Worker Name} is marked as unavailable on this date"
+- [ ] Job does NOT move to blocked date
+- [ ] Can still drag job to available dates
+- [ ] Validation happens before time conflict check
+- [ ] Multiple workers with different availability blocks work correctly
+- [ ] Unassigned jobs can be dropped on any date
+
+### Worker Dropdown Filtering
+- [ ] Open calendar and right-click on a job to quick edit
+- [ ] Worker dropdown loads all active workers initially
+- [ ] Block a worker for the job's date
+- [ ] Reopen the edit modal
+- [ ] Blocked worker is NOT in the dropdown
+- [ ] Helper text shows: "X worker(s) unavailable (blocked or already scheduled)"
+- [ ] Only available workers appear in dropdown
+- [ ] Currently assigned worker always appears (even if unavailable)
+- [ ] Create another job at same time on same date
+- [ ] Assign a worker to first job
+- [ ] Open second job's edit modal
+- [ ] Worker scheduled for first job does NOT appear in dropdown
+- [ ] Helper text updates to show both blocked and scheduled workers
+- [ ] Changing start/end times updates available worker list dynamically
+
+### Worker History Tracking
+- [ ] Assign worker to a job
+- [ ] Reschedule the job to different date (via drag/drop)
+- [ ] Navigate to worker's History tab
+- [ ] History shows: "Job rescheduled at {property}: {old_date} → {new_date}"
+- [ ] Entry includes property name
+- [ ] Entry shows before and after dates in UK format (DD/MM/YYYY)
+- [ ] Entry timestamp is accurate
+- [ ] Multiple reschedules show as separate entries
+- [ ] Unassigning and reassigning worker also tracked
+
+### Schedule Conflict Prevention
+- [ ] Create job 1: 10:00-12:00 with Worker A
+- [ ] Try to create job 2: 11:00-13:00 with Worker A (same date)
+- [ ] System prevents assignment or shows error
+- [ ] Create job 2: 12:00-14:00 with Worker A (same date)
+- [ ] System allows assignment (no overlap)
+- [ ] Worker B can be assigned to overlapping time slots
+- [ ] Time conflict validation respects blocked periods
+- [ ] Cancelled jobs don't cause false conflicts
+
+### Edge Cases
+- [ ] Block period spanning multiple weeks
+- [ ] Block period spanning multiple months
+- [ ] Block period in the past (should be allowed for record keeping)
+- [ ] Block period starting today
+- [ ] Delete block period while jobs are scheduled during it
+- [ ] Worker with multiple non-contiguous blocked periods
+- [ ] Worker blocked entire month
+- [ ] Two workers blocked on same dates (different reasons)
+- [ ] Overlapping block periods for same worker
+- [ ] Very long reason text (100+ characters)
+- [ ] Empty reason (should work)
+- [ ] Start date after end date (should show validation error)
+
+---
+
+## 6. **Guest Tablet App**
 
 ### Guest Welcome
 - [ ] Tablet displays welcome screen
@@ -242,7 +329,7 @@
 
 ---
 
-## 6. **Authentication & Authorization**
+## 7. **Authentication & Authorization**
 
 ### Landlord Portal Login
 - [ ] Can login with valid credentials
@@ -271,7 +358,7 @@
 
 ---
 
-## 7. **Cross-Portal Data Consistency**
+## 8. **Cross-Portal Data Consistency**
 
 ### Maintenance Jobs
 - [ ] Job created in maintenance portal shows in customer portal
@@ -292,7 +379,7 @@
 
 ---
 
-## 8. **Edge Cases & Error Handling**
+## 9. **Edge Cases & Error Handling**
 
 ### Data Validation
 - [ ] Cannot submit empty forms
@@ -331,7 +418,7 @@
 
 ---
 
-## 9. **UI/UX Verification**
+## 10. **UI/UX Verification**
 
 ### Responsive Design
 - [ ] Desktop layout looks correct (1920x1080)
@@ -366,7 +453,7 @@
 
 ---
 
-## 10. **Data Persistence & Refresh**
+## 11. **Data Persistence & Refresh**
 
 ### State Management
 - [ ] Form data persists during validation errors
@@ -388,7 +475,7 @@
 
 ---
 
-## 11. **Specific Bug-Prone Areas to Check**
+## 12. **Specific Bug-Prone Areas to Check**
 
 ### Photo Upload System
 - [ ] FormData Content-Type is correctly omitted (let browser set it)
@@ -464,4 +551,5 @@ Select files → Upload → Complete job → Photos visible in job details
 
 ---
 
-*Last Updated: 2025-11-03*
+*Last Updated: 2025-11-07*
+*Latest Addition: Worker Availability & Scheduling features*

@@ -49,8 +49,7 @@ export class CustomerPropertiesService {
   /**
    * List all customer properties for a service provider
    */
-  async list(tenantId: string, page: number = 1, limit: number = 20, search?: string, customerId?: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
+  async list(serviceProviderId: string, page: number = 1, limit: number = 20, search?: string, customerId?: string) {
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -112,9 +111,7 @@ export class CustomerPropertiesService {
   /**
    * Get a specific customer property
    */
-  async getById(id: string, tenantId: string) {
-    const serviceProviderId = await this.getServiceProviderId(tenantId);
-
+  async getById(id: string, serviceProviderId: string) {
     const property = await prisma.customerProperty.findFirst({
       where: {
         id,

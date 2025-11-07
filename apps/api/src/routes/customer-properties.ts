@@ -44,8 +44,18 @@ router.get('/:id/history', async (req: Request, res: Response, next: NextFunctio
     const propertyId = req.params.id;
     const limit = parseInt(req.query.limit as string) || 50;
 
+    // Get service provider ID from tenant
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true },
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
     // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Get property history
     const history = await propertyHistoryService.getPropertyHistory(propertyId, limit);
@@ -94,8 +104,18 @@ router.get('/:id/checklist-templates', async (req: Request, res: Response, next:
     const tenantId = req.user!.tenant_id;
     const propertyId = req.params.id;
 
+    // Get service provider ID from tenant
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true },
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
     // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Get linked checklist templates
     const templates = await customerPropertiesService.getChecklistTemplates(propertyId);
@@ -116,8 +136,18 @@ router.post('/:id/checklist-templates', async (req: Request, res: Response, next
       return res.status(400).json({ error: 'checklist_template_id is required' });
     }
 
+    // Get service provider ID from tenant
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true },
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
     // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Link checklist template to property
     const link = await customerPropertiesService.linkChecklistTemplate(propertyId, checklist_template_id);
@@ -134,8 +164,18 @@ router.delete('/:id/checklist-templates/:templateId', async (req: Request, res: 
     const propertyId = req.params.id;
     const templateId = req.params.templateId;
 
+    // Get service provider ID from tenant
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true },
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
     // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Unlink checklist template from property
     await customerPropertiesService.unlinkChecklistTemplate(propertyId, templateId);

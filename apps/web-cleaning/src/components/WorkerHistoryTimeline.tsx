@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { workersAPI, type WorkerHistoryEntry } from '../lib/api'
 import { Card } from './ui'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 
 interface WorkerHistoryTimelineProps {
   workerId: string
 }
 
 export function WorkerHistoryTimeline({ workerId }: WorkerHistoryTimelineProps) {
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [history, setHistory] = useState<WorkerHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

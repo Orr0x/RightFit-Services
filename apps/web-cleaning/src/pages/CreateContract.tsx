@@ -105,7 +105,7 @@ export default function CreateContract() {
 
       const payload = {
         customer_id: formData.customer_id,
-        service_provider_id: user.tenant_id,
+        service_provider_id: user.service_provider_id,
         contract_type: formData.contract_type,
         contract_start_date: formData.contract_start_date,
         contract_end_date: formData.contract_end_date || undefined,
@@ -174,7 +174,7 @@ export default function CreateContract() {
                       label: `${customer.business_name} - ${customer.contact_name}`,
                     }))}
                     value={formData.customer_id}
-                    onChange={(value) => handleInputChange('customer_id', value)}
+                    onChange={(e) => handleInputChange('customer_id', e.target.value)}
                     required
                   />
                 )}

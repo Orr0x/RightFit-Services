@@ -1251,6 +1251,7 @@ export const customerPropertiesAPI = {
     limit?: number
     search?: string
     customer_id?: string
+    service_provider_id?: string
   }) => {
     const response = await api.get<{ data: CustomerProperty[]; pagination: any }>('/api/customer-properties', {
       params: filters,
@@ -1258,8 +1259,10 @@ export const customerPropertiesAPI = {
     return response.data
   },
 
-  get: async (id: string) => {
-    const response = await api.get<{ data: CustomerProperty }>(`/api/customer-properties/${id}`)
+  get: async (id: string, service_provider_id?: string) => {
+    const response = await api.get<{ data: CustomerProperty }>(`/api/customer-properties/${id}`, {
+      params: { service_provider_id },
+    })
     return response.data.data
   },
 
@@ -1884,12 +1887,35 @@ export const workerAvailabilityAPI = {
     })
     return response.data.data
   },
+
+  create: async (data: {
+    worker_id: string
+    start_date: string
+    end_date: string
+    status: 'BLOCKED' | 'AVAILABLE'
+    reason?: string
+  }) => {
+    const response = await api.post<{ data: WorkerAvailability }>('/api/worker-availability', data)
+    return response.data.data
+  },
+
+  delete: async (id: string, workerId: string) => {
+    const response = await api.delete<{ message: string }>('/api/worker-availability/' + id, {
+      params: { worker_id: workerId },
+    })
+    return response.data
+  },
 }
 
 // Checklist Template types
+export interface ChecklistItem {
+  label: string
+  completed: boolean
+}
+
 export interface ChecklistSection {
   title: string
-  items: string[]
+  items: ChecklistItem[]
   images?: string[] // URLs to uploaded images
 }
 
