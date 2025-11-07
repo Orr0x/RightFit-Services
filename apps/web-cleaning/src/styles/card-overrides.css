@@ -1,0 +1,79 @@
+/**
+ * Global Card Component Overrides
+ * Applies consistent gradient styling to all Card components from @rightfit/ui-core
+ */
+
+/* Override default Card styles with gradient background */
+.rf-card {
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-hover) 100%);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-base);
+}
+
+/* Enhanced hover effect */
+.rf-card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+}
+
+/* Ensure text colors are consistent */
+.rf-card-title,
+.rf-card-section-title {
+  color: var(--color-text-primary);
+}
+
+.rf-card-subtitle {
+  color: var(--color-text-secondary);
+}
+
+/* Stat card specific styling for better number display */
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.stat-value {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Field label styling for form-like cards */
+.rf-card .field-label,
+.rf-card .stat-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-1);
+}
+
+.rf-card .field-value {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .rf-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .rf-card-hoverable:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border-color: var(--color-primary);
+  }
+}
