@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { globalActivityAPI, type GlobalActivityEntry } from '../lib/api'
-import { Card } from './ui'
+import { Card } from '@rightfit/ui-core'
 
 interface GlobalActivityTimelineProps {
   limit?: number

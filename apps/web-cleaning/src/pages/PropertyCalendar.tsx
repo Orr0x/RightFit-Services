@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Button, Card, Spinner, Badge } from '../components/ui'
-import { useToast } from '../components/ui/Toast'
+import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
+import { useToast } from '../components/ui'
 import { cleaningJobsAPI, type CleaningJob } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
@@ -8,7 +8,7 @@ import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
 import './PropertyCalendar.css'
 import './ContractDetails.css'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 export default function PropertyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())

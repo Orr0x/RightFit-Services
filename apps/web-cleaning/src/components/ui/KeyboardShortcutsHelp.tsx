@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { Modal } from './Modal'
+import { Modal } from '@rightfit/ui-core'
 import { type KeyboardShortcut, useKeyboardShortcutsHelp } from '../../hooks/useKeyboardShortcuts'
 import './KeyboardShortcutsHelp.css'
 

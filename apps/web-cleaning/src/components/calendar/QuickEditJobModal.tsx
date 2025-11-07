@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Modal, Button, Select, useToast } from '../ui'
+import { Modal, Button, Select } from '@rightfit/ui-core'
+import { useToast } from '../ui'
 import { cleaningJobsAPI, workersAPI, type CleaningJob, type Worker } from '../../lib/api'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface QuickEditJobModalProps {
   job: CleaningJob

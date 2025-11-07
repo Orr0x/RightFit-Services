@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Select, Textarea, Spinner, useToast, type SelectOption } from '../components/ui'
+import { Button, Card, Input, Select, Textarea, Spinner, type SelectOption } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { customerPropertiesAPI, customersAPI, type CreateCustomerPropertyData, type Customer } from '../lib/api'
 

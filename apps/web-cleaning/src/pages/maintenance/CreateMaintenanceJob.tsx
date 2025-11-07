@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Button, Input, Card, Textarea, useToast } from '../../components/ui'
+import { Button, Input, Card, Textarea } from '@rightfit/ui-core';
+import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type CreateMaintenanceJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 export default function CreateMaintenanceJob() {
   const [formData, setFormData] = useState<CreateMaintenanceJobData>({

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { customerPropertiesAPI, type PropertyHistoryEntry } from '../lib/api'
-import { Card } from './ui'
+import { Card } from '@rightfit/ui-core'
 
 interface PropertyHistoryTimelineProps {
   propertyId: string

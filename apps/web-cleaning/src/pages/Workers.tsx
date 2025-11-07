@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { workersAPI, type Worker } from '../lib/api'
 import '../pages/Properties.css'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 export default function Workers() {
   const navigate = useNavigate()

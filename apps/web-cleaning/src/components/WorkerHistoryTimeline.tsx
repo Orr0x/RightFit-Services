@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { workersAPI, type WorkerHistoryEntry } from '../lib/api'
-import { Card } from './ui'
+import { Card } from '@rightfit/ui-core'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface WorkerHistoryTimelineProps {
   workerId: string

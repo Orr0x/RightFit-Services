@@ -2,59 +2,25 @@
  * Component Library Index
  * US-UX-2: Component Library
  *
- * Exports all reusable UI components
+ * Exports app-specific UI components that are not in shared packages
+ * Note: Core components (Button, Card, Input, etc.) are now imported from @rightfit/ui-core
  */
 
-// Buttons
-export { Button } from './Button'
-export type { ButtonProps, ButtonVariant, ButtonSize } from './Button'
+// Components migrated to @rightfit/ui-core:
+// - Button, Card, Input, Select, Spinner, Badge, EmptyState
+// - Textarea, Checkbox, Radio, Modal
 
-// Form Inputs
-export { Input } from './Input'
-export type { InputProps, InputSize, InputVariant } from './Input'
-
-export { Textarea } from './Textarea'
-export type { TextareaProps, TextareaSize } from './Textarea'
-
-export { Select } from './Select'
-export type { SelectProps, SelectOption, SelectSize } from './Select'
-
-export { Checkbox } from './Checkbox'
-export type { CheckboxProps, CheckboxSize } from './Checkbox'
-
-export { Radio, RadioGroup } from './Radio'
-export type { RadioProps, RadioGroupProps, RadioSize } from './Radio'
-
-// Layout Components
-export { Card, CardHeader, CardSection } from './Card'
-export type { CardProps, CardHeaderProps, CardSectionProps, CardVariant, CardPadding } from './Card'
-
-// Modal & Dialogs
-export { Modal, ConfirmModal } from './Modal'
-export type { ModalProps, ConfirmModalProps, ModalSize } from './Modal'
-
-// Toast Notifications
+// Toast Notifications (different API from ui-core, keeping local version)
 export { ToastProvider, useToast } from './Toast'
 export type { Toast, ToastType, ToastPosition } from './Toast'
 
-// Loading States
-export { Spinner, LoadingOverlay } from './Spinner'
-export type { SpinnerProps, LoadingOverlayProps, SpinnerSize, SpinnerVariant } from './Spinner'
-
+// App-specific components not in ui-core
 export { Skeleton, SkeletonText, SkeletonCard, SkeletonTable } from './Skeleton'
 export type { SkeletonProps, SkeletonTextProps, SkeletonCardProps, SkeletonTableProps, SkeletonVariant } from './Skeleton'
 
-// Empty States
-export { EmptyState } from './EmptyState'
-export type { EmptyStateProps } from './EmptyState'
-
-// Theme Toggle
 export { ThemeToggle } from './ThemeToggle'
 
-// Badge
-export { Badge } from './Badge'
-export type { BadgeProps, BadgeColor, BadgeSize } from './Badge'
-
-// Tabs
 export { Tabs, TabPanel } from './Tabs'
 export type { TabsProps, TabPanelProps, Tab } from './Tabs'
+
+export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp'

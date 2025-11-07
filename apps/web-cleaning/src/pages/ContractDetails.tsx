@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Spinner, Badge, Input, Select, useToast, Tabs, TabPanel } from '../components/ui'
+import { Button, Card, Spinner, Badge, Input, Select } from '@rightfit/ui-core';
+import { useToast, Tabs, TabPanel } from '../components/ui';
 import {
   api,
   cleaningContractsAPI,
@@ -204,7 +205,7 @@ export default function ContractDetails() {
       // Load checklists
       if (activeTab === 'checklists') {
         // Use the service provider ID (there's only one in the database)
-        const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+        const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
         const checklistsData = await checklistTemplatesAPI.list(SERVICE_PROVIDER_ID)
         const allChecklists = checklistsData || []
         setAvailableChecklists(allChecklists)

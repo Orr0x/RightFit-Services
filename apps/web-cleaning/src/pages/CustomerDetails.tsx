@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Spinner, useToast, Badge, Tabs, TabPanel } from '../components/ui'
+import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
+import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import {
   customersAPI,
@@ -74,7 +75,7 @@ export default function CustomerDetails() {
 
     try {
       const result = await cleaningContractsAPI.list({
-        service_provider_id: '8aeb5932-907c-41b3-a2bc-05b27ed0dc87',
+        service_provider_id: 'sp-cleaning-test',
         customer_id: id,
       })
       setContracts(result || [])
@@ -87,7 +88,7 @@ export default function CustomerDetails() {
     if (!id) return
 
     try {
-      const result = await cleaningJobsAPI.list('8aeb5932-907c-41b3-a2bc-05b27ed0dc87', {
+      const result = await cleaningJobsAPI.list('sp-cleaning-test', {
         customer_id: id,
         page: 1,
         limit: 10,

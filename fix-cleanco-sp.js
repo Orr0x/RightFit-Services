@@ -1,0 +1,92 @@
+/**
+ * Fix CleanCo Service Provider Configuration
+ */
+
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+const CLEANCO_TENANT_ID = 'tenant-cleaning-test';
+const HARDCODED_SP_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87';
+
+async function fixServiceProvider() {
+  try {
+    console.log('🔧 Fixing CleanCo Service Provider Configuration...\n');
+
+    // Check if CleanCo tenant exists
+    const tenant = await prisma.Tenant.findUnique({
+      where: { id: CLEANCO_TENANT_ID }
+    });
+
+    if (!tenant) {
+      console.error('❌ CleanCo tenant not found!');
+      console.log('   Expected tenant ID:', CLEANCO_TENANT_ID);
+      process.exit(1);
+    }
+
+    console.log('✓ Found CleanCo tenant:', tenant.tenant_name);
+
+    // Check if service provider exists
+    let serviceProvider = await prisma.service_providers.findUnique({
+      where: { id: HARDCODED_SP_ID }
+    });
+
+    if (serviceProvider) {
+      console.log('\n⚠ Service provider already exists with this ID');
+      console.log('   Current tenant:', serviceProvider.tenant_id);
+
+      if (serviceProvider.tenant_id !== CLEANCO_TENANT_ID) {
+        console.log('   Updating to CleanCo tenant...');
+
+        serviceProvider = await prisma.service_providers.update({
+          where: { id: HARDCODED_SP_ID },
+          data: {
+            tenant_id: CLEANCO_TENANT_ID,
+            business_name: 'CleanCo Services',
+            owner_name: 'Sarah Johnson',
+            email: 'admin@cleaningco.test',
+            phone: '+44 20 7123 4567',
+            address: '123 Cleaning Street, London, SW1A 1AA, United Kingdom',
+          }
+        });
+        console.log('   ✓ Updated service provider to CleanCo tenant');
+      } else {
+        console.log('   ✓ Already linked to CleanCo tenant - no changes needed');
+      }
+    } else {
+      console.log('\n📝 Creating new service provider for CleanCo...');
+
+      serviceProvider = await prisma.service_providers.create({
+        data: {
+          id: HARDCODED_SP_ID,
+          tenant_id: CLEANCO_TENANT_ID,
+          business_name: 'CleanCo Services',
+          owner_name: 'Sarah Johnson',
+          email: 'admin@cleaningco.test',
+          phone: '+44 20 7123 4567',
+          address: '123 Cleaning Street, London, SW1A 1AA, United Kingdom',
+        }
+      });
+      console.log('   ✓ Created service provider');
+    }
+
+    console.log('\n✅ Configuration Complete!');
+    console.log('\n📋 Service Provider Details:');
+    console.log('   ID:', serviceProvider.id);
+    console.log('   Business Name:', serviceProvider.business_name);
+    console.log('   Email:', serviceProvider.email);
+    console.log('   Tenant:', tenant.tenant_name);
+    console.log('\n🔐 Test Login:');
+    console.log('   Email: admin@cleaningco.test');
+    console.log('   Password: TestPassword123!');
+    console.log('\n✅ The web-cleaning app should now work correctly!');
+
+  } catch (error) {
+    console.error('\n❌ Error:', error.message);
+    console.error(error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+fixServiceProvider();

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Select, Spinner, useToast, Checkbox, type SelectOption } from '../components/ui'
+import { Button, Card, Input, Select, Spinner, Checkbox, type SelectOption } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { customersAPI, type CreateCustomerData } from '../lib/api'
 

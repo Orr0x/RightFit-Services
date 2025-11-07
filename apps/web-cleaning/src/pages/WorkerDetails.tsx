@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Spinner, useToast, Tabs, TabPanel, Badge, Modal } from '../components/ui'
+import { Button, Card, Input, Spinner, Badge, Modal } from '@rightfit/ui-core';
+import { useToast, Tabs, TabPanel } from '../components/ui';
 import { workersAPI, cleaningJobsAPI, workerAvailabilityAPI, type Worker, type CleaningJob, type WorkerCertificate, type WorkerAvailability } from '../lib/api'
 import { WorkerHistoryTimeline } from '../components/WorkerHistoryTimeline'
 import Calendar from 'react-calendar'
@@ -14,7 +15,7 @@ import HistoryIcon from '@mui/icons-material/History'
 import '../pages/ContractDetails.css'
 import './Quotes.css'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 export default function WorkerDetails() {
   const { id } = useParams<{ id: string }>()
