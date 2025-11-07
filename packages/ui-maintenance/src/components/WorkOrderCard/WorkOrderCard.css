@@ -1,0 +1,61 @@
+.rf-work-order-card[role="button"] {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rf-work-order-card[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rf-work-order-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.rf-work-order-card__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--rf-color-text-primary);
+}
+
+.rf-work-order-card__number {
+  font-size: 0.75rem;
+  color: var(--rf-color-text-secondary);
+  margin: 0;
+  font-family: monospace;
+}
+
+.rf-work-order-card__property {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-secondary);
+  margin: 0 0 1rem 0;
+}
+
+.rf-work-order-card__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.rf-work-order-card__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rf-work-order-card__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--rf-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rf-work-order-card__value {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-primary);
+}

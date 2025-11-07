@@ -1,0 +1,79 @@
+.rf-maintenance-job-card[role="button"] {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rf-maintenance-job-card[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rf-maintenance-job-card__header {
+  margin-bottom: 1rem;
+}
+
+.rf-maintenance-job-card__title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.rf-maintenance-job-card__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--rf-color-text-primary);
+  flex: 1;
+}
+
+.rf-maintenance-job-card__badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rf-maintenance-job-card__property {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-secondary);
+  margin: 0;
+}
+
+.rf-maintenance-job-card__description {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-primary);
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.rf-maintenance-job-card__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.rf-maintenance-job-card__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rf-maintenance-job-card__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--rf-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rf-maintenance-job-card__value {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-primary);
+}
+
+.rf-maintenance-job-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rf-color-border);
+}
