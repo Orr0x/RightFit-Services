@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { CleaningJobsService } from '../services/CleaningJobsService';
 import { CleaningJobHistoryService } from '../services/CleaningJobHistoryService';
 import { authMiddleware } from '../middleware/auth';
+import { requireServiceProvider } from '../middleware/requireServiceProvider';
 
 const router: Router = Router();
 const cleaningJobsService = new CleaningJobsService();
@@ -11,12 +12,9 @@ const historyService = new CleaningJobHistoryService();
 router.use(authMiddleware);
 
 // GET /api/cleaning-jobs
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
@@ -53,12 +51,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/cleaning-jobs/:id
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const job = await cleaningJobsService.getById(req.params.id, serviceProviderId);
     res.json({ data: job });
@@ -68,12 +63,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/cleaning-jobs/:id/history
-router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/history', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     // Verify job belongs to this provider
     await cleaningJobsService.getById(req.params.id, serviceProviderId);
@@ -87,12 +79,9 @@ router.get('/:id/history', async (req: Request, res: Response, next: NextFunctio
 });
 
 // POST /api/cleaning-jobs
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.body.service_provider_id;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     // Convert date strings to Date objects if provided
     const jobData = {
@@ -108,12 +97,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // PUT /api/cleaning-jobs/:id
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.body.service_provider_id;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     // Convert scheduled_date string to Date object if provided
     const updateData = {
@@ -131,12 +117,9 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // DELETE /api/cleaning-jobs/:id
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     await cleaningJobsService.delete(req.params.id, serviceProviderId);
     res.status(204).send();

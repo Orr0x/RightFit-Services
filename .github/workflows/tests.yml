@@ -1,0 +1,313 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Unit Tests - Backend
+  unit-tests-backend:
+    name: Unit Tests (Backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run backend unit tests
+        run: cd apps/api && npm run test:unit
+        env:
+          NODE_ENV: test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/api/coverage/coverage-final.json
+          flags: backend-unit
+          name: backend-unit-coverage
+
+  # Unit Tests - Frontend
+  unit-tests-frontend:
+    name: Unit Tests (Frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        app: [web-cleaning, web-maintenance, web-customer, web-landlord, web-worker, guest-tablet]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run frontend unit tests
+        run: cd apps/${{ matrix.app }} && npm test -- --coverage
+        env:
+          NODE_ENV: test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/${{ matrix.app }}/coverage/coverage-final.json
+          flags: frontend-unit-${{ matrix.app }}
+          name: frontend-unit-${{ matrix.app }}-coverage
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests (API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: rightfit_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run database migrations
+        run: cd packages/database && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rightfit_test
+
+      - name: Run integration tests
+        run: cd apps/api && npm run test:integration
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rightfit_test
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/api/coverage/coverage-final.json
+          flags: integration
+          name: integration-coverage
+
+  # E2E Tests
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: rightfit_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run database migrations
+        run: cd packages/database && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rightfit_test
+
+      - name: Seed test database
+        run: cd packages/database && npx tsx prisma/seed-test.ts
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rightfit_test
+
+      - name: Start services
+        run: |
+          npm run dev:api &
+          npm run dev:cleaning &
+          npm run dev:maintenance &
+          npm run dev:worker &
+          sleep 30
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/rightfit_test
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+
+      - name: Run E2E tests
+        run: npx playwright test --project=chromium --project=firefox
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  # Accessibility Tests
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run accessibility tests
+        run: npm test -- --testNamePattern="Accessibility"
+
+  # Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run dependency audit
+        run: chmod +x tests/security/dependency-audit.sh && ./tests/security/dependency-audit.sh
+        continue-on-error: true
+
+      - name: Run Snyk scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: tests/security/reports/
+          retention-days: 30
+
+  # Lint
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Type Check
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+
+  # Test Summary
+  test-summary:
+    name: Test Summary
+    needs: [unit-tests-backend, unit-tests-frontend, integration-tests, e2e-tests, accessibility-tests, security-scan, lint, typecheck]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "All tests completed!"
+          echo "Backend unit tests: ${{ needs.unit-tests-backend.result }}"
+          echo "Frontend unit tests: ${{ needs.unit-tests-frontend.result }}"
+          echo "Integration tests: ${{ needs.integration-tests.result }}"
+          echo "E2E tests: ${{ needs.e2e-tests.result }}"
+          echo "Accessibility tests: ${{ needs.accessibility-tests.result }}"
+          echo "Security scan: ${{ needs.security-scan.result }}"
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Type check: ${{ needs.typecheck.result }}"

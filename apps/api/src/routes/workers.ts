@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { WorkersService } from '../services/WorkersService';
 import { WorkerHistoryService } from '../services/WorkerHistoryService';
 import { authMiddleware } from '../middleware/auth';
+import { requireServiceProvider } from '../middleware/requireServiceProvider';
 import { upload, uploadDocument } from '../middleware/upload';
 import workerPhotosService from '../services/WorkerPhotosService';
 import workerCertificatesService from '../services/WorkerCertificatesService';
@@ -30,12 +31,9 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/workers
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const filters = {
       worker_type: req.query.worker_type as string | undefined,
@@ -51,12 +49,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/workers/:id/stats - Get worker dashboard stats
-router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/stats', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const workerId = req.params.id;
 
@@ -127,12 +122,9 @@ router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction)
 });
 
 // GET /api/workers/:id
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const worker = await workersService.getById(req.params.id, serviceProviderId);
     res.json({ data: worker });
@@ -142,12 +134,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/workers/:id/history
-router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/history', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const workerId = req.params.id;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -179,12 +168,9 @@ router.get('/:id/history', async (req: Request, res: Response, next: NextFunctio
 });
 
 // GET /api/workers/:id/history/stats
-router.get('/:id/history/stats', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/history/stats', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.query.service_provider_id as string;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const workerId = req.params.id;
 
@@ -211,12 +197,9 @@ router.get('/:id/history/stats', async (req: Request, res: Response, next: NextF
 });
 
 // POST /api/workers
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.body.service_provider_id;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const worker = await workersService.create(req.body, serviceProviderId);
     res.status(201).json({ data: worker });
@@ -226,12 +209,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // PUT /api/workers/:id
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.body.service_provider_id;
-    if (!serviceProviderId) {
-      return res.status(400).json({ error: 'service_provider_id is required' });
-    }
+    const serviceProviderId = req.serviceProvider!.id;
 
     const worker = await workersService.update(req.params.id, req.body, serviceProviderId);
     res.json({ data: worker });

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyAccessToken } from '../utils/jwt'
 import { UnauthorizedError } from '../utils/errors'
+import { ServiceProvider } from '@prisma/client'
 
-// Extend Express Request type to include user
+// Extend Express Request type to include user and serviceProvider
 declare global {
   namespace Express {
     interface Request {
@@ -12,6 +13,7 @@ declare global {
         email: string
         role: 'ADMIN' | 'MEMBER' | 'CONTRACTOR'
       }
+      serviceProvider?: ServiceProvider
     }
   }
 }

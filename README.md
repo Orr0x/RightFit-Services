@@ -16,20 +16,36 @@ This means:
 - ✅ **User experience excellence** - Intuitive, accessible, delightful
 - ✅ **Sustainable development** - Maintainable code that lasts years
 
-**Read [PHILOSOPHY.md](PHILOSOPHY.md) for our complete development philosophy and quality standards.**
+**Read [Planning/PHILOSOPHY.md](Planning/PHILOSOPHY.md) for our complete development philosophy and quality standards.**
 
 ---
 
 ## Quick Links
 
-- **[PHILOSOPHY.md](PHILOSOPHY.md)** - Development philosophy and quality standards (READ FIRST)
+### Core Documentation
 - **[README.md](README.md)** - You are here - Setup and quick start
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture (15,000+ words)
-- **[CURRENT-STATE.md](CURRENT-STATE.md)** - Current development status and priorities
-- **[PROJECT-PLAN.md](PROJECT-PLAN.md)** - Development roadmap and sprint plans
-- **[PROJECT-MAP.md](PROJECT-MAP.md)** - Project navigation guide
 - **[CLAUDE-RULES.md](CLAUDE-RULES.md)** - AI assistant guidelines
 - **[REVIEW-GUIDE.md](REVIEW-GUIDE.md)** - Review checklist for team validation
+
+### Architecture Documentation
+- **[Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md)** - Complete system architecture (15,000+ words)
+- **[Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md)** - Current development status and priorities
+- **[Architecture/CODE-REVIEW-FINDINGS.md](Architecture/CODE-REVIEW-FINDINGS.md)** - Code review findings and issues
+- **[Architecture/DEVELOPMENT-ACTION-PLAN.md](Architecture/DEVELOPMENT-ACTION-PLAN.md)** - Development action plan
+- **[Architecture/TECH-STACK-ANALYSIS.md](Architecture/TECH-STACK-ANALYSIS.md)** - Technology stack analysis
+- **[Architecture/FRONT-END-SPEC.md](Architecture/FRONT-END-SPEC.md)** - Frontend specifications
+
+### Planning Documentation
+- **[Planning/PHILOSOPHY.md](Planning/PHILOSOPHY.md)** - Development philosophy and quality standards (READ FIRST)
+- **[Planning/PROJECT-PLAN.md](Planning/PROJECT-PLAN.md)** - Development roadmap and sprint plans
+- **[Planning/PROJECT-MAP.md](Planning/PROJECT-MAP.md)** - Project navigation guide
+- **[Planning/SPRINT-0-EMERGENCY-SECURITY-FIXES.md](Planning/SPRINT-0-EMERGENCY-SECURITY-FIXES.md)** - Security fixes sprint
+- **[Planning/CLEANING-SAAS-MVP-PRD.md](Planning/CLEANING-SAAS-MVP-PRD.md)** - Cleaning SaaS product requirements
+- **[Planning/stories/](Planning/stories/)** - User stories for development
+
+### Testing Documentation
+- **[Testing/TESTING-PLAN.md](Testing/TESTING-PLAN.md)** - Comprehensive testing strategy
+- **[Testing/TESTING-SUITE-IMPLEMENTATION.md](Testing/TESTING-SUITE-IMPLEMENTATION.md)** - Testing implementation guide
 
 ---
 
@@ -144,11 +160,30 @@ RightFit-Services/
 │   ├── database/               # Prisma schema, migrations, and seeds
 │   └── shared/                 # Shared types, constants, and utilities
 │
+├── Architecture/               # Architecture documentation
+│   ├── ARCHITECTURE.md         # Complete system architecture
+│   ├── CURRENT-STATE.md        # Current development status
+│   ├── CODE-REVIEW-FINDINGS.md # Code review and issues
+│   ├── DEVELOPMENT-ACTION-PLAN.md # Development roadmap
+│   ├── TECH-STACK-ANALYSIS.md  # Technology stack analysis
+│   └── FRONT-END-SPEC.md       # Frontend specifications
+│
+├── Planning/                   # Planning documentation
+│   ├── PHILOSOPHY.md           # Development philosophy
+│   ├── PROJECT-PLAN.md         # Sprint plans and roadmap
+│   ├── PROJECT-MAP.md          # Project navigation guide
+│   ├── SPRINT-0-EMERGENCY-SECURITY-FIXES.md # Security sprint
+│   ├── CLEANING-SAAS-MVP-PRD.md # Product requirements
+│   └── stories/                # User stories
+│
+├── Testing/                    # Testing documentation
+│   ├── TESTING-PLAN.md         # Testing strategy
+│   └── TESTING-SUITE-IMPLEMENTATION.md # Test implementation
+│
 ├── docs/                       # Additional documentation
 │   ├── archive/                # Historical docs and session summaries
-│   ├── architecture/           # Architecture specs
-│   ├── sprints/                # Sprint plans and stories
-│   └── analysis/               # Code analysis reports
+│   ├── Mobile-DEV-Settup/      # Mobile development guides
+│   └── START-HERE/             # Archived getting started guides
 │
 └── docker-compose.yml          # PostgreSQL database setup
 ```
@@ -310,7 +345,7 @@ For physical device testing, update the API URL:
 
 ### Code Patterns
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) Section 5 for detailed frontend and API patterns.
+See [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md) Section 5 for detailed frontend and API patterns.
 
 **Key Patterns**:
 - Multi-tenant isolation (all endpoints require `service_provider_id`)
@@ -321,9 +356,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) Section 5 for detailed frontend and API p
 
 ### Adding a New Feature
 
-1. Read [PROJECT-PLAN.md](PROJECT-PLAN.md) to understand priorities
-2. Check [CURRENT-STATE.md](CURRENT-STATE.md) for current progress
-3. Follow patterns in [ARCHITECTURE.md](ARCHITECTURE.md)
+1. Read [Planning/PROJECT-PLAN.md](Planning/PROJECT-PLAN.md) to understand priorities
+2. Check [Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md) for current progress
+3. Follow patterns in [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md)
 4. Create database migrations if needed
 5. Implement backend API endpoints
 6. Create frontend components
@@ -381,7 +416,7 @@ pnpm test
 
 **Unified Deployment with Branded Subdomains** (Recommended)
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) Section 9.2 for complete deployment architecture including:
+See [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md) Section 9.2 for complete deployment architecture including:
 - Nginx configuration for subdomain routing
 - Docker Compose production setup
 - SSL certificate configuration (Let's Encrypt)
@@ -499,17 +534,33 @@ npx prisma format
 
 ### Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Complete system architecture (15,000+ words)
-- [CURRENT-STATE.md](CURRENT-STATE.md) - Current development status
-- [PROJECT-PLAN.md](PROJECT-PLAN.md) - Roadmap and sprint plans
-- [PROJECT-MAP.md](PROJECT-MAP.md) - Navigation guide
+**Architecture**
+- [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md) - Complete system architecture (15,000+ words)
+- [Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md) - Current development status
+- [Architecture/CODE-REVIEW-FINDINGS.md](Architecture/CODE-REVIEW-FINDINGS.md) - Code review findings
+- [Architecture/DEVELOPMENT-ACTION-PLAN.md](Architecture/DEVELOPMENT-ACTION-PLAN.md) - Development roadmap
+- [Architecture/TECH-STACK-ANALYSIS.md](Architecture/TECH-STACK-ANALYSIS.md) - Technology stack analysis
+
+**Planning**
+- [Planning/PHILOSOPHY.md](Planning/PHILOSOPHY.md) - Development philosophy
+- [Planning/PROJECT-PLAN.md](Planning/PROJECT-PLAN.md) - Roadmap and sprint plans
+- [Planning/PROJECT-MAP.md](Planning/PROJECT-MAP.md) - Navigation guide
+- [Planning/SPRINT-0-EMERGENCY-SECURITY-FIXES.md](Planning/SPRINT-0-EMERGENCY-SECURITY-FIXES.md) - Security sprint
+- [Planning/stories/](Planning/stories/) - User stories
+
+**Testing**
+- [Testing/TESTING-PLAN.md](Testing/TESTING-PLAN.md) - Comprehensive testing strategy
+- [Testing/TESTING-SUITE-IMPLEMENTATION.md](Testing/TESTING-SUITE-IMPLEMENTATION.md) - Testing implementation
+
+**Other**
 - [CLAUDE-RULES.md](CLAUDE-RULES.md) - AI assistant guidelines
+- [REVIEW-GUIDE.md](REVIEW-GUIDE.md) - Review checklist
 
 ### Archived Documentation
 
 - `docs/archive/` - Session summaries and historical documents
-- `docs/sprints/` - Sprint plans and completed stories
-- `docs/architecture/` - Additional architecture specifications
+- `docs/Mobile-DEV-Settup/` - Mobile development setup guides
+- `docs/START-HERE/` - Archived getting started guides
 
 ### External Resources
 
@@ -525,8 +576,8 @@ npx prisma format
 
 For issues, questions, or contributions:
 
-1. Check [CURRENT-STATE.md](CURRENT-STATE.md) for known issues
-2. Review [ARCHITECTURE.md](ARCHITECTURE.md) for design decisions
+1. Check [Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md) for known issues
+2. Review [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md) for design decisions
 3. Follow patterns in existing code
 4. Update documentation with changes
 
@@ -542,4 +593,4 @@ For issues, questions, or contributions:
 **Version**: 1.1
 **Project Status**: Phase 4 - Active Development
 
-For new developers, start with [ARCHITECTURE.md](ARCHITECTURE.md) to understand the complete system, then review [CURRENT-STATE.md](CURRENT-STATE.md) to see current progress and priorities.
+For new developers, start with [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md) to understand the complete system, then review [Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md) to see current progress and priorities.

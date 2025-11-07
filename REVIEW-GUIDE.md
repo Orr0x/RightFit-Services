@@ -6,10 +6,11 @@
 
 **Documents to Review**:
 - [README.md](README.md)
-- [ARCHITECTURE.md](ARCHITECTURE.md)
-- [CURRENT-STATE.md](CURRENT-STATE.md)
-- [PROJECT-PLAN.md](PROJECT-PLAN.md)
-- [PROJECT-MAP.md](PROJECT-MAP.md)
+- [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md)
+- [Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md)
+- [Planning/PROJECT-PLAN.md](Planning/PROJECT-PLAN.md)
+- [Planning/PROJECT-MAP.md](Planning/PROJECT-MAP.md)
+- [Planning/PHILOSOPHY.md](Planning/PHILOSOPHY.md)
 
 ---
 
@@ -101,7 +102,7 @@ Validate technical feasibility, identify risks, and confirm effort estimates for
 ### 1. Architecture Review
 
 **Focus Areas**:
-- Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 1.5 "Development Strategy"
+- Read [Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md) Section 1.5 "Development Strategy"
 - Review the template-based approach
 - Examine existing `web-cleaning` code as the template source
 
@@ -153,7 +154,7 @@ Validate technical feasibility, identify risks, and confirm effort estimates for
 
 ### 2. Quality Standards Validation
 
-Review [PROJECT-PLAN.md](PROJECT-PLAN.md) Sprints 1-7 **quality requirements**.
+Review [Planning/PROJECT-PLAN.md](Planning/PROJECT-PLAN.md) Sprints 1-7 **quality requirements**.
 
 **Sprint 1: Component Library Refactor - Quality Focus**
 
@@ -286,7 +287,7 @@ Questions to validate:
 
 ### 3. Technical Debt Assessment
 
-Review [CURRENT-STATE.md](CURRENT-STATE.md) Technical Debt section.
+Review [Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md) Technical Debt section.
 
 **Questions**:
 1. Are there OTHER technical debt items not documented?

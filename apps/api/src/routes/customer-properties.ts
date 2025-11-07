@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { CustomerPropertiesService } from '../services/CustomerPropertiesService';
 import { PropertyHistoryService } from '../services/PropertyHistoryService';
 import { authMiddleware } from '../middleware/auth';
+import { requireServiceProvider } from '../middleware/requireServiceProvider';
 
 const router: Router = Router();
 const customerPropertiesService = new CustomerPropertiesService();
@@ -10,15 +11,15 @@ const propertyHistoryService = new PropertyHistoryService();
 router.use(authMiddleware);
 
 // GET /api/customer-properties
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tenantId = req.user!.tenant_id;
+    const serviceProviderId = req.serviceProvider!.id;
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
     const search = req.query.search as string | undefined;
     const customerId = req.query.customer_id as string | undefined;
 
-    const result = await customerPropertiesService.list(tenantId, page, limit, search, customerId);
+    const result = await customerPropertiesService.list(serviceProviderId, page, limit, search, customerId);
     res.json({ data: result.data, pagination: result.pagination });
   } catch (error) {
     next(error);
@@ -26,10 +27,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/customer-properties/:id
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tenantId = req.user!.tenant_id;
-    const property = await customerPropertiesService.getById(req.params.id, tenantId);
+    const serviceProviderId = req.serviceProvider!.id;
+    const property = await customerPropertiesService.getById(req.params.id, serviceProviderId);
     res.json({ data: property });
   } catch (error) {
     next(error);
@@ -55,10 +56,10 @@ router.get('/:id/history', async (req: Request, res: Response, next: NextFunctio
 });
 
 // POST /api/customer-properties
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tenantId = req.user!.tenant_id;
-    const property = await customerPropertiesService.create(req.body, tenantId);
+    const serviceProviderId = req.serviceProvider!.id;
+    const property = await customerPropertiesService.create(req.body, serviceProviderId);
     res.status(201).json({ data: property });
   } catch (error) {
     next(error);
@@ -66,10 +67,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // PATCH /api/customer-properties/:id
-router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.patch('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tenantId = req.user!.tenant_id;
-    const property = await customerPropertiesService.update(req.params.id, req.body, tenantId);
+    const serviceProviderId = req.serviceProvider!.id;
+    const property = await customerPropertiesService.update(req.params.id, req.body, serviceProviderId);
     res.json({ data: property });
   } catch (error) {
     next(error);
@@ -77,10 +78,10 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 });
 
 // DELETE /api/customer-properties/:id
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tenantId = req.user!.tenant_id;
-    await customerPropertiesService.delete(req.params.id, tenantId);
+    const serviceProviderId = req.serviceProvider!.id;
+    await customerPropertiesService.delete(req.params.id, serviceProviderId);
     res.json({ message: 'Customer property deleted successfully' });
   } catch (error) {
     next(error);
