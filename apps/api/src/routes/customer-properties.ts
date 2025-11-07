@@ -27,10 +27,21 @@ router.get('/', requireServiceProvider, async (req: Request, res: Response, next
 });
 
 // GET /api/customer-properties/:id
-router.get('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.serviceProvider!.id;
-    const property = await customerPropertiesService.getById(req.params.id, serviceProviderId);
+    const tenantId = req.user!.tenant_id;
+
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    const property = await customerPropertiesService.getById(req.params.id, serviceProvider.id);
     res.json({ data: property });
   } catch (error) {
     next(error);
@@ -38,14 +49,24 @@ router.get('/:id', requireServiceProvider, async (req: Request, res: Response, n
 });
 
 // GET /api/customer-properties/:id/history
-router.get('/:id/history', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.serviceProvider!.id;
+    const tenantId = req.user!.tenant_id;
     const propertyId = req.params.id;
     const limit = parseInt(req.query.limit as string) || 50;
 
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
     // Verify property belongs to service provider
-    await customerPropertiesService.getById(propertyId, serviceProviderId);
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Get property history
     const history = await propertyHistoryService.getPropertyHistory(propertyId, limit);
@@ -94,8 +115,18 @@ router.get('/:id/checklist-templates', async (req: Request, res: Response, next:
     const tenantId = req.user!.tenant_id;
     const propertyId = req.params.id;
 
-    // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    // Verify property belongs to service provider
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Get linked checklist templates
     const templates = await customerPropertiesService.getChecklistTemplates(propertyId);
@@ -116,8 +147,18 @@ router.post('/:id/checklist-templates', async (req: Request, res: Response, next
       return res.status(400).json({ error: 'checklist_template_id is required' });
     }
 
-    // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, tenantId);
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    // Verify property belongs to service provider
+    await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Link checklist template to property
     const link = await customerPropertiesService.linkChecklistTemplate(propertyId, checklist_template_id);
