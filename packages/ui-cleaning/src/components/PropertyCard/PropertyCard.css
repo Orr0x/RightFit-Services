@@ -1,0 +1,66 @@
+.rf-property-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rf-property-card[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rf-property-card[role="button"]:focus {
+  outline: 2px solid var(--rf-color-primary-500);
+  outline-offset: 2px;
+}
+
+.rf-property-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.rf-property-card__address {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--rf-color-text-primary);
+}
+
+.rf-property-card__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.rf-property-card__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rf-property-card__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--rf-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rf-property-card__value {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-primary);
+}
+
+.rf-property-card__instructions {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rf-color-border);
+}
+
+.rf-property-card__instructions-text {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-secondary);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+}

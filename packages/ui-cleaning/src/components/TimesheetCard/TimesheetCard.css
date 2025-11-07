@@ -1,0 +1,94 @@
+.rf-timesheet-card[role="button"] {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rf-timesheet-card[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rf-timesheet-card__header {
+  margin-bottom: 1rem;
+}
+
+.rf-timesheet-card__title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.rf-timesheet-card__property {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--rf-color-text-primary);
+  flex: 1;
+}
+
+.rf-timesheet-card__worker {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-secondary);
+  margin: 0;
+}
+
+.rf-timesheet-card__times {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rf-timesheet-card__time,
+.rf-timesheet-card__total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rf-timesheet-card__time-label,
+.rf-timesheet-card__total-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--rf-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rf-timesheet-card__time-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--rf-color-text-primary);
+}
+
+.rf-timesheet-card__time-date {
+  font-size: 0.75rem;
+  color: var(--rf-color-text-secondary);
+}
+
+.rf-timesheet-card__total-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--rf-color-primary-500);
+}
+
+.rf-timesheet-card__notes {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rf-color-border);
+}
+
+.rf-timesheet-card__notes-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--rf-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rf-timesheet-card__notes-text {
+  font-size: 0.875rem;
+  color: var(--rf-color-text-primary);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+}

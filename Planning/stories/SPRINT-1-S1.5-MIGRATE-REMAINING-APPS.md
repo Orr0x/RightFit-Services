@@ -1,0 +1,695 @@
+# S1.5: Migrate Remaining Apps to Shared Packages
+
+**Sprint**: Sprint 1 - Component Library Refactor
+**Story Points**: 4
+**Priority**: HIGH
+**Estimated Time**: 1.5 days
+**Status**: Ready for Development
+
+---
+
+## User Story
+
+**As a** frontend developer
+**I want** to migrate all remaining web apps to shared component packages
+**So that** all applications use the component library and code duplication is eliminated
+
+---
+
+## Description
+
+Migrate the remaining three web applications to use the newly created shared component packages:
+- `apps/web-maintenance` → uses `@rightfit/ui-core` + `@rightfit/ui-maintenance`
+- `apps/web-landlord` → uses `@rightfit/ui-core`
+- `apps/web-customer` → uses `@rightfit/ui-core`
+
+This migration will:
+- Remove 2,450+ lines of duplicated component code across three apps
+- Complete the component library refactor initiative
+- Standardize UI components across all applications
+- Establish the pattern for future app development
+
+---
+
+## Acceptance Criteria
+
+### Functional Requirements
+
+**web-maintenance Migration**:
+- [ ] `@rightfit/ui-core` added to dependencies
+- [ ] `@rightfit/ui-maintenance` added to dependencies
+- [ ] All 12 core components replaced with `@rightfit/ui-core`
+- [ ] All 8 maintenance components replaced with `@rightfit/ui-maintenance`
+- [ ] Old component files deleted
+- [ ] App builds and runs without errors
+
+**web-landlord Migration**:
+- [ ] `@rightfit/ui-core` added to dependencies
+- [ ] All 12 core components replaced with `@rightfit/ui-core`
+- [ ] Old component files deleted
+- [ ] App builds and runs without errors
+
+**web-customer Migration**:
+- [ ] `@rightfit/ui-core` added to dependencies
+- [ ] All 12 core components replaced with `@rightfit/ui-core`
+- [ ] Old component files deleted
+- [ ] App builds and runs without errors
+
+**Verification (All Apps)**:
+- [ ] All apps build successfully
+- [ ] All apps run in dev mode without errors
+- [ ] All pages render correctly
+- [ ] All user flows work as before
+- [ ] No console errors or warnings
+
+### Non-Functional Requirements
+
+**Testing**:
+- [ ] All existing tests still pass (all 3 apps)
+- [ ] Manual smoke test of all major features (all 3 apps)
+- [ ] Visual regression check (components look the same)
+
+**Documentation**:
+- [ ] Update each app's README with new dependencies
+- [ ] Document any breaking changes or differences
+- [ ] Create migration summary report
+
+**Performance**:
+- [ ] Bundle sizes not significantly increased
+- [ ] No performance degradation in dev mode
+- [ ] Build times comparable or better
+
+---
+
+## Technical Specification
+
+### Package Installation
+
+**web-maintenance** (`apps/web-maintenance/package.json`):
+```json
+{
+  "name": "@rightfit/web-maintenance",
+  "dependencies": {
+    "@rightfit/ui-core": "workspace:*",
+    "@rightfit/ui-maintenance": "workspace:*"
+  }
+}
+```
+
+**web-landlord** (`apps/web-landlord/package.json`):
+```json
+{
+  "name": "@rightfit/web-landlord",
+  "dependencies": {
+    "@rightfit/ui-core": "workspace:*"
+  }
+}
+```
+
+**web-customer** (`apps/web-customer/package.json`):
+```json
+{
+  "name": "@rightfit/web-customer",
+  "dependencies": {
+    "@rightfit/ui-core": "workspace:*"
+  }
+}
+```
+
+### Migration Strategy
+
+Follow the same pattern as S1.4 for each app:
+
+1. **Install packages**
+2. **Create import map** (track all component usages)
+3. **Migrate imports** (find-and-replace)
+4. **Delete old components**
+5. **Build & test**
+6. **Run tests**
+7. **Visual regression check**
+
+---
+
+## Implementation Steps
+
+### Step 1: Install Packages (15 minutes)
+
+```bash
+# Install all packages from root
+cd /home/orrox/projects/RightFit-Services
+
+# Add dependencies to each app
+cd apps/web-maintenance
+pnpm add @rightfit/ui-core@workspace:* @rightfit/ui-maintenance@workspace:*
+
+cd ../web-landlord
+pnpm add @rightfit/ui-core@workspace:*
+
+cd ../web-customer
+pnpm add @rightfit/ui-core@workspace:*
+
+# Install from root
+cd ../..
+pnpm install
+
+# Verify symlinks
+ls -la apps/web-maintenance/node_modules/@rightfit/
+ls -la apps/web-landlord/node_modules/@rightfit/
+ls -la apps/web-customer/node_modules/@rightfit/
+```
+
+---
+
+## Step 2: Migrate web-maintenance (4 hours)
+
+### 2.1 Create Import Map
+
+```bash
+cd apps/web-maintenance/src
+
+# Count core component usages
+for component in Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea; do
+  echo "$component: $(grep -r "from.*components/$component" . | wc -l) usages"
+done
+
+# Count maintenance component usages
+for component in MaintenanceRequestCard MaintenanceJobCard TechnicianCard EquipmentCard PartInventoryCard WorkOrderChecklist TechnicianScheduleCalendar PropertyMaintenancePanel; do
+  echo "$component: $(grep -r "from.*components/$component" . | wc -l) usages"
+done
+```
+
+### 2.2 Migrate Imports
+
+Use automated script:
+
+```bash
+#!/bin/bash
+# apps/web-maintenance/migrate-imports.sh
+
+cd "$(dirname "$0")/src"
+
+# Core components
+for component in Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea; do
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+done
+
+# Maintenance components
+for component in MaintenanceRequestCard MaintenanceJobCard TechnicianCard EquipmentCard PartInventoryCard WorkOrderChecklist TechnicianScheduleCalendar PropertyMaintenancePanel; do
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/components\/$component['\"]|from '@rightfit/ui-maintenance'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-maintenance'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-maintenance'|g" {} \;
+done
+
+echo "web-maintenance import migration complete!"
+```
+
+Run the script:
+```bash
+chmod +x apps/web-maintenance/migrate-imports.sh
+./apps/web-maintenance/migrate-imports.sh
+```
+
+### 2.3 Delete Old Components
+
+```bash
+cd apps/web-maintenance/src/components
+
+# Delete core components
+rm -rf Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea
+
+# Delete maintenance components
+rm -rf MaintenanceRequestCard MaintenanceJobCard TechnicianCard EquipmentCard PartInventoryCard WorkOrderChecklist TechnicianScheduleCalendar PropertyMaintenancePanel
+
+# Verify
+ls -la
+```
+
+### 2.4 Build & Test
+
+```bash
+cd apps/web-maintenance
+
+# Type check
+pnpm tsc --noEmit
+
+# Build
+pnpm build
+
+# Run dev
+pnpm dev
+# Visit http://localhost:5174 (or assigned port)
+# Test all features
+```
+
+### 2.5 Manual Testing - web-maintenance
+
+Test all major features:
+
+**Maintenance Requests**:
+- [ ] View requests list
+- [ ] Create new request
+- [ ] View request details
+- [ ] Update request priority
+- [ ] Assign technician
+
+**Maintenance Jobs**:
+- [ ] View jobs list
+- [ ] Create job from request
+- [ ] Start job
+- [ ] Complete job
+- [ ] View work order checklist
+
+**Technicians**:
+- [ ] View technicians list
+- [ ] Add technician
+- [ ] View technician schedule
+- [ ] Update availability
+
+**Equipment & Parts**:
+- [ ] View equipment list
+- [ ] View parts inventory
+- [ ] Track part usage
+
+---
+
+## Step 3: Migrate web-landlord (2 hours)
+
+### 3.1 Create Import Map
+
+```bash
+cd apps/web-landlord/src
+
+# Count core component usages
+for component in Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea; do
+  echo "$component: $(grep -r "from.*components/$component" . | wc -l) usages"
+done
+```
+
+### 3.2 Migrate Imports
+
+```bash
+#!/bin/bash
+# apps/web-landlord/migrate-imports.sh
+
+cd "$(dirname "$0")/src"
+
+# Core components only (landlord has no business-specific package yet)
+for component in Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea; do
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+done
+
+echo "web-landlord import migration complete!"
+```
+
+Run the script:
+```bash
+chmod +x apps/web-landlord/migrate-imports.sh
+./apps/web-landlord/migrate-imports.sh
+```
+
+### 3.3 Delete Old Components
+
+```bash
+cd apps/web-landlord/src/components
+
+# Delete core components
+rm -rf Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea
+
+# Verify
+ls -la
+```
+
+### 3.4 Build & Test
+
+```bash
+cd apps/web-landlord
+
+# Type check
+pnpm tsc --noEmit
+
+# Build
+pnpm build
+
+# Run dev
+pnpm dev
+# Visit assigned port
+# Test all features
+```
+
+### 3.5 Manual Testing - web-landlord
+
+Test all major features:
+
+**Properties Management**:
+- [ ] View properties list
+- [ ] Add property
+- [ ] Edit property
+- [ ] View property details
+- [ ] Assign service provider
+
+**Financials**:
+- [ ] View invoices
+- [ ] View payments
+- [ ] View financial reports
+
+**Service Providers**:
+- [ ] View providers list
+- [ ] Add provider
+- [ ] View provider details
+- [ ] Assign properties
+
+**Tenants**:
+- [ ] View tenants list
+- [ ] Add tenant
+- [ ] View tenant details
+
+---
+
+## Step 4: Migrate web-customer (1.5 hours)
+
+### 4.1 Create Import Map
+
+```bash
+cd apps/web-customer/src
+
+# Count core component usages
+for component in Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea; do
+  echo "$component: $(grep -r "from.*components/$component" . | wc -l) usages"
+done
+```
+
+### 4.2 Migrate Imports
+
+```bash
+#!/bin/bash
+# apps/web-customer/migrate-imports.sh
+
+cd "$(dirname "$0")/src"
+
+# Core components only (customer has no business-specific package yet)
+for component in Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea; do
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+  find . -type f \( -name "*.tsx" -o -name "*.ts" \) -exec sed -i "s|from ['\"]\.\.\/\.\.\/\.\.\/components\/$component['\"]|from '@rightfit/ui-core'|g" {} \;
+done
+
+echo "web-customer import migration complete!"
+```
+
+Run the script:
+```bash
+chmod +x apps/web-customer/migrate-imports.sh
+./apps/web-customer/migrate-imports.sh
+```
+
+### 4.3 Delete Old Components
+
+```bash
+cd apps/web-customer/src/components
+
+# Delete core components
+rm -rf Button Card Input Select Modal Toast Spinner Badge EmptyState Checkbox Radio Textarea
+
+# Verify
+ls -la
+```
+
+### 4.4 Build & Test
+
+```bash
+cd apps/web-customer
+
+# Type check
+pnpm tsc --noEmit
+
+# Build
+pnpm build
+
+# Run dev
+pnpm dev
+# Visit assigned port
+# Test all features
+```
+
+### 4.5 Manual Testing - web-customer
+
+Test all major features:
+
+**Dashboard**:
+- [ ] View dashboard
+- [ ] View active requests
+- [ ] View upcoming appointments
+
+**Service Requests**:
+- [ ] View requests list
+- [ ] Create new request
+- [ ] View request details
+- [ ] Upload photos
+- [ ] Add comments
+
+**Properties**:
+- [ ] View properties (if multiple)
+- [ ] View property details
+- [ ] View service history
+
+**Billing**:
+- [ ] View invoices
+- [ ] Make payment
+- [ ] View payment history
+
+---
+
+## Step 5: Final Verification (30 minutes)
+
+### 5.1 Build All Apps
+
+```bash
+cd /home/orrox/projects/RightFit-Services
+
+# Build all apps in parallel
+pnpm --filter "@rightfit/web-maintenance" build &
+pnpm --filter "@rightfit/web-landlord" build &
+pnpm --filter "@rightfit/web-customer" build &
+wait
+
+echo "All apps built successfully!"
+```
+
+### 5.2 Run All Apps
+
+```bash
+# Start all apps in dev mode
+pnpm --filter "@rightfit/web-maintenance" dev &
+pnpm --filter "@rightfit/web-landlord" dev &
+pnpm --filter "@rightfit/web-customer" dev &
+
+# Check all apps are running
+curl http://localhost:5174 # web-maintenance
+curl http://localhost:5175 # web-landlord
+curl http://localhost:5176 # web-customer
+```
+
+### 5.3 Bundle Size Analysis
+
+```bash
+# Compare bundle sizes before/after migration
+cd apps/web-maintenance
+du -sh dist/
+
+cd ../web-landlord
+du -sh dist/
+
+cd ../web-customer
+du -sh dist/
+```
+
+---
+
+## Step 6: Create Migration Summary (30 minutes)
+
+Create `Planning/SPRINT-1-MIGRATION-SUMMARY.md`:
+
+```markdown
+# Sprint 1: Component Library Migration Summary
+
+## Overview
+Successfully migrated all 4 web applications to shared component packages.
+
+## Apps Migrated
+- ✅ web-cleaning (S1.4)
+- ✅ web-maintenance (S1.5)
+- ✅ web-landlord (S1.5)
+- ✅ web-customer (S1.5)
+
+## Code Reduction
+- **Before**: 6,350 lines of duplicated component code
+- **After**: 0 lines of duplicated component code
+- **Reduction**: 100% elimination of component duplication
+
+## Packages Created
+- ✅ @rightfit/ui-core (12 core components)
+- ✅ @rightfit/ui-cleaning (8 cleaning components)
+- ✅ @rightfit/ui-maintenance (8 maintenance components)
+
+## Benefits Achieved
+1. ✅ Single source of truth for all UI components
+2. ✅ Consistent UX across all applications
+3. ✅ Easier maintenance and bug fixes
+4. ✅ Storybook documentation for all components
+5. ✅ Type-safe component APIs
+6. ✅ Accessibility standards enforced
+7. ✅ Test coverage for all shared components
+
+## Bundle Size Impact
+- web-cleaning: [SIZE] → [SIZE] ([CHANGE])
+- web-maintenance: [SIZE] → [SIZE] ([CHANGE])
+- web-landlord: [SIZE] → [SIZE] ([CHANGE])
+- web-customer: [SIZE] → [SIZE] ([CHANGE])
+
+## Build Time Impact
+- web-cleaning: [TIME] → [TIME] ([CHANGE])
+- web-maintenance: [TIME] → [TIME] ([CHANGE])
+- web-landlord: [TIME] → [TIME] ([CHANGE])
+- web-customer: [TIME] → [TIME] ([CHANGE])
+
+## Breaking Changes
+None - API compatibility maintained throughout migration.
+
+## Lessons Learned
+1. [To be filled in during migration]
+2. [To be filled in during migration]
+3. [To be filled in during migration]
+
+## Next Steps
+- Consider creating @rightfit/ui-landlord package
+- Consider creating @rightfit/ui-customer package
+- Migrate mobile app to shared packages
+- Set up automated visual regression testing
+```
+
+---
+
+## Definition of Done
+
+- [ ] All 3 apps (web-maintenance, web-landlord, web-customer) migrated
+- [ ] All component imports migrated to shared packages
+- [ ] All old component files deleted from all 3 apps
+- [ ] All 3 apps build successfully
+- [ ] All 3 apps run in dev mode without errors
+- [ ] All existing tests pass for all 3 apps
+- [ ] Manual smoke test complete for all 3 apps
+- [ ] No console errors or warnings in any app
+- [ ] Visual appearance unchanged (no regressions)
+- [ ] READMEs updated for all 3 apps
+- [ ] Migration summary document created
+- [ ] Code reviewed
+- [ ] Committed to Git with message: "refactor: migrate all web apps to shared component packages"
+
+---
+
+## Testing Instructions
+
+### Automated Testing
+
+```bash
+# Run tests for all apps
+pnpm --filter "@rightfit/web-maintenance" test
+pnpm --filter "@rightfit/web-landlord" test
+pnpm --filter "@rightfit/web-customer" test
+
+# Run all tests in parallel
+pnpm -r test
+```
+
+### Manual Testing
+
+Use the checklists in Steps 2.5, 3.5, and 4.5 above.
+
+### Integration Testing
+
+1. **Cross-App Consistency**:
+   - [ ] Buttons look identical across all apps
+   - [ ] Cards look identical across all apps
+   - [ ] Forms look identical across all apps
+   - [ ] Modals look identical across all apps
+
+2. **Accessibility**:
+   - [ ] Tab navigation works in all apps
+   - [ ] Screen reader compatibility maintained
+   - [ ] Color contrast consistent
+
+---
+
+## Dependencies
+
+**Depends On**:
+- S1.1 (Create ui-core package) - MUST be completed
+- S1.2 (Create ui-cleaning package) - MUST be completed
+- S1.3 (Create ui-maintenance package) - MUST be completed
+- S1.4 (Migrate web-cleaning) - SHOULD be completed (validates migration pattern)
+
+**Blocks**:
+- None (completes Sprint 1)
+
+---
+
+## Notes
+
+- This story completes the component library refactor initiative
+- Takes more time because it's 3 apps instead of 1
+- web-maintenance is more complex (has business-specific package)
+- web-landlord and web-customer are simpler (core components only)
+- Consider parallelizing work if multiple developers available
+- Migration scripts can be reused from S1.4
+- Document any issues for future component library improvements
+
+---
+
+## Rollback Plan
+
+If migration causes critical issues:
+
+**Per-App Rollback**:
+```bash
+# Revert specific app
+cd apps/web-[APP-NAME]
+git checkout HEAD -- .
+pnpm install
+```
+
+**Full Rollback**:
+```bash
+# Revert all changes
+git revert HEAD
+pnpm install
+```
+
+---
+
+## Success Metrics
+
+- ✅ Zero duplicated component code
+- ✅ All apps use shared packages
+- ✅ 100% feature parity maintained
+- ✅ No performance degradation
+- ✅ All tests passing
+- ✅ Developer velocity improved (future changes easier)
+
+---
+
+## Resources
+
+- [pnpm Workspaces](https://pnpm.io/workspaces)
+- [Vite Library Mode](https://vitejs.dev/guide/build.html#library-mode)
+- [Monorepo Best Practices](https://monorepo.tools/)
+
+---
+
+**Created**: November 7, 2025
+**Last Updated**: November 7, 2025
+**Assigned To**: Frontend Developer
+**Sprint**: Sprint 1 - Component Library Refactor
