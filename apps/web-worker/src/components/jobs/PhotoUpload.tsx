@@ -36,7 +36,23 @@ export default function PhotoUpload({
     }
 
     try {
-      const compressedFile = await imageCompression(file, options)
+      const compressedBlob = await imageCompression(file, options)
+
+      // Ensure the file has the correct name and extension
+      const fileName = file.name.toLowerCase().endsWith('.jpg') ||
+                      file.name.toLowerCase().endsWith('.jpeg') ||
+                      file.name.toLowerCase().endsWith('.png') ||
+                      file.name.toLowerCase().endsWith('.webp') ||
+                      file.name.toLowerCase().endsWith('.gif')
+        ? file.name
+        : file.name + '.jpg'
+
+      // Create a new File object with the proper name
+      const compressedFile = new File([compressedBlob], fileName, {
+        type: compressedBlob.type || file.type,
+        lastModified: Date.now(),
+      })
+
       return compressedFile
     } catch (error) {
       console.error('Error compressing image:', error)
@@ -81,9 +97,8 @@ export default function PhotoUpload({
     const formData = new FormData()
     formData.append('photo', file)
     formData.append('category', category)
-    formData.append('service_provider_id', serviceProviderId)
 
-    const response = await fetch(`/api/cleaning-jobs/${jobId}/timesheets/${timesheetId}/photos`, {
+    const response = await fetch(`/api/cleaning-timesheets/${timesheetId}/photos`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -108,7 +123,7 @@ export default function PhotoUpload({
       const serviceProviderId = localStorage.getItem('service_provider_id')
 
       const response = await fetch(
-        `/api/cleaning-jobs/${jobId}/timesheets/${timesheetId}/photos/${photoId}?service_provider_id=${serviceProviderId}`,
+        `/api/cleaning-timesheets/${timesheetId}/photos/${photoId}`,
         {
           method: 'DELETE',
           headers: {

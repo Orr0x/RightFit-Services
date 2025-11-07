@@ -1,282 +1,500 @@
-# 🗺️ RightFit Services - Project Navigation Map
+# RightFit Services - Project Map & Navigation Guide
 
-**Last Updated**: 2025-11-05 (Worker App Sprint Added)
-**Current Phase**: Business Management Sprint - Implementation Starting + Worker App Sprint Planned
-
----
-
-## 📍 Where Are We?
-
-**Current Status**: [CURRENT_STATUS.md](CURRENT_STATUS.md)
-
-**Phase**: Phase 3 (85% complete) + **Business Management Sprint** (Code Review Complete, Starting Implementation)
-
-**What's Working**:
-✅ Cleaning job timesheet & completion workflow
-✅ Maintenance job quote workflow (end-to-end tested)
-✅ Worker profile management (frontend complete)
-✅ Job & Property history tracking (live and functional)
-✅ Global activity feed
-✅ Customer portal with guest AI dashboard
-✅ **Property guest turnover calendar** (FULLY IMPLEMENTED)
-✅ **Property details page** (FULLY FUNCTIONAL)
-✅ **Cleaning contracts page** (FUNCTIONAL, needs minor polish)
-
-**Next Up**: Business Management Sprint Implementation (10-11 days, 42 story points)
+**Last Updated**: November 7, 2025
+**Purpose**: Quick reference for navigating the RightFit Services project
 
 ---
 
-## 🎯 Active Sprint: Business Management (REVISED)
+## 🚀 Quick Start for New Developers
 
-**Sprint Plan**: [START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md](START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md)
-**Code Review**: [START-HERE/CODE-REVIEW-FINDINGS.md](START-HERE/CODE-REVIEW-FINDINGS.md)
+**Total Onboarding Time**: 2-4 hours reading + 1 day setup
 
-### Code Review Results ✅
-**Completed Code Review on 2025-11-04**
-- Discovered PM-003 (Property Calendar) is **FULLY IMPLEMENTED**
-- Discovered INT-002 (Property Details) is **FULLY FUNCTIONAL**
-- Discovered CON-001 (Contracts) is **90% COMPLETE**
-- Identified missing backend services for CleaningInvoice and CleaningQuote
-- Revised sprint from 45 points to **42 points** (more accurate scope)
+### 1. Read These Documents (In Order)
 
-### Revised Sprint Plan (14 Stories, 42 Points)
+**⚠️ CRITICAL**: Read [PHILOSOPHY.md](PHILOSOPHY.md) FIRST to understand our quality-first approach.
 
-**Phase 1: Property Forms** (Days 1-2, 9 pts)
-- ❌ PM-001: Add Property Form (5 pts) - Full implementation needed
-- ❌ PM-002: Edit Property Form (4 pts) - Full implementation needed
-- ~~✅ PM-003: Property Calendar (REMOVED - already done)~~
-- ~~✅ INT-002: Property Details (REMOVED - already done)~~
+| Document | Time | Why You Need It |
+|----------|------|-----------------|
+| **[PHILOSOPHY.md](PHILOSOPHY.md)** | 15 min | **START HERE** - Development philosophy: RightFit, not QuickFix |
+| **[README.md](README.md)** | 15 min | Setup instructions and quick start |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | 60 min | Complete system architecture (15,000+ words) |
+| **[CURRENT-STATE.md](CURRENT-STATE.md)** | 20 min | Current development status and priorities |
+| **[PROJECT-PLAN.md](PROJECT-PLAN.md)** | 30 min | Roadmap and sprint plans |
+| **[PROJECT-MAP.md](PROJECT-MAP.md)** | 10 min | You are here - navigation guide |
+| **[CLAUDE-RULES.md](CLAUDE-RULES.md)** | 10 min | AI assistant and development guidelines |
 
-**Phase 2: Cleaning Business Backend** (Days 3-4, 8 pts)
-- ❌ Create CleaningInvoiceService (2 pts)
-- ❌ Create cleaning-invoices routes (2 pts)
-- ❌ Create CleaningQuoteService (2 pts)
-- ❌ Create cleaning-quotes routes (2 pts)
+**Total Reading Time**: ~3 hours
 
-**Phase 3: Customer Management** (Days 5-6, 9 pts)
-- ❌ CM-001: Customers Page (3 pts)
-- ❌ CM-002: Customer Details Page (4 pts)
-- ❌ CM-003: Add/Edit Customer Forms (2 pts)
+### 2. Set Up Your Environment
 
-**Phase 4: Invoices & Quotes** (Days 7-9, 14 pts)
-- ❌ INV-001: Invoices Page (5 pts ↑) - Combined view + API integration
-- ❌ INV-002: Invoice Details Page (3 pts)
-- ❌ QT-001: Quotes Page (5 pts ↑) - Combined view + API integration
-- ❌ QT-002: Quote Details Page (3 pts)
-- ❌ QT-003: Create Quote Wizard (3 pts)
-
-**Phase 5: Polish & Integration** (Days 10-11, 2 pts)
-- 🔧 CON-001: Contract UX Polish (1 pt ↓) - Just polish
-- ❌ INT-003: Documentation & Testing (1 pt)
-
-### Key Changes from Original Plan
-- **Points Saved**: 6 points (PM-003, INT-002, partial CON-001/CON-002)
-- **Points Added**: 4 points (INV-001 +2, QT-001 +2 for backend work)
-- **Net Change**: -3 points, better scoped to actual work needed
-- **Duration**: 10-11 days (reduced from 10-12 days)
-
-### Database Changes
-✅ **CleaningQuote table added** to schema
-⏳ **Migration needed**: `cd packages/database && npx prisma migrate dev --name add_cleaning_quotes`
-
----
-
-## 📚 Essential Documentation
-
-### Start Here
-1. **[PROJECT-MAP.md](PROJECT-MAP.md)** ← You are here
-2. **[CURRENT_STATUS.md](CURRENT_STATUS.md)** - Detailed project status
-3. **[README.md](README.md)** - Project setup and overview
-
-### Active Plans & Guides
-Location: [START-HERE/](START-HERE/)
-
-**Current Sprint**:
-- 🎯 [BUSINESS-MANAGEMENT-SPRINT-PLAN.md](START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md) - **ACTIVE PLAN**
-
-**Reference Guides**:
-- [CLEANING-WORKFLOW-PLAN.md](START-HERE/CLEANING-WORKFLOW-PLAN.md) - Cleaning workflow phases
-- [COMPLETE-WORKFLOW-GUIDE.md](START-HERE/COMPLETE-WORKFLOW-GUIDE.md) - End-to-end workflows
-- [TECHNICAL-PATTERNS.md](START-HERE/TECHNICAL-PATTERNS.md) - Code patterns & best practices
-- [DEVELOPMENT-GUIDELINES.md](START-HERE/DEVELOPMENT-GUIDELINES.md) - Coding standards
-- [TESTING-CHECKLIST.md](START-HERE/TESTING-CHECKLIST.md) - QA checklist
-
-### Stories
-Location: [stories/](stories/)
-
-**Phase 2**: Customer Portal & Guest AI Dashboard
-**Phase 3**: Job Management & Business Operations
-- [STORY-PM-001-property-management.md](stories/phase-3/STORY-PM-001-property-management.md) - Property Add/Edit forms (detailed)
-- [STORY-WM-001-worker-profile-management.md](stories/phase-3/STORY-WM-001-worker-profile-management.md) - Worker profiles
-
-**Phase 4**: Worker Web Application
-- [WORKER-APP-SPRINT-PLAN.md](stories/phase-4/worker-app-sprint/WORKER-APP-SPRINT-PLAN.md) - **15 stories, 52 points, 12-15 days**
-- [WORKER-APP-ANALYSIS.md](stories/phase-4/worker-app-sprint/WORKER-APP-ANALYSIS.md) - Requirements analysis & user research
-- [WORKER-APP-TECHNICAL-SPEC.md](stories/phase-4/worker-app-sprint/WORKER-APP-TECHNICAL-SPEC.md) - Technical architecture & API design
-- Story Files:
-  - [STORY-WA-001-006-DASHBOARD-AND-JOBS.md](stories/phase-4/worker-app-sprint/STORY-WA-001-006-DASHBOARD-AND-JOBS.md) - Foundation & Dashboard (22 pts)
-  - [STORY-WA-008-010-JOB-WORKFLOW.md](stories/phase-4/worker-app-sprint/STORY-WA-008-010-JOB-WORKFLOW.md) - Job Workflow & Photos (16 pts)
-  - [STORY-WA-011-013-SCHEDULE-AND-AVAILABILITY.md](stories/phase-4/worker-app-sprint/STORY-WA-011-013-SCHEDULE-AND-AVAILABILITY.md) - Schedule & Availability (12 pts)
-  - [STORY-WA-014-015-PROFILE-AND-POLISH.md](stories/phase-4/worker-app-sprint/STORY-WA-014-015-PROFILE-AND-POLISH.md) - Profile & Polish (4 pts)
-
----
-
-## 🗃️ Archived Documentation
-
-### Completed Sessions
-Location: [.docs/sessions/](.docs/sessions/)
-- Session summaries (2025-11-03, 2025-11-04)
-- Sprint completion reports
-- Portal fixes and outstanding work logs
-
-### Completed Implementations
-Location: [.docs/completed/](.docs/completed/)
-- Job History Implementation
-- Property History Implementation
-- Worker History Implementation
-- Drag & Drop Calendar
-- Quick Edit Calendar
-- Cleaning Job Form Improvements
-- Maintenance Issue Tracking
-
-### Archived Plans
-Location: [.docs/archived-plans/](.docs/archived-plans/)
-- Maintenance-First Sprint (completed)
-- Property-Contract Management Plan (superseded)
-- Implementation Roadmap (outdated)
-- Work Scheduling System (future)
-- Worker App Plan (future)
-- Property & Maintenance Features (reference)
-- App Separation (completed)
-
----
-
-## 🏗️ Application Architecture
-
-### Running Applications
 ```bash
-# API Server
-npm run dev:api          # Port 3001
+# Clone repository
+git clone https://github.com/yourusername/RightFit-Services.git
+cd RightFit-Services
 
-# Landlord Platform
-npm run dev:landlord     # Port 5173
+# Install dependencies
+pnpm install
 
-# Service Dashboards
-npm run dev:cleaning     # Port 5174 ← Current focus
-npm run dev:maintenance  # Port 5175
+# Start database
+docker compose up -d
 
-# Customer Portal
-npm run dev:customer     # Port 5176
+# Run migrations
+cd packages/database && npx prisma migrate dev && cd ../..
 
-# Guest Tablet
-npm run dev:guest        # Port 5177
-
-# Worker App (Planned - Phase 4)
-npm run dev:worker       # Port 5178 ← Worker web app
+# Start all apps
+npm run dev
 ```
 
-### Tech Stack
-- **Backend**: Node.js, Express, Prisma ORM
-- **Database**: PostgreSQL
-- **Frontend**: React, TypeScript, Vite
-- **Styling**: Tailwind CSS, Custom component library
-- **UI Components**: Material-UI icons, custom components
+**Setup Time**: ~30 minutes
+
+### 3. Explore the Applications
+
+Visit all running applications:
+- API: http://localhost:3001
+- Cleaning Portal: http://localhost:5174
+- Maintenance Portal: http://localhost:5175
+- Customer Portal: http://localhost:5176
+- Landlord Portal: http://localhost:5173
+- Guest Tablet: http://localhost:5177
+- Worker App: http://localhost:5178
+
+**Exploration Time**: ~1 hour
 
 ---
 
-## 🔄 Data Model Overview
+## 📁 Project Structure
 
-### Customer Relationships
 ```
-Customer (1) → (Many) CustomerProperty
-Customer (1) → (Many) CleaningContract
-Customer (1) → (Many) CleaningInvoice
-Customer (1) → (Many) Invoice (maintenance)
-Customer (1) → (Many) Quote (maintenance)
-Customer (1) → (Many) CleaningQuote ← NEW
-
-CleaningContract (1) → (Many) ContractProperty
-CleaningContract (1) → (Many) CleaningJob
-CleaningContract (1) → (Many) CleaningInvoice
-
-CustomerProperty (1) → (Many) CleaningJob
-CustomerProperty (1) → (Many) MaintenanceJob
-CustomerProperty (1) → (Many) PropertyCalendar ← For turnover tracking
+RightFit-Services/
+├── 📄 README.md                    ⭐ START HERE - Setup guide
+├── 📄 ARCHITECTURE.md              ⭐ Complete system architecture
+├── 📄 CURRENT-STATE.md             ⭐ Current development status
+├── 📄 PROJECT-PLAN.md              ⭐ Roadmap and sprint plans
+├── 📄 PROJECT-MAP.md               ⭐ YOU ARE HERE
+├── 📄 CLAUDE-RULES.md              Development guidelines
+│
+├── 📂 apps/                        🚀 8 Applications
+│   ├── api/                        Backend API (Express.js, Prisma)
+│   ├── web-landlord/               Landlord portal (React + Vite)
+│   ├── web-cleaning/               Cleaning service portal
+│   ├── web-maintenance/            Maintenance service portal
+│   ├── web-customer/               Customer portal (short-let businesses)
+│   ├── guest-tablet/               Guest issue reporting app
+│   ├── web-worker/                 Worker app (shared, needs completion)
+│   └── mobile/                     React Native mobile app (Expo)
+│
+├── 📂 packages/                    🔧 Shared Packages
+│   ├── database/                   Prisma schema (1,701 lines, 40+ tables)
+│   └── shared/                     Shared types, constants, utilities
+│
+├── 📂 docs/                        📚 Documentation
+│   ├── archive/                    Historical docs & session summaries
+│   ├── architecture/               Additional architecture specs
+│   ├── sprints/                    Sprint plans and completed stories
+│   └── analysis/                   Code analysis reports
+│
+├── 📂 stories/                     📖 User Stories
+│   ├── phase-2/                    Customer portal stories
+│   ├── phase-3/                    Job management stories
+│   └── phase-4/                    Worker app stories
+│
+├── 📄 docker-compose.yml           PostgreSQL database setup
+├── 📄 package.json                 Root workspace config
+├── 📄 pnpm-workspace.yaml          Monorepo workspace definition
+└── 📄 turbo.json                   Turborepo build config
 ```
 
-### Contract Types
-- **FLAT_MONTHLY**: Single monthly fee for all properties
-- **PER_PROPERTY**: Individual fee per property (sum = total)
+---
+
+## 🗺️ Where Am I? What Do I Need?
+
+### I'm a New Developer
+
+**Goal**: Get oriented and start contributing
+
+1. **[PHILOSOPHY.md](PHILOSOPHY.md)** - **READ FIRST** - Understand our quality-first approach
+2. [README.md](README.md) - Setup instructions and quick start
+3. [ARCHITECTURE.md](ARCHITECTURE.md) - Complete system architecture
+4. [CURRENT-STATE.md](CURRENT-STATE.md) - Current status and priorities
+5. [PROJECT-PLAN.md](PROJECT-PLAN.md) - Roadmap and sprint plans
+6. [CLAUDE-RULES.md](CLAUDE-RULES.md) - Development guidelines
+
+**Then**: Pick a task from [PROJECT-PLAN.md](PROJECT-PLAN.md) Current Sprint section
+
+**Remember**: Quality over speed. Build it right the first time.
 
 ---
 
-## 📋 Quick Actions
+### I Need to Fix a Bug
 
-### For Development
-1. **Check current status**: Read [CURRENT_STATUS.md](CURRENT_STATUS.md)
-2. **View active plan**: Read [START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md](START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md)
-3. **Find a story**: Browse [stories/phase-3/](stories/phase-3/)
-4. **Check patterns**: Reference [START-HERE/TECHNICAL-PATTERNS.md](START-HERE/TECHNICAL-PATTERNS.md)
+**Steps**:
+1. Identify which app has the bug (cleaning, maintenance, customer, etc.)
+2. Check [ARCHITECTURE.md](ARCHITECTURE.md) Section 5 for frontend patterns
+3. Check [ARCHITECTURE.md](ARCHITECTURE.md) Section 6 for API patterns
+4. Look at similar working features for reference
+5. Fix, test, and verify
 
-### For Testing
-1. **Run apps**: Use npm scripts above
-2. **Check tests**: Review [START-HERE/TESTING-CHECKLIST.md](START-HERE/TESTING-CHECKLIST.md)
-3. **Test workflows**: Follow [START-HERE/COMPLETE-WORKFLOW-GUIDE.md](START-HERE/COMPLETE-WORKFLOW-GUIDE.md)
-
-### For Planning
-1. **Review roadmap**: Check [CURRENT_STATUS.md](CURRENT_STATUS.md) → "What's Next?"
-2. **Check backlog**: Review archived plans in [.docs/archived-plans/](.docs/archived-plans/)
-3. **See history**: Browse [.docs/sessions/](.docs/sessions/) and [.docs/completed/](.docs/completed/)
+**Common File Locations**:
+- Frontend components: `apps/web-*/src/components/`
+- Frontend pages: `apps/web-*/src/pages/`
+- API routes: `apps/api/src/routes/`
+- API services: `apps/api/src/services/`
+- Database schema: `packages/database/prisma/schema.prisma`
 
 ---
 
-## 🎯 Current Sprint Progress
+### I Need to Add a New Feature
 
-### Phase 1: Property Management (Days 1-3)
-- [ ] PM-001: Add Property Form (2 days, 5 points)
-- [ ] PM-002: Edit Property Form (1 day, 4 points)
-- [ ] PM-003: Property Calendar UI (1.5 days, 4 points)
+**Steps**:
+1. Check [PROJECT-PLAN.md](PROJECT-PLAN.md) to ensure it's prioritized
+2. Review [ARCHITECTURE.md](ARCHITECTURE.md) for patterns to follow
+3. Check if database changes needed → Update `packages/database/prisma/schema.prisma`
+4. Create migration: `cd packages/database && npx prisma migrate dev --name feature_name`
+5. Implement backend API (routes + services)
+6. Implement frontend components
+7. Test end-to-end workflow
+8. Update [CURRENT-STATE.md](CURRENT-STATE.md) if significant
 
-**Status**: Planning complete, ready to start implementation
-
-**Next Action**: Run database migration for CleaningQuote table
-
----
-
-## 💡 Tips for Navigation
-
-**Looking for...**
-- **Current work?** → [CURRENT_STATUS.md](CURRENT_STATUS.md)
-- **Active plan?** → [START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md](START-HERE/BUSINESS-MANAGEMENT-SPRINT-PLAN.md)
-- **How to code?** → [START-HERE/TECHNICAL-PATTERNS.md](START-HERE/TECHNICAL-PATTERNS.md)
-- **Testing?** → [START-HERE/TESTING-CHECKLIST.md](START-HERE/TESTING-CHECKLIST.md)
-- **Workflows?** → [START-HERE/COMPLETE-WORKFLOW-GUIDE.md](START-HERE/COMPLETE-WORKFLOW-GUIDE.md)
-- **Old docs?** → [.docs/](.docs/) (sessions, completed, archived)
-- **Stories?** → [stories/phase-3/](stories/phase-3/)
-
----
-
-## 📊 Project Stats
-
-**Overall Completion**: ~90%
-- Phase 1: Foundation ✅ 100%
-- Phase 2: Customer Portal ✅ 100%
-- Phase 2.5: Guest AI Dashboard ✅ 100%
-- Phase 3: Job Management 🔨 85%
-- **NEW: Business Management Sprint** 🎯 0% (Planning complete, 14 stories, 42 pts)
-- **NEW: Worker App Sprint** 📋 0% (Planning complete, 15 stories, 52 pts)
-- Phase 4: Mobile Apps ❌ 0%
-
-**Lines of Code**: ~50,000+
-**Database Tables**: 40+ tables
-**API Endpoints**: 100+ endpoints
-**Frontend Pages**: 30+ pages
-**Stories Completed**: 50+ stories
-**Stories Planned**: 29 stories (Business Management + Worker App)
+**Pattern to Follow**:
+```
+Feature: User Management
+├── 1. Database schema (packages/database/prisma/schema.prisma)
+├── 2. API service (apps/api/src/services/UserService.ts)
+├── 3. API routes (apps/api/src/routes/users.ts)
+├── 4. Frontend API client (apps/web-*/src/lib/api.ts)
+├── 5. Frontend components (apps/web-*/src/components/UserCard.tsx)
+└── 6. Frontend pages (apps/web-*/src/pages/Users.tsx)
+```
 
 ---
 
-*This is your single source of truth for navigating the RightFit Services project.*
-*Bookmark this page!*
+### I Need to Understand How Something Works
 
-**Last Updated**: 2025-11-05
+**System Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Section 1: Introduction and product architecture
+- Section 2: Existing project analysis
+- Section 3: Technology stack
+- Section 4: Data models and schema
+- Section 5: Component architecture (frontend patterns)
+- Section 6: API design (backend patterns)
+- Section 7: Cross-app workflow integrations
+- Section 8: Security architecture
+- Section 9: Deployment and infrastructure
+- Section 10: Next steps and recommendations
+
+**Specific Topics**:
+- **Authentication**: [ARCHITECTURE.md](ARCHITECTURE.md) Section 8.1
+- **Multi-tenancy**: [ARCHITECTURE.md](ARCHITECTURE.md) Section 8.2
+- **Database Models**: [ARCHITECTURE.md](ARCHITECTURE.md) Section 4
+- **API Patterns**: [ARCHITECTURE.md](ARCHITECTURE.md) Section 6
+- **Frontend Patterns**: [ARCHITECTURE.md](ARCHITECTURE.md) Section 5
+- **Deployment**: [ARCHITECTURE.md](ARCHITECTURE.md) Section 9.2
+
+---
+
+### I Need to Run Tests
+
+**Web Applications**:
+```bash
+cd apps/web-cleaning  # or any web app
+pnpm test              # Run unit tests
+pnpm test:ui           # Run tests with UI
+pnpm test:coverage     # Run with coverage
+```
+
+**API**:
+```bash
+cd apps/api
+pnpm test              # Run tests
+pnpm test:coverage     # Run with coverage
+```
+
+**Mobile**:
+```bash
+cd apps/mobile
+pnpm test              # Run Jest tests
+```
+
+---
+
+### I Need to Deploy
+
+**Development**:
+```bash
+npm run dev            # Start all apps locally
+```
+
+**Production**:
+See [ARCHITECTURE.md](ARCHITECTURE.md) Section 9.2 for complete deployment guide including:
+- Nginx subdomain routing configuration
+- Docker Compose setup
+- SSL certificate configuration
+- CI/CD pipeline setup
+
+**Quick Production Setup**:
+```bash
+# Build all apps
+pnpm build
+
+# Deploy with Docker
+docker compose -f docker-compose.prod.yml up -d
+```
+
+---
+
+## 🎯 Common Tasks
+
+### Task: Add a New Database Table
+
+1. Edit `packages/database/prisma/schema.prisma`
+2. Add your model:
+   ```prisma
+   model MyModel {
+     id         String   @id @default(uuid())
+     name       String
+     created_at DateTime @default(now())
+   }
+   ```
+3. Create migration: `cd packages/database && npx prisma migrate dev --name add_my_model`
+4. Regenerate client: `npx prisma generate`
+
+### Task: Add a New API Endpoint
+
+1. Create service: `apps/api/src/services/MyService.ts`
+2. Create route: `apps/api/src/routes/my-route.ts`
+3. Register route in `apps/api/src/index.ts`:
+   ```typescript
+   app.use('/api/my-route', myRouteRouter)
+   ```
+4. Test with Postman or curl
+
+### Task: Add a New Frontend Page
+
+1. Create page component: `apps/web-cleaning/src/pages/MyPage.tsx`
+2. Add route in `apps/web-cleaning/src/App.tsx`:
+   ```typescript
+   <Route path="/my-page" element={<MyPage />} />
+   ```
+3. Add navigation link in layout
+4. Test in browser
+
+### Task: Debug Database Issues
+
+```bash
+# View database in GUI
+cd packages/database && npx prisma studio
+
+# Check migration status
+npx prisma migrate status
+
+# Reset database (⚠️ Deletes all data)
+npx prisma migrate reset
+
+# Regenerate client
+npx prisma generate
+```
+
+### Task: Fix Port Conflicts
+
+```bash
+# Find process using port
+lsof -i :3001
+
+# Kill process
+kill -9 PID
+
+# Or change port in apps/api/.env
+PORT=3002
+```
+
+---
+
+## 📚 Documentation Index
+
+### Root Level (Essential Reading)
+- **[PHILOSOPHY.md](PHILOSOPHY.md)** - **START HERE** - Development philosophy: RightFit, not QuickFix
+- [README.md](README.md) - Setup and quick start
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Complete system architecture (15,000+ words)
+- [CURRENT-STATE.md](CURRENT-STATE.md) - Current status and priorities
+- [PROJECT-PLAN.md](PROJECT-PLAN.md) - Roadmap and sprint plans with quality gates
+- [PROJECT-MAP.md](PROJECT-MAP.md) - YOU ARE HERE - Navigation guide
+- [CLAUDE-RULES.md](CLAUDE-RULES.md) - AI assistant and development guidelines
+- [REVIEW-GUIDE.md](REVIEW-GUIDE.md) - Review checklist for team validation
+
+### Archived Documentation
+- `docs/archive/AGENT-HANDOFF.md` - Previous session handoff (Nov 4, 2025)
+- `docs/archive/BUSINESS-MANAGEMENT-IMPLEMENTATION-SUMMARY.md` - Business sprint summary (Nov 4, 2025)
+- `docs/archive/CURRENT_STATUS.md` - Old status (Nov 5, 2025)
+- `docs/archive/SESSION-SUMMARY-GRADIENT-CARD-GRID-2025-11-05.md` - UI/UX session (Nov 5, 2025)
+
+### Additional Architecture Docs
+- `docs/architecture/APP-SEPARATION.md` - Application separation strategy
+- `docs/architecture/PROPERTY_SHARING_ARCHITECTURE.md` - Property sharing between tenants
+
+### Sprint Plans
+- `docs/sprints/IMPLEMENTATION-ROADMAP.md` - Overall implementation strategy
+- `docs/sprints/MAINTENANCE-FIRST-SPRINT.md` - Maintenance sprint (completed)
+- `docs/sprints/CLEANUP-SPRINT-1.md` - Code cleanup sprint
+
+### User Stories
+- `stories/phase-2/` - Customer portal stories
+- `stories/phase-3/` - Job management stories
+- `stories/phase-4/worker-app-sprint/` - Worker app stories (15 stories, 52 points)
+
+---
+
+## 🔍 Find Specific Information
+
+### "Where is the authentication logic?"
+- Backend: `apps/api/src/middleware/auth.ts`
+- Frontend pattern: [ARCHITECTURE.md](ARCHITECTURE.md) Section 5.3 (API Client Pattern)
+- JWT setup: `apps/api/src/index.ts` (JWT secrets in .env)
+
+### "Where are the database models?"
+- Schema: `packages/database/prisma/schema.prisma` (1,701 lines)
+- Documentation: [ARCHITECTURE.md](ARCHITECTURE.md) Section 4 (Data Models & Schema)
+
+### "How do I add a new tenant?"
+- API endpoint: `POST /api/tenants` (in `apps/api/src/routes/tenants.ts`)
+- See multi-tenant architecture: [ARCHITECTURE.md](ARCHITECTURE.md) Section 8.2
+
+### "Where is the API documentation?"
+- ⚠️ **Currently missing** - See [CURRENT-STATE.md](CURRENT-STATE.md) Priority #4
+- **Planned**: OpenAPI/Swagger docs at `api.rightfit.com/docs`
+
+### "How do cross-product workflows work?"
+- See [ARCHITECTURE.md](ARCHITECTURE.md) Section 7 (Cross-App Workflow Integrations)
+- Example: Cleaning worker reports maintenance issue → Customer approves → Maintenance receives
+
+### "What's the deployment strategy?"
+- See [ARCHITECTURE.md](ARCHITECTURE.md) Section 9.2 (Unified Deployment Strategy)
+- Summary: Single platform with branded subdomains (cleaning.rightfit.com, maintenance.rightfit.com, etc.)
+
+---
+
+## 🎓 Learning Paths
+
+**⚠️ ALL PATHS START WITH [PHILOSOPHY.md](PHILOSOPHY.md)** - Understand our quality-first approach before diving in.
+
+### Path 1: Frontend Developer
+1. Read [PHILOSOPHY.md](PHILOSOPHY.md) - Quality-first approach (15 min)
+2. Read [README.md](README.md) for setup (15 min)
+3. Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 5 (Component Architecture) (30 min)
+4. Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 7 (Cross-App Workflows) (20 min)
+5. Explore `apps/web-cleaning/` codebase (60 min)
+6. Build a sample component following patterns (2 hours)
+
+**Total**: ~4.5 hours
+
+### Path 2: Backend Developer
+1. Read [PHILOSOPHY.md](PHILOSOPHY.md) - Quality-first approach (15 min)
+2. Read [README.md](README.md) for setup (15 min)
+3. Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 4 (Data Models) (30 min)
+4. Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 6 (API Design) (30 min)
+5. Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 8 (Security) (20 min)
+6. Explore `apps/api/` codebase (60 min)
+7. Build a sample API endpoint (2 hours)
+
+**Total**: ~4.5 hours
+
+### Path 3: Full-Stack Developer
+1. Read [PHILOSOPHY.md](PHILOSOPHY.md) - Quality-first approach (15 min)
+2. Read [README.md](README.md) (15 min)
+3. Read [ARCHITECTURE.md](ARCHITECTURE.md) completely (90 min)
+4. Read [CURRENT-STATE.md](CURRENT-STATE.md) (20 min)
+5. Read [PROJECT-PLAN.md](PROJECT-PLAN.md) (30 min)
+6. Explore all codebases (90 min)
+7. Build a full-stack feature (4 hours)
+
+**Total**: ~7.5 hours
+
+### Path 4: DevOps/Deployment
+1. Read [PHILOSOPHY.md](PHILOSOPHY.md) - Quality-first approach (15 min)
+2. Read [README.md](README.md) for setup (15 min)
+3. Read [ARCHITECTURE.md](ARCHITECTURE.md) Section 9 (Deployment) (45 min)
+4. Review `docker-compose.yml` and infrastructure files (30 min)
+5. Set up local deployment with Docker (2 hours)
+6. Plan production deployment (2 hours)
+
+**Total**: ~5.5 hours
+
+---
+
+## 💡 Pro Tips
+
+### For Efficient Development
+
+1. **Use Prisma Studio** for database exploration: `cd packages/database && npx prisma studio`
+2. **Check patterns first** before writing new code - see [ARCHITECTURE.md](ARCHITECTURE.md)
+3. **Reference similar features** - most patterns are already implemented somewhere
+4. **Update docs as you go** - especially [CURRENT-STATE.md](CURRENT-STATE.md) for significant changes
+5. **Follow CLAUDE-RULES.md** - especially for AI-assisted development
+
+### For Debugging
+
+1. **Check the API logs** - API server logs show all requests and errors
+2. **Use browser DevTools** - Network tab shows API calls and responses
+3. **Check database with Prisma Studio** - Visual database browser
+4. **Read error messages carefully** - Prisma errors are detailed and helpful
+5. **Search the codebase** - Likely similar code exists that works
+
+### For Collaboration
+
+1. **Read CURRENT-STATE.md weekly** - Stay updated on progress
+2. **Update PROJECT-PLAN.md** - Keep sprint plans current
+3. **Document blockers** - Add to CURRENT-STATE.md Dependencies section
+4. **Follow patterns** - Consistency > personal preference
+5. **Ask questions** - Reference specific docs (e.g., "See ARCHITECTURE.md Section 5.2")
+
+---
+
+## 🚨 Common Gotchas
+
+### "Database connection failed"
+- **Check**: Is PostgreSQL running? `docker ps | grep rightfit-postgres`
+- **Fix**: `docker compose up -d`
+
+### "Port already in use"
+- **Check**: `lsof -i :3001`
+- **Fix**: Kill the process or change port in `.env`
+
+### "Prisma Client out of sync"
+- **Fix**: `cd packages/database && npx prisma generate`
+
+### "Module not found"
+- **Fix**: `pnpm install` in the specific app directory
+
+### "Migration failed"
+- **Check**: Database state with `npx prisma migrate status`
+- **Fix**: `npx prisma migrate reset` (⚠️ deletes data)
+
+---
+
+## 📞 Need Help?
+
+### Still Can't Find What You Need?
+
+1. **Search the codebase**: Use VSCode search or `grep -r "search term" apps/`
+2. **Check docs/archive**: Historical context and session summaries
+3. **Read ARCHITECTURE.md completely**: 15,000+ words of detailed documentation
+4. **Review git history**: `git log` shows what changed and why
+5. **Ask the team**: Reference specific docs when asking questions
+
+### Documentation Coverage
+
+- **Development Philosophy**: [PHILOSOPHY.md](PHILOSOPHY.md) - **START HERE**
+- **Setup & Installation**: [README.md](README.md)
+- **System Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Current Status**: [CURRENT-STATE.md](CURRENT-STATE.md)
+- **Roadmap & Plans**: [PROJECT-PLAN.md](PROJECT-PLAN.md)
+- **Navigation**: [PROJECT-MAP.md](PROJECT-MAP.md) (you are here)
+- **Development Guidelines**: [CLAUDE-RULES.md](CLAUDE-RULES.md)
+- **Review Checklist**: [REVIEW-GUIDE.md](REVIEW-GUIDE.md)
+
+---
+
+**Last Updated**: November 7, 2025
+**Maintained By**: Development Team
+**Review Frequency**: Weekly or after major changes
+
+**You're all set!** Everything you need to navigate the project is here. 🎉

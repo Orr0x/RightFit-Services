@@ -17,21 +17,40 @@ export interface Tab {
 }
 
 export interface TabsProps {
-  tabs: Tab[]
+  tabs?: Tab[]
   defaultTab?: string
   activeTab?: string
   onChange?: (tabId: string) => void
   className?: string
+  children?: React.ReactNode
 }
 
 export const Tabs: React.FC<TabsProps> = ({
-  tabs,
+  tabs: propTabs,
   defaultTab,
   activeTab: controlledActiveTab,
   onChange,
   className = '',
+  children,
 }) => {
-  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id)
+  // Extract tabs from children if not provided as prop
+  const tabs = React.useMemo(() => {
+    if (propTabs) return propTabs
+
+    // Extract tab information from TabPanel children
+    const childrenArray = React.Children.toArray(children)
+    return childrenArray
+      .filter((child): child is React.ReactElement<TabPanelProps> =>
+        React.isValidElement(child) && (child.type === TabPanel || (child.type as any)?.name === 'TabPanel')
+      )
+      .map((child) => ({
+        id: child.props.tabId,
+        label: child.props.label || child.props.tabId,
+        disabled: child.props.disabled,
+      }))
+  }, [propTabs, children])
+
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id || '')
 
   // Use controlled activeTab if provided, otherwise use internal state
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab
@@ -65,15 +84,18 @@ export const Tabs: React.FC<TabsProps> = ({
           </button>
         ))}
       </div>
+      {children}
     </div>
   )
 }
 
 export interface TabPanelProps {
   tabId: string
+  label?: string
   activeTab: string
   children: React.ReactNode
   className?: string
+  disabled?: boolean
 }
 
 export const TabPanel: React.FC<TabPanelProps> = ({

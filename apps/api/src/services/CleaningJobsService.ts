@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '../utils/errors';
 import { CleaningJobHistoryService } from './CleaningJobHistoryService';
 import { PropertyHistoryService } from './PropertyHistoryService';
 import { WorkerHistoryService } from './WorkerHistoryService';
+import CleaningJobTimesheetService from './CleaningJobTimesheetService';
 
 export interface CreateCleaningJobInput {
   service_id: string;
@@ -455,12 +456,26 @@ export class CleaningJobsService {
       throw new NotFoundError('Cleaning job not found or not assigned to you');
     }
 
+    const startTime = new Date();
+
     const updatedJob = await prisma.cleaningJob.update({
       where: { id },
       data: {
         status: 'IN_PROGRESS',
-        actual_start_time: new Date(),
+        actual_start_time: startTime,
       },
+    });
+
+    // Create timesheet for this job
+    await CleaningJobTimesheetService.createTimesheet({
+      cleaning_job_id: id,
+      worker_id: workerId,
+      start_time: startTime,
+      before_photos: [],
+      after_photos: [],
+      issue_photos: [],
+    }).catch((error) => {
+      console.error('Failed to create timesheet:', error);
     });
 
     // Record in property history
@@ -492,6 +507,9 @@ export class CleaningJobsService {
   async completeJob(id: string, workerId: string, completionData: {
     completion_notes?: string;
     actual_price?: number;
+    timesheet_id?: string;
+    end_time?: Date;
+    work_performed?: string;
   }) {
     const job = await prisma.cleaningJob.findFirst({
       where: {
@@ -512,15 +530,43 @@ export class CleaningJobsService {
       data: {
         status: 'COMPLETED',
         actual_end_time: new Date(),
-        ...completionData,
+        completion_notes: completionData.completion_notes,
+        actual_price: completionData.actual_price,
       },
     });
 
-    // Record in property history
+    // Complete the timesheet if provided
+    if (completionData.timesheet_id && completionData.end_time) {
+      await CleaningJobTimesheetService.completeTimesheet(
+        completionData.timesheet_id,
+        {
+          end_time: completionData.end_time,
+          work_performed: completionData.work_performed,
+          notes: completionData.completion_notes,
+        }
+      ).catch((error) => {
+        console.error('Failed to complete timesheet:', error);
+      });
+    }
+
+    // Record in job change history
     const workerName = job.assigned_worker
       ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}`
       : 'Unknown Worker';
 
+    await this.historyService.recordChange({
+      cleaning_job_id: id,
+      changed_by_user_id: workerId,
+      change_type: 'STATUS_CHANGED',
+      field_name: 'status',
+      old_value: job.status,
+      new_value: 'COMPLETED',
+      description: `Job completed by ${workerName}`,
+    }).catch((error) => {
+      console.error('Failed to record job completion in history:', error);
+    });
+
+    // Record in property history
     await this.propertyHistoryService.recordCleaningJobCompleted(
       job.property_id,
       job.id,

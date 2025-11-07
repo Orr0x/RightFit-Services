@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MapPin, Clock, User, Home, Bed, Bath,
-  Key, Wifi, Car, PawPrint, AlertCircle, Navigation,
-  Play, CheckCircle, DollarSign
+  Key, Wifi, Car, PawPrint, AlertCircle,
+  Play, CheckCircle, Wrench, ChevronDown, ChevronUp
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import JobChecklist, { ChecklistItem } from '../../components/jobs/JobChecklist'
 import StartJobModal from '../../components/jobs/StartJobModal'
 import CompleteJobModal from '../../components/jobs/CompleteJobModal'
+import CreateMaintenanceIssueModal from '../../components/jobs/CreateMaintenanceIssueModal'
 
 interface PropertyDetails {
   id: string
   name: string
   address: string
+  postcode: string | null
   property_type: string
   bedrooms: number | null
   bathrooms: number | null
@@ -23,11 +25,17 @@ interface PropertyDetails {
   wifi_password: string | null
   parking_instructions: string | null
   pets: string | null
+  photo_urls: any | null
+  utility_locations: any | null
+  emergency_contacts: any | null
+  cleaner_notes: string | null
+  special_requirements: string | null
 }
 
 interface JobDetails {
   id: string
   property_id: string
+  customer_id: string
   property: PropertyDetails
   scheduled_date: string
   scheduled_time_start: string
@@ -53,6 +61,8 @@ export default function JobDetails() {
   const [error, setError] = useState<string | null>(null)
   const [showStartModal, setShowStartModal] = useState(false)
   const [showCompleteModal, setShowCompleteModal] = useState(false)
+  const [showMaintenanceIssueModal, setShowMaintenanceIssueModal] = useState(false)
+  const [propertyDetailsExpanded, setPropertyDetailsExpanded] = useState(false)
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -86,12 +96,6 @@ export default function JobDetails() {
     fetchJobDetails()
   }, [id, worker])
 
-  const handleNavigate = () => {
-    if (job?.property.address) {
-      const encodedAddress = encodeURIComponent(job.property.address)
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank')
-    }
-  }
 
   const refetchJob = async () => {
     if (!worker) return
@@ -132,6 +136,15 @@ export default function JobDetails() {
   const handleCompleteJobSuccess = () => {
     setShowCompleteModal(false)
     refetchJob()
+  }
+
+  const handleReportMaintenanceIssue = () => {
+    setShowMaintenanceIssueModal(true)
+  }
+
+  const handleMaintenanceIssueSuccess = () => {
+    setShowMaintenanceIssueModal(false)
+    refetchJob() // Refresh job data to show updated maintenance_issues_found count
   }
 
   const getStatusColor = (status: string) => {
@@ -254,7 +267,12 @@ export default function JobDetails() {
         <div className="space-y-3">
           <div className="flex items-start gap-2">
             <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-700">{job.property.address}</span>
+            <div>
+              <span className="text-gray-700">{job.property.address}</span>
+              {job.property.postcode && (
+                <span className="text-gray-600 text-sm ml-2">{job.property.postcode}</span>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="flex items-center gap-2">
@@ -274,12 +292,89 @@ export default function JobDetails() {
               </div>
             )}
           </div>
+
+          {/* Expanded Details */}
+          {propertyDetailsExpanded && (
+            <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+              {job.property.cleaner_notes && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <h3 className="font-semibold text-blue-900 text-sm mb-1">Cleaner Notes</h3>
+                  <p className="text-blue-800 text-sm whitespace-pre-wrap">{job.property.cleaner_notes}</p>
+                </div>
+              )}
+
+              {job.property.special_requirements && (
+                <div className="bg-purple-50 border border-purple-200 rounded p-3">
+                  <h3 className="font-semibold text-purple-900 text-sm mb-1">Special Requirements</h3>
+                  <p className="text-purple-800 text-sm whitespace-pre-wrap">{job.property.special_requirements}</p>
+                </div>
+              )}
+
+              {job.property.utility_locations && (
+                <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                  <h3 className="font-semibold text-gray-900 text-sm mb-2">Utility Locations</h3>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    {Object.entries(job.property.utility_locations).map(([key, value]) => (
+                      <div key={key} className="flex justify-between">
+                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                        <span className="font-medium">{value as string}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {job.property.emergency_contacts && Array.isArray(job.property.emergency_contacts) && job.property.emergency_contacts.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded p-3">
+                  <h3 className="font-semibold text-red-900 text-sm mb-2">Emergency Contacts</h3>
+                  <div className="space-y-2">
+                    {job.property.emergency_contacts.map((contact: any, index: number) => (
+                      <div key={index} className="text-sm">
+                        <p className="font-medium text-red-900">{contact.name} {contact.relation && `(${contact.relation})`}</p>
+                        <a href={`tel:${contact.phone}`} className="text-red-700 hover:text-red-800">{contact.phone}</a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {job.property.photo_urls && Array.isArray(job.property.photo_urls) && job.property.photo_urls.length > 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                  <h3 className="font-semibold text-gray-900 text-sm mb-2">Property Photos</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {job.property.photo_urls.map((photo: any, index: number) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={photo.url}
+                          alt={photo.caption || `Photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded"
+                        />
+                        {photo.caption && (
+                          <p className="text-xs text-gray-600 mt-1">{photo.caption}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <button
-            onClick={handleNavigate}
-            className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => setPropertyDetailsExpanded(!propertyDetailsExpanded)}
+            className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300"
           >
-            <Navigation className="w-4 h-4" />
-            Navigate to Property
+            {propertyDetailsExpanded ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                Hide Additional Details
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                Show Additional Details
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -391,28 +486,6 @@ export default function JobDetails() {
         </div>
       )}
 
-      {/* Pricing Information */}
-      {job.quoted_price && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-          <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
-            Pricing
-          </h2>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Quoted Price:</span>
-              <span className="font-medium text-gray-900">${Number(job.quoted_price).toFixed(2)}</span>
-            </div>
-            {job.pricing_type && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Pricing Type:</span>
-                <span className="font-medium text-gray-900 capitalize">{job.pricing_type}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Job Checklist */}
       {job.checklist && job.checklist.length > 0 && (
         <div className="mb-4">
@@ -424,6 +497,22 @@ export default function JobDetails() {
               setJob(prevJob => prevJob ? { ...prevJob, checklist: updatedItems } : null)
             }}
           />
+        </div>
+      )}
+
+      {/* Report Maintenance Issue Button */}
+      {(job.status === 'IN_PROGRESS' || job.status === 'COMPLETED') && (
+        <div className="mb-4">
+          <button
+            onClick={handleReportMaintenanceIssue}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+          >
+            <Wrench className="w-5 h-5" />
+            Report Maintenance Issue
+          </button>
+          <p className="text-xs text-gray-500 text-center mt-2">
+            Found a maintenance issue during your cleaning? Report it here.
+          </p>
         </div>
       )}
 
@@ -474,6 +563,18 @@ export default function JobDetails() {
           checklist={job.checklist || []}
           onClose={() => setShowCompleteModal(false)}
           onSuccess={handleCompleteJobSuccess}
+        />
+      )}
+
+      {/* Create Maintenance Issue Modal */}
+      {showMaintenanceIssueModal && job && (
+        <CreateMaintenanceIssueModal
+          jobId={job.id}
+          propertyName={job.property.name}
+          propertyId={job.property_id}
+          customerId={job.customer_id}
+          onClose={() => setShowMaintenanceIssueModal(false)}
+          onSuccess={handleMaintenanceIssueSuccess}
         />
       )}
     </div>

@@ -3,6 +3,7 @@ import { Button, Input, Card, Textarea, useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type CreateMaintenanceJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
+import { MAINTENANCE_CATEGORIES, MAINTENANCE_PRIORITIES, MAINTENANCE_SOURCES } from '@rightfit/shared'
 
 const SERVICE_PROVIDER_ID = 'demo-provider-id'
 
@@ -122,13 +123,11 @@ export default function CreateMaintenanceJob() {
                 onChange={(e) => handleChange('category', e.target.value)}
                 required
               >
-                <option value="PLUMBING">Plumbing</option>
-                <option value="ELECTRICAL">Electrical</option>
-                <option value="HVAC">HVAC</option>
-                <option value="APPLIANCE">Appliance</option>
-                <option value="STRUCTURAL">Structural</option>
-                <option value="EXTERIOR">Exterior</option>
-                <option value="OTHER">Other</option>
+                {MAINTENANCE_CATEGORIES.map(category => (
+                  <option key={category} value={category}>
+                    {category.replace(/_/g, ' ')}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -140,10 +139,11 @@ export default function CreateMaintenanceJob() {
                 onChange={(e) => handleChange('priority', e.target.value as any)}
                 required
               >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="URGENT">Urgent</option>
+                {MAINTENANCE_PRIORITIES.map(priority => (
+                  <option key={priority} value={priority}>
+                    {priority.charAt(0) + priority.slice(1).toLowerCase()}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -155,11 +155,13 @@ export default function CreateMaintenanceJob() {
                 onChange={(e) => handleChange('source', e.target.value as any)}
                 required
               >
-                <option value="CUSTOMER_REQUEST">Customer Request</option>
-                <option value="CLEANER_REPORT">Cleaner Report</option>
-                <option value="GUEST_REPORT">Guest Report</option>
-                <option value="PREVENTIVE_MAINTENANCE">Preventive Maintenance</option>
-                <option value="EMERGENCY">Emergency</option>
+                {MAINTENANCE_SOURCES.map(source => (
+                  <option key={source} value={source}>
+                    {source.replace(/_/g, ' ').split(' ').map(word =>
+                      word.charAt(0) + word.slice(1).toLowerCase()
+                    ).join(' ')}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

@@ -61,12 +61,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
-      id: 'issues',
-      label: 'Guest Issues',
-      path: '/issues',
+      id: 'maintenance',
+      label: 'Maintenance',
+      path: '/maintenance',
       onClick: handleNavigation,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Guest Issues">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Maintenance">
           <path
             d="M10 2a6 6 0 0 1 6 6c0 2-1 3.5-3 4.5V15a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-2.5C5 11.5 4 10 4 8a6 6 0 0 1 6-6z"
             stroke="currentColor"

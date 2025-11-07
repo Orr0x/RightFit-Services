@@ -177,6 +177,85 @@ router.post('/guest-issues/:id/dismiss', customerAuthMiddleware, async (req: Req
   }
 });
 
+// GET /api/customer-portal/worker-issues?customer_id=xxx
+router.get('/worker-issues', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const issues = await customerPortalService.getWorkerIssues(customerId);
+    res.json({ data: issues });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/worker-issues/:id/approve
+router.post('/worker-issues/:id/approve', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const issueId = req.params.id;
+    const result = await customerPortalService.approveWorkerIssue(customerId, issueId);
+    res.json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/worker-issues/:id/reject
+router.post('/worker-issues/:id/reject', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const issueId = req.params.id;
+    const rejectionReason = req.body.rejection_reason;
+    const result = await customerPortalService.rejectWorkerIssue(customerId, issueId, rejectionReason);
+    res.json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-portal/maintenance-requests
+// Customer creates a new maintenance request directly
+router.post('/maintenance-requests', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const { property_id, title, description, category, priority, requested_date } = req.body;
+
+    if (!property_id || !title || !description || !category || !priority) {
+      return res.status(400).json({
+        error: 'property_id, title, description, category, and priority are required',
+      });
+    }
+
+    const maintenanceJob = await customerPortalService.createMaintenanceRequest(customerId, {
+      property_id,
+      title,
+      description,
+      category,
+      priority,
+      requested_date: requested_date ? new Date(requested_date) : undefined,
+    });
+
+    res.status(201).json({
+      data: maintenanceJob,
+      message: 'Maintenance request created successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/customer-portal/maintenance-jobs?customer_id=xxx
+// Get all maintenance jobs for customer
+router.get('/maintenance-jobs', customerAuthMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = (req as any).customerId;
+    const jobs = await customerPortalService.getMaintenanceJobs(customerId);
+    res.json({ data: jobs });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /api/customer-portal/jobs/:jobId/rate
 // Customer rates a completed maintenance job
 router.post('/jobs/:jobId/rate', async (req: Request, res: Response, next: NextFunction) => {

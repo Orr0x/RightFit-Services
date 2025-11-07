@@ -6,6 +6,7 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
+import path from 'path'
 import authRoutes from './routes/auth'
 import propertiesRoutes from './routes/properties'
 import workOrdersRoutes from './routes/work-orders'
@@ -38,6 +39,8 @@ import servicesRoutes from './routes/services'
 import checklistTemplatesRoutes from './routes/checklist-templates'
 import globalActivityRoutes from './routes/global-activity'
 import workerAvailabilityRoutes from './routes/worker-availability'
+import workerIssuesRoutes from './routes/worker-issues'
+import uploadsRoutes from './routes/uploads'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -85,13 +88,20 @@ app.use(express.urlencoded({ extended: true }))
 
 // Serve uploaded files (for local development without S3)
 // Apply CORS to uploads route
+const uploadsPath = path.resolve(__dirname, '../uploads')
+const publicUploadsPath = path.resolve(__dirname, '../public/uploads')
 app.use(
   '/uploads',
   cors({
     origin: true, // Allow all origins in development
     credentials: false,
   }),
-  express.static('./uploads', {
+  express.static(uploadsPath, {
+    setHeaders: (res) => {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    },
+  }),
+  express.static(publicUploadsPath, {
     setHeaders: (res) => {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     },
@@ -149,6 +159,8 @@ app.use('/api/services', servicesRoutes)
 app.use('/api/checklist-templates', checklistTemplatesRoutes)
 app.use('/api/global-activity', globalActivityRoutes)
 app.use('/api/worker-availability', workerAvailabilityRoutes)
+app.use('/api/worker-issues', workerIssuesRoutes)
+app.use('/api/uploads', uploadsRoutes)
 // Property sharing routes
 app.use('/api/property-shares', propertySharesRoutes)
 

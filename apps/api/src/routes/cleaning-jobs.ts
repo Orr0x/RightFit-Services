@@ -188,6 +188,9 @@ router.post('/:id/complete', async (req: Request, res: Response, next: NextFunct
     const job = await cleaningJobsService.completeJob(req.params.id, workerId, {
       completion_notes: req.body.completion_notes,
       actual_price: req.body.actual_price,
+      timesheet_id: req.body.timesheet_id,
+      end_time: req.body.end_time ? new Date(req.body.end_time) : undefined,
+      work_performed: req.body.work_performed,
     });
     res.json({ data: job });
   } catch (error) {

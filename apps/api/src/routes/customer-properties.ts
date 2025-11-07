@@ -87,4 +87,61 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
+// GET /api/customer-properties/:id/checklist-templates
+router.get('/:id/checklist-templates', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+    const propertyId = req.params.id;
+
+    // Verify property belongs to tenant
+    await customerPropertiesService.getById(propertyId, tenantId);
+
+    // Get linked checklist templates
+    const templates = await customerPropertiesService.getChecklistTemplates(propertyId);
+    res.json({ data: templates });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/customer-properties/:id/checklist-templates
+router.post('/:id/checklist-templates', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+    const propertyId = req.params.id;
+    const { checklist_template_id } = req.body;
+
+    if (!checklist_template_id) {
+      return res.status(400).json({ error: 'checklist_template_id is required' });
+    }
+
+    // Verify property belongs to tenant
+    await customerPropertiesService.getById(propertyId, tenantId);
+
+    // Link checklist template to property
+    const link = await customerPropertiesService.linkChecklistTemplate(propertyId, checklist_template_id);
+    res.status(201).json({ data: link });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/customer-properties/:id/checklist-templates/:templateId
+router.delete('/:id/checklist-templates/:templateId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+    const propertyId = req.params.id;
+    const templateId = req.params.templateId;
+
+    // Verify property belongs to tenant
+    await customerPropertiesService.getById(propertyId, tenantId);
+
+    // Unlink checklist template from property
+    await customerPropertiesService.unlinkChecklistTemplate(propertyId, templateId);
+    res.json({ message: 'Checklist template unlinked successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

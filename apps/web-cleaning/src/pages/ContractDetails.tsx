@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Spinner, Badge, Input, Select, useToast } from '../components/ui'
-import { api, cleaningContractsAPI } from '../lib/api'
+import { Button, Card, Spinner, Badge, Input, Select, useToast, Tabs, TabPanel } from '../components/ui'
+import {
+  api,
+  cleaningContractsAPI,
+  checklistTemplatesAPI,
+  cleaningQuotesAPI,
+  cleaningInvoicesAPI,
+  type ChecklistTemplate,
+  type CleaningQuote,
+  type CleaningInvoice
+} from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -16,6 +25,7 @@ import DownloadIcon from '@mui/icons-material/Download'
 import DescriptionIcon from '@mui/icons-material/Description'
 import ImageIcon from '@mui/icons-material/Image'
 import './ContractDetails.css'
+import './Quotes.css'
 
 interface CleaningContract {
   id: string
@@ -112,12 +122,33 @@ export default function ContractDetails() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileDescription, setFileDescription] = useState('')
 
+  // Tab and linked data state
+  const [activeTab, setActiveTab] = useState('details')
+  const [checklists, setChecklists] = useState<ChecklistTemplate[]>([])
+  const [quotes, setQuotes] = useState<CleaningQuote[]>([])
+  const [invoices, setInvoices] = useState<CleaningInvoice[]>([])
+  const [loadingLinkedData, setLoadingLinkedData] = useState(false)
+
+  // Checklist management state
+  const [availableChecklists, setAvailableChecklists] = useState<ChecklistTemplate[]>([])
+  const [linkedChecklistIds, setLinkedChecklistIds] = useState<string[]>([])
+  const [showAddChecklist, setShowAddChecklist] = useState(false)
+  const [selectedChecklistId, setSelectedChecklistId] = useState('')
+  const [addingChecklist, setAddingChecklist] = useState(false)
+
   useEffect(() => {
     if (id && user) {
       fetchContract()
       fetchFiles()
     }
   }, [id, user])
+
+  // Load linked data when tab changes
+  useEffect(() => {
+    if (id && activeTab !== 'details') {
+      loadLinkedData()
+    }
+  }, [id, activeTab])
 
   const fetchContract = async () => {
     if (!user || !id) return
@@ -161,6 +192,103 @@ export default function ContractDetails() {
       setProperties(response.data.data || [])
     } catch (error) {
       console.error('Error fetching properties:', error)
+    }
+  }
+
+  const loadLinkedData = async () => {
+    if (!id) return
+
+    try {
+      setLoadingLinkedData(true)
+
+      // Load checklists
+      if (activeTab === 'checklists') {
+        // Use the service provider ID (there's only one in the database)
+        const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+        const checklistsData = await checklistTemplatesAPI.list(SERVICE_PROVIDER_ID)
+        const allChecklists = checklistsData || []
+        setAvailableChecklists(allChecklists)
+
+        // Load linked checklist IDs from localStorage (temporary solution)
+        const storedLinks = localStorage.getItem(`contract_${id}_checklists`)
+        const linkedIds = storedLinks ? JSON.parse(storedLinks) : []
+        setLinkedChecklistIds(linkedIds)
+
+        // Filter to show only linked checklists
+        const linked = allChecklists.filter(c => linkedIds.includes(c.id))
+        setChecklists(linked)
+      }
+
+      // Load quotes
+      if (activeTab === 'quotes') {
+        const quotesData = await cleaningQuotesAPI.list({ customer_id: contract?.customer_id })
+        setQuotes(quotesData || [])
+      }
+
+      // Load invoices
+      if (activeTab === 'invoices') {
+        const invoicesData = await cleaningInvoicesAPI.list({ customer_id: contract?.customer_id })
+        setInvoices(invoicesData || [])
+      }
+    } catch (error) {
+      console.error('Failed to load linked data:', error)
+    } finally {
+      setLoadingLinkedData(false)
+    }
+  }
+
+  const handleAddChecklist = async () => {
+    if (!id || !selectedChecklistId) {
+      toast.error('Please select a checklist template')
+      return
+    }
+
+    try {
+      setAddingChecklist(true)
+
+      // Add to linked checklists
+      const newLinkedIds = [...linkedChecklistIds, selectedChecklistId]
+      setLinkedChecklistIds(newLinkedIds)
+
+      // Save to localStorage (temporary solution)
+      localStorage.setItem(`contract_${id}_checklists`, JSON.stringify(newLinkedIds))
+
+      // Update displayed checklists
+      const newChecklist = availableChecklists.find(c => c.id === selectedChecklistId)
+      if (newChecklist) {
+        setChecklists([...checklists, newChecklist])
+      }
+
+      toast.success('Checklist template added to contract')
+      setShowAddChecklist(false)
+      setSelectedChecklistId('')
+    } catch (error: any) {
+      toast.error('Failed to add checklist template')
+    } finally {
+      setAddingChecklist(false)
+    }
+  }
+
+  const handleRemoveChecklist = async (checklistId: string) => {
+    if (!id) return
+    if (!confirm('Are you sure you want to remove this checklist template from the contract?')) {
+      return
+    }
+
+    try {
+      // Remove from linked checklists
+      const newLinkedIds = linkedChecklistIds.filter(id => id !== checklistId)
+      setLinkedChecklistIds(newLinkedIds)
+
+      // Save to localStorage (temporary solution)
+      localStorage.setItem(`contract_${id}_checklists`, JSON.stringify(newLinkedIds))
+
+      // Update displayed checklists
+      setChecklists(checklists.filter(c => c.id !== checklistId))
+
+      toast.success('Checklist template removed from contract')
+    } catch (error: any) {
+      toast.error('Failed to remove checklist template')
     }
   }
 
@@ -580,8 +708,10 @@ export default function ContractDetails() {
         </Card>
       )}
 
-      {/* Contract Info - Individual Cards */}
-      <div className="contract-info-grid">
+      <Tabs activeTab={activeTab} onChange={setActiveTab}>
+        <TabPanel tabId="details" label="Contract Details" activeTab={activeTab}>
+          {/* Contract Info - Individual Cards */}
+          <div className="contract-info-grid">
         {/* Status Card */}
         <Card className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-3">
@@ -857,243 +987,473 @@ export default function ContractDetails() {
           </Card>
         </>
       )}
+        </TabPanel>
 
-      {/* Properties Section */}
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <span className="text-2xl">🏢</span>
-            Contract Properties ({activeProperties.length})
-          </h2>
-          {(contract.status === 'ACTIVE' || contract.status === 'PAUSED') && (
-            <Button size="small" onClick={() => setShowAddProperty(!showAddProperty)}>
-              <AddIcon sx={{ fontSize: 18, mr: 0.5 }} />
-              Add Property
-            </Button>
-          )}
-        </div>
-
-        {/* Add Property Form */}
-        {showAddProperty && (
-          <Card className="p-4 mb-4 bg-gray-50 dark:bg-gray-800">
-            <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-              <span className="text-lg">➕</span>
-              Add Property to Contract
-            </h3>
-            <div className="space-y-3">
-              <Select
-                placeholder="Select a property..."
-                options={availableProperties.map((property) => ({
-                  value: property.id,
-                  label: `${property.property_name} - ${property.address}`,
-                }))}
-                value={selectedPropertyId}
-                onChange={(e) => setSelectedPropertyId(e.target.value)}
-              />
-
-              {contract.contract_type === 'PER_PROPERTY' && (
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={propertyFee}
-                  onChange={(e) => setPropertyFee(e.target.value)}
-                  placeholder="Monthly fee for this property"
-                />
+        <TabPanel tabId="properties" label="Properties" activeTab={activeTab}>
+          {/* Properties Section */}
+          <Card className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <span className="text-2xl">🏢</span>
+                Contract Properties ({activeProperties.length})
+              </h2>
+              {(contract.status === 'ACTIVE' || contract.status === 'PAUSED') && (
+                <Button size="small" onClick={() => setShowAddProperty(!showAddProperty)}>
+                  <AddIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  Add Property
+                </Button>
               )}
-
-              <div className="flex gap-2">
-                <Button onClick={handleAddProperty} disabled={adding}>
-                  {adding ? <Spinner size="small" /> : 'Add Property'}
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddProperty(false)}>
-                  Cancel
-                </Button>
-              </div>
             </div>
-          </Card>
-        )}
 
-        {/* Properties Grid */}
-        {activeProperties.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <BusinessIcon sx={{ fontSize: 64, mx: 'auto', mb: 2, opacity: 0.5 }} />
-            <p className="text-lg font-medium">No properties assigned to this contract yet</p>
-            <p className="text-sm mt-2">Add properties to start managing cleaning schedules</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeProperties.map((propertyContract) => (
-              <Card
-                key={propertyContract.id}
-                className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {propertyContract.property.property_name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {propertyContract.property.address}
-                    </p>
-                  </div>
-                  {contract.status === 'ACTIVE' && (
-                    <Button
-                      variant="outline"
-                      size="small"
-                      onClick={() => handleRemoveProperty(propertyContract.property_id)}
-                      className="ml-2 text-red-600 hover:bg-red-50"
-                    >
-                      <DeleteIcon sx={{ fontSize: 18 }} />
-                    </Button>
-                  )}
-                </div>
-
-                {contract.contract_type === 'PER_PROPERTY' && (
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Fee</p>
-                    <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                      £{Number(propertyContract.property_monthly_fee || 0).toFixed(2)}
-                    </p>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Files Section */}
-      <Card className="p-5 mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <span className="text-2xl">📎</span>
-            Contract Files ({files.length})
-          </h2>
-        </div>
-
-        {/* File Upload Section */}
-        {contract.status !== 'CANCELLED' && (
-          <Card className="p-4 mb-4 bg-gray-50 dark:bg-gray-800">
-            <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-              <span className="text-lg">📤</span>
-              Upload New File
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <input
-                  type="file"
-                  id="file-upload"
-                  onChange={handleFileSelect}
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                  className="hidden"
-                />
-                <label htmlFor="file-upload">
-                  <Button variant="outline" size="small" as="span">
-                    <AttachFileIcon sx={{ fontSize: 18, mr: 0.5 }} />
-                    Choose File
-                  </Button>
-                </label>
-                {selectedFile && (
-                  <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
-                    {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                  </span>
-                )}
-              </div>
-
-              {selectedFile && (
-                <>
-                  <Input
-                    type="text"
-                    value={fileDescription}
-                    onChange={(e) => setFileDescription(e.target.value)}
-                    placeholder="Optional: Add a description for this file"
+            {/* Add Property Form */}
+            {showAddProperty && (
+              <Card className="p-4 mb-4 bg-gray-50 dark:bg-gray-800">
+                <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                  <span className="text-lg">➕</span>
+                  Add Property to Contract
+                </h3>
+                <div className="space-y-3">
+                  <Select
+                    placeholder="Select a property..."
+                    options={availableProperties.map((property) => ({
+                      value: property.id,
+                      label: `${property.property_name} - ${property.address}`,
+                    }))}
+                    value={selectedPropertyId}
+                    onChange={(e) => setSelectedPropertyId(e.target.value)}
                   />
 
+                  {contract.contract_type === 'PER_PROPERTY' && (
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={propertyFee}
+                      onChange={(e) => setPropertyFee(e.target.value)}
+                      placeholder="Monthly fee for this property"
+                    />
+                  )}
+
                   <div className="flex gap-2">
-                    <Button onClick={handleFileUpload} disabled={uploadingFile}>
-                      {uploadingFile ? <Spinner size="small" /> : 'Upload File'}
+                    <Button onClick={handleAddProperty} disabled={adding}>
+                      {adding ? <Spinner size="small" /> : 'Add Property'}
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedFile(null)
-                        setFileDescription('')
-                      }}
-                    >
+                    <Button variant="outline" onClick={() => setShowAddProperty(false)}>
                       Cancel
                     </Button>
                   </div>
-                </>
-              )}
-
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Supported formats: Images (jpg, png, gif, webp) and Documents (pdf, doc, docx, xls, xlsx, txt). Max size: 10MB
-              </p>
-            </div>
-          </Card>
-        )}
-
-        {/* Files List */}
-        {loadingFiles ? (
-          <div className="flex justify-center py-8">
-            <Spinner />
-          </div>
-        ) : files.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <AttachFileIcon sx={{ fontSize: 64, mx: 'auto', mb: 2, opacity: 0.5 }} />
-            <p className="text-lg font-medium">No files uploaded yet</p>
-            <p className="text-sm mt-2">Upload documents and images related to this contract</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {files.map((file) => (
-              <Card
-                key={file.id}
-                className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-purple-500"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">{getFileIcon(file.file_type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white break-words">
-                      {file.file_name}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatFileSize(file.file_size)} • {new Date(file.created_at).toLocaleDateString('en-GB')}
-                    </p>
-                    {file.description && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
-                        {file.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => handleFileDownload(file.id, file.file_name)}
-                  >
-                    <DownloadIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                    Download
-                  </Button>
-                  {contract.status !== 'CANCELLED' && (
-                    <Button
-                      variant="outline"
-                      size="small"
-                      onClick={() => handleFileDelete(file.id, file.file_name)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </Button>
-                  )}
                 </div>
               </Card>
-            ))}
+            )}
+
+            {/* Properties Grid */}
+            {activeProperties.length === 0 ? (
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <BusinessIcon sx={{ fontSize: 64, mx: 'auto', mb: 2, opacity: 0.5 }} />
+                <p className="text-lg font-medium">No properties assigned to this contract yet</p>
+                <p className="text-sm mt-2">Add properties to start managing cleaning schedules</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeProperties.map((propertyContract) => (
+                  <Card
+                    key={propertyContract.id}
+                    className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                          {propertyContract.property.property_name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {propertyContract.property.address}
+                        </p>
+                      </div>
+                      {contract.status === 'ACTIVE' && (
+                        <Button
+                          variant="outline"
+                          size="small"
+                          onClick={() => handleRemoveProperty(propertyContract.property_id)}
+                          className="ml-2 text-red-600 hover:bg-red-50"
+                        >
+                          <DeleteIcon sx={{ fontSize: 18 }} />
+                        </Button>
+                      )}
+                    </div>
+
+                    {contract.contract_type === 'PER_PROPERTY' && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Monthly Fee</p>
+                        <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                          £{Number(propertyContract.property_monthly_fee || 0).toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabPanel>
+
+        <TabPanel tabId="files" label="Files" activeTab={activeTab}>
+          {/* Files Section */}
+          <Card className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <span className="text-2xl">📎</span>
+                Contract Files ({files.length})
+              </h2>
+            </div>
+
+            {/* File Upload Section */}
+            {contract.status !== 'CANCELLED' && (
+              <Card className="p-4 mb-4 bg-gray-50 dark:bg-gray-800">
+                <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                  <span className="text-lg">📤</span>
+                  Upload New File
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <input
+                      type="file"
+                      id="file-upload"
+                      onChange={handleFileSelect}
+                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                      className="hidden"
+                    />
+                    <label htmlFor="file-upload">
+                      <Button variant="outline" size="small" as="span">
+                        <AttachFileIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                        Choose File
+                      </Button>
+                    </label>
+                    {selectedFile && (
+                      <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                        {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                      </span>
+                    )}
+                  </div>
+
+                  {selectedFile && (
+                    <>
+                      <Input
+                        type="text"
+                        value={fileDescription}
+                        onChange={(e) => setFileDescription(e.target.value)}
+                        placeholder="Optional: Add a description for this file"
+                      />
+
+                      <div className="flex gap-2">
+                        <Button onClick={handleFileUpload} disabled={uploadingFile}>
+                          {uploadingFile ? <Spinner size="small" /> : 'Upload File'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedFile(null)
+                            setFileDescription('')
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  )}
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Supported formats: Images (jpg, png, gif, webp) and Documents (pdf, doc, docx, xls, xlsx, txt). Max size: 10MB
+                  </p>
+                </div>
+              </Card>
+            )}
+
+            {/* Files List */}
+            {loadingFiles ? (
+              <div className="flex justify-center py-8">
+                <Spinner />
+              </div>
+            ) : files.length === 0 ? (
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <AttachFileIcon sx={{ fontSize: 64, mx: 'auto', mb: 2, opacity: 0.5 }} />
+                <p className="text-lg font-medium">No files uploaded yet</p>
+                <p className="text-sm mt-2">Upload documents and images related to this contract</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {files.map((file) => (
+                  <Card
+                    key={file.id}
+                    className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-purple-500"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">{getFileIcon(file.file_type)}</div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white break-words">
+                          {file.file_name}
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {formatFileSize(file.file_size)} • {new Date(file.created_at).toLocaleDateString('en-GB')}
+                        </p>
+                        {file.description && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
+                            {file.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={() => handleFileDownload(file.id, file.file_name)}
+                      >
+                        <DownloadIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                        Download
+                      </Button>
+                      {contract.status !== 'CANCELLED' && (
+                        <Button
+                          variant="outline"
+                          size="small"
+                          onClick={() => handleFileDelete(file.id, file.file_name)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <DeleteIcon sx={{ fontSize: 16 }} />
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabPanel>
+
+        <TabPanel tabId="checklists" label="Checklists" activeTab={activeTab}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Linked Checklist Templates ({checklists.length})</h2>
+              <div className="flex gap-2">
+                <Button size="small" onClick={() => setShowAddChecklist(!showAddChecklist)}>
+                  <AddIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  Add Checklist
+                </Button>
+                <Button variant="outline" size="small" onClick={() => navigate('/checklist-templates')}>
+                  View All Templates
+                </Button>
+              </div>
+            </div>
+
+            {/* Add Checklist Form */}
+            {showAddChecklist && (
+              <Card className="p-4 bg-gray-50 dark:bg-gray-800">
+                <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
+                  <span className="text-lg">➕</span>
+                  Add Checklist Template to Contract
+                </h3>
+                <div className="space-y-3">
+                  <Select
+                    placeholder="Select a checklist template..."
+                    options={availableChecklists
+                      .filter(c => !linkedChecklistIds.includes(c.id))
+                      .map((checklist) => ({
+                        value: checklist.id,
+                        label: `${checklist.template_name} - ${checklist.property_type}`,
+                      }))}
+                    value={selectedChecklistId}
+                    onChange={(e) => setSelectedChecklistId(e.target.value)}
+                  />
+
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddChecklist} disabled={addingChecklist}>
+                      {addingChecklist ? <Spinner size="small" /> : 'Add Checklist'}
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowAddChecklist(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {loadingLinkedData ? (
+              <Card className="p-12 text-center">
+                <Spinner size="lg" />
+                <p className="text-gray-600 mt-3">Loading checklists...</p>
+              </Card>
+            ) : checklists.length === 0 ? (
+              <Card className="p-12 text-center">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Linked Checklists</h3>
+                <p className="text-gray-600 mb-6">No checklist templates linked to this contract yet</p>
+                <Button onClick={() => setShowAddChecklist(true)}>
+                  <AddIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  Add Checklist Template
+                </Button>
+              </Card>
+            ) : (
+              <div className="quotes-grid">
+                {checklists.map((checklist) => (
+                  <Card key={checklist.id} className="quote-card">
+                    <div className="quote-card-header">
+                      <div>
+                        <h3 className="quote-number">{checklist.template_name}</h3>
+                        <p className="quote-customer">{checklist.property_type}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {checklist.is_active ? (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">Active</span>
+                        ) : (
+                          <span className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs font-medium">Inactive</span>
+                        )}
+                        {contract?.status !== 'CANCELLED' && (
+                          <Button
+                            variant="outline"
+                            size="small"
+                            onClick={() => handleRemoveChecklist(checklist.id)}
+                            className="ml-2 text-red-600 hover:bg-red-50"
+                          >
+                            <DeleteIcon sx={{ fontSize: 18 }} />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="quote-details">
+                      <div className="quote-detail-item">
+                        <span className="text-gray-600">Duration:</span>
+                        <span className="font-medium">{checklist.estimated_duration_minutes} min</span>
+                      </div>
+                      <div className="quote-detail-item">
+                        <span className="text-gray-600">Sections:</span>
+                        <span className="font-medium">{Array.isArray(checklist.sections) ? checklist.sections.length : 0}</span>
+                      </div>
+                    </div>
+                    <div className="quote-footer mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={() => navigate('/checklist-templates')}
+                        fullWidth
+                      >
+                        View Template Details
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </Card>
+        </TabPanel>
+
+        <TabPanel tabId="quotes" label="Quotes" activeTab={activeTab}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Quotes</h2>
+              <Button onClick={() => navigate(`/quotes/new?customer_id=${contract?.customer_id}`)}>+ Create Quote</Button>
+            </div>
+
+            {loadingLinkedData ? (
+              <Card className="p-12 text-center">
+                <Spinner size="lg" />
+                <p className="text-gray-600 mt-3">Loading quotes...</p>
+              </Card>
+            ) : quotes.length === 0 ? (
+              <Card className="p-12 text-center">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Quotes</h3>
+                <p className="text-gray-600 mb-6">This customer doesn't have any quotes yet</p>
+                <Button onClick={() => navigate(`/quotes/new?customer_id=${contract?.customer_id}`)}>+ Create Quote</Button>
+              </Card>
+            ) : (
+              <div className="quotes-grid">
+                {quotes.map((quote) => (
+                  <Card key={quote.id} className="quote-card" onClick={() => navigate(`/quotes/${quote.id}`)}>
+                    <div className="quote-card-header">
+                      <div>
+                        <h3 className="quote-number">{quote.quote_number}</h3>
+                        <p className="quote-customer">{new Date(quote.quote_date).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        quote.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                        quote.status === 'DECLINED' ? 'bg-red-100 text-red-800' :
+                        quote.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
+                        quote.status === 'EXPIRED' ? 'bg-gray-200 text-gray-600' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {quote.status}
+                      </span>
+                    </div>
+                    <div className="quote-details">
+                      <div className="quote-detail-item">
+                        <span className="text-gray-600">Valid Until:</span>
+                        <span className="font-medium">{new Date(quote.valid_until).toLocaleDateString('en-GB')}</span>
+                      </div>
+                    </div>
+                    <div className="quote-footer">
+                      <div className="quote-total">
+                        <span className="text-gray-600">Total:</span>
+                        <span className="text-2xl font-bold text-blue-600">
+                          £{Number(quote.total).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabPanel>
+
+        <TabPanel tabId="invoices" label="Invoices" activeTab={activeTab}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Invoices</h2>
+              <Button onClick={() => navigate(`/invoices/new?customer_id=${contract?.customer_id}`)}>+ Create Invoice</Button>
+            </div>
+
+            {loadingLinkedData ? (
+              <Card className="p-12 text-center">
+                <Spinner size="lg" />
+                <p className="text-gray-600 mt-3">Loading invoices...</p>
+              </Card>
+            ) : invoices.length === 0 ? (
+              <Card className="p-12 text-center">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Invoices</h3>
+                <p className="text-gray-600 mb-6">This customer doesn't have any invoices yet</p>
+                <Button onClick={() => navigate(`/invoices/new?customer_id=${contract?.customer_id}`)}>+ Create Invoice</Button>
+              </Card>
+            ) : (
+              <div className="quotes-grid">
+                {invoices.map((invoice) => (
+                  <Card key={invoice.id} className="quote-card" onClick={() => navigate(`/invoices/${invoice.id}`)}>
+                    <div className="quote-card-header">
+                      <div>
+                        <h3 className="quote-number">{invoice.invoice_number}</h3>
+                        <p className="quote-customer">{new Date(invoice.invoice_date).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                        invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                        invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-200 text-gray-600'
+                      }`}>
+                        {invoice.status}
+                      </span>
+                    </div>
+                    <div className="quote-footer">
+                      <div className="quote-total">
+                        <span className="text-gray-600">Total:</span>
+                        <span className="text-2xl font-bold text-blue-600">
+                          £{Number(invoice.total).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabPanel>
+      </Tabs>
     </div>
   )
 }

@@ -900,14 +900,37 @@ export interface Worker {
   last_name: string
   email: string
   phone: string
+  // Address fields
+  address_street?: string
+  address_city?: string
+  address_postcode?: string
+  address_country?: string
+  // Employment fields
   worker_type: "CLEANER" | "MAINTENANCE" | "BOTH"
   employment_type: "FULL_TIME" | "PART_TIME" | "CONTRACTOR"
   hourly_rate: number
   is_active: boolean
   max_weekly_hours?: number
+  employment_start_date?: string
+  // Legal/Compliance fields
+  date_of_birth?: string
+  ni_number?: string
+  driving_licence_number?: string
+  driving_licence_expiry?: string
+  // Professional fields
+  bio?: string
+  skills?: string[]
+  experience_years?: number
+  // Emergency contact
+  emergency_contact_name?: string
+  emergency_contact_phone?: string
+  emergency_contact_relation?: string
+  // Performance metrics
   jobs_completed: number
   average_rating?: number
+  // Media
   photo_url?: string
+  // Timestamps
   created_at: string
   updated_at: string
 }
@@ -1057,13 +1080,28 @@ export interface Customer {
   contact_name: string
   email: string
   phone: string
+  // Legacy address fields (deprecated)
   address?: string
   address_line1?: string
   address_line2?: string
   city?: string
   postcode?: string
   country?: string
-  customer_type: 'INDIVIDUAL' | 'PROPERTY_MANAGER' | 'VACATION_RENTAL'
+  // Business address
+  business_address_line1?: string
+  business_address_line2?: string
+  business_city?: string
+  business_postcode?: string
+  business_country?: string
+  // Contact address (if different)
+  contact_address_different?: boolean
+  contact_address_line1?: string
+  contact_address_line2?: string
+  contact_city?: string
+  contact_postcode?: string
+  contact_country?: string
+  // Customer type
+  customer_type: 'LANDLORD' | 'LETTING_AGENT' | 'PROPERTY_MANAGEMENT' | 'OFFICE_MANAGEMENT' | 'SHORT_LET_MANAGEMENT' | 'HOLIDAY_LETS' | 'COMMERCIAL' | 'PROPERTY_MANAGER' | 'OWNER' | 'LETTING_AGENCY' | 'INDIVIDUAL' | 'VACATION_RENTAL'
   has_cleaning_contract: boolean
   has_maintenance_contract: boolean
   bundled_discount_percentage: number
@@ -1087,13 +1125,28 @@ export interface CreateCustomerData {
   contact_name: string
   email: string
   phone: string
+  // Legacy address fields (optional for backwards compatibility)
   address?: string
-  address_line1: string
+  address_line1?: string
   address_line2?: string
-  city: string
-  postcode: string
+  city?: string
+  postcode?: string
   country?: string
-  customer_type: 'INDIVIDUAL' | 'PROPERTY_MANAGER' | 'VACATION_RENTAL'
+  // Business address
+  business_address_line1?: string
+  business_address_line2?: string
+  business_city?: string
+  business_postcode?: string
+  business_country?: string
+  // Contact address (if different)
+  contact_address_different?: boolean
+  contact_address_line1?: string
+  contact_address_line2?: string
+  contact_city?: string
+  contact_postcode?: string
+  contact_country?: string
+  // Customer type
+  customer_type: 'LANDLORD' | 'LETTING_AGENT' | 'PROPERTY_MANAGEMENT' | 'OFFICE_MANAGEMENT' | 'SHORT_LET_MANAGEMENT' | 'HOLIDAY_LETS' | 'COMMERCIAL' | 'PROPERTY_MANAGER' | 'OWNER' | 'LETTING_AGENCY' | 'INDIVIDUAL' | 'VACATION_RENTAL'
   has_cleaning_contract?: boolean
   has_maintenance_contract?: boolean
   bundled_discount_percentage?: number
@@ -1113,6 +1166,11 @@ export const customersAPI = {
   },
 
   get: async (id: string) => {
+    const response = await api.get<{ data: Customer }>(`/api/customers/${id}`)
+    return response.data.data
+  },
+
+  getById: async (id: string) => {
     const response = await api.get<{ data: Customer }>(`/api/customers/${id}`)
     return response.data.data
   },
@@ -1225,6 +1283,22 @@ export const customerPropertiesAPI = {
     })
     return response.data.data
   },
+
+  getChecklistTemplates: async (id: string) => {
+    const response = await api.get<{ data: ChecklistTemplate[] }>(`/api/customer-properties/${id}/checklist-templates`)
+    return response.data.data
+  },
+
+  linkChecklistTemplate: async (id: string, templateId: string) => {
+    const response = await api.post<{ data: any }>(`/api/customer-properties/${id}/checklist-templates`, {
+      checklist_template_id: templateId,
+    })
+    return response.data.data
+  },
+
+  unlinkChecklistTemplate: async (id: string, templateId: string) => {
+    await api.delete(`/api/customer-properties/${id}/checklist-templates/${templateId}`)
+  },
 }
 
 // Services API
@@ -1247,28 +1321,6 @@ export const servicesAPI = {
     return response.data.data
   },
 }
-
-// Checklist Templates API
-export interface ChecklistTemplate {
-  id: string
-  service_provider_id: string
-  customer_id?: string
-  template_name: string
-  property_type: string
-  sections: any
-  estimated_duration_minutes: number
-  is_active: boolean
-}
-
-export const checklistTemplatesAPI = {
-  list: async (serviceProviderId: string) => {
-    const response = await api.get<{ data: ChecklistTemplate[] }>('/api/checklist-templates', {
-      params: { service_provider_id: serviceProviderId },
-    })
-    return response.data.data
-  },
-}
-
 // Global Activity API
 export interface GlobalActivityEntry {
   id: string
@@ -1791,5 +1843,147 @@ export const cleaningQuotesAPI = {
   getCustomerStats: async (customerId: string) => {
     const response = await api.get<{ data: CustomerQuoteStats }>(`/api/cleaning-quotes/customer/${customerId}/stats`)
     return response.data.data
+  },
+}
+
+// Worker Availability types
+export interface WorkerAvailability {
+  id: string
+  worker_id: string
+  start_date: string
+  end_date: string
+  status: 'BLOCKED' | 'AVAILABLE'
+  reason?: string
+  created_at: string
+  updated_at: string
+}
+
+// Worker Availability API
+export const workerAvailabilityAPI = {
+  list: async (workerId: string, filters?: {
+    status?: 'BLOCKED' | 'AVAILABLE'
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: WorkerAvailability[] }>('/api/worker-availability', {
+      params: {
+        worker_id: workerId,
+        ...filters,
+      },
+    })
+    return response.data.data
+  },
+
+  getBlockedDates: async (workerId: string, startDate: string, endDate: string) => {
+    const response = await api.get<{ data: WorkerAvailability[] }>('/api/worker-availability/blocked-dates', {
+      params: {
+        worker_id: workerId,
+        start_date: startDate,
+        end_date: endDate,
+      },
+    })
+    return response.data.data
+  },
+}
+
+// Checklist Template types
+export interface ChecklistSection {
+  title: string
+  items: string[]
+  images?: string[] // URLs to uploaded images
+}
+
+export interface ChecklistTemplate {
+  id: string
+  service_provider_id: string
+  customer_id?: string
+  template_name: string
+  property_type: string
+  sections: ChecklistSection[]
+  estimated_duration_minutes: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateChecklistTemplateData {
+  service_provider_id: string
+  customer_id?: string
+  template_name: string
+  property_type: string
+  sections: ChecklistSection[]
+  estimated_duration_minutes: number
+  is_active?: boolean
+}
+
+export interface UpdateChecklistTemplateData {
+  template_name?: string
+  property_type?: string
+  sections?: ChecklistSection[]
+  estimated_duration_minutes?: number
+  is_active?: boolean
+  customer_id?: string
+}
+
+// Checklist Template API
+export const checklistTemplatesAPI = {
+  list: async (serviceProviderId: string, filters?: {
+    property_type?: string
+    customer_id?: string
+    is_active?: boolean
+  }) => {
+    const response = await api.get<{ data: ChecklistTemplate[] }>('/api/checklist-templates', {
+      params: {
+        service_provider_id: serviceProviderId,
+        ...filters,
+      },
+    })
+    return response.data.data
+  },
+
+  get: async (id: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: ChecklistTemplate }>(`/api/checklist-templates/${id}`, {
+      params: {
+        service_provider_id: serviceProviderId,
+      },
+    })
+    return response.data.data
+  },
+
+  create: async (data: CreateChecklistTemplateData) => {
+    const response = await api.post<{ data: ChecklistTemplate }>('/api/checklist-templates', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: UpdateChecklistTemplateData & { service_provider_id: string }) => {
+    const response = await api.put<{ data: ChecklistTemplate }>(`/api/checklist-templates/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string, serviceProviderId: string) => {
+    await api.delete(`/api/checklist-templates/${id}`, {
+      params: {
+        service_provider_id: serviceProviderId,
+      },
+    })
+  },
+
+  uploadImage: async (file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    const response = await api.post<{ data: { filename: string; url: string } }>(
+      '/api/uploads/checklist-template-image',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return response.data.data
+  },
+
+  deleteImage: async (filename: string) => {
+    await api.delete(`/api/uploads/checklist-template-image/${filename}`)
   },
 }

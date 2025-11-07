@@ -519,6 +519,204 @@ export class CustomerPortalService {
     return updatedIssue;
   }
 
+  async getWorkerIssues(customerId: string) {
+    // Get all properties for this customer
+    const properties = await prisma.customerProperty.findMany({
+      where: { customer_id: customerId },
+      select: { id: true },
+    });
+
+    const propertyIds = properties.map((p) => p.id);
+
+    // Get all worker issues for these properties
+    const issues = await prisma.workerIssueReport.findMany({
+      where: {
+        property_id: { in: propertyIds },
+      },
+      include: {
+        property: {
+          select: {
+            property_name: true,
+            address: true,
+            postcode: true,
+          },
+        },
+        worker: {
+          select: {
+            first_name: true,
+            last_name: true,
+            phone: true,
+          },
+        },
+        cleaning_job: {
+          select: {
+            id: true,
+            scheduled_date: true,
+          },
+        },
+      },
+      orderBy: {
+        reported_at: 'desc',
+      },
+    });
+
+    return issues;
+  }
+
+  async approveWorkerIssue(customerId: string, issueId: string) {
+    // Verify the issue belongs to this customer's property
+    const issue = await prisma.workerIssueReport.findUnique({
+      where: { id: issueId },
+      include: { property: true },
+    });
+
+    if (!issue) {
+      throw new NotFoundError('Worker issue not found');
+    }
+
+    if (issue.property.customer_id !== customerId) {
+      throw new UnauthorizedError('You do not have permission to approve this issue');
+    }
+
+    // Use WorkerIssuesService to approve and create maintenance job
+    const workerIssuesService = new (await import('./WorkerIssuesService')).WorkerIssuesService();
+    const approvedIssue = await workerIssuesService.approve(issueId, customerId);
+
+    return approvedIssue;
+  }
+
+  async rejectWorkerIssue(customerId: string, issueId: string, rejectionReason?: string) {
+    // Verify the issue belongs to this customer's property
+    const issue = await prisma.workerIssueReport.findUnique({
+      where: { id: issueId },
+      include: { property: true },
+    });
+
+    if (!issue) {
+      throw new NotFoundError('Worker issue not found');
+    }
+
+    if (issue.property.customer_id !== customerId) {
+      throw new UnauthorizedError('You do not have permission to reject this issue');
+    }
+
+    // Use WorkerIssuesService to reject
+    const workerIssuesService = new (await import('./WorkerIssuesService')).WorkerIssuesService();
+    const rejectedIssue = await workerIssuesService.reject(issueId, customerId, rejectionReason);
+
+    return rejectedIssue;
+  }
+
+  async createMaintenanceRequest(customerId: string, data: {
+    property_id: string;
+    title: string;
+    description: string;
+    category: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    requested_date?: Date;
+  }) {
+    // Verify property belongs to this customer
+    const property = await prisma.customerProperty.findFirst({
+      where: {
+        id: data.property_id,
+        customer_id: customerId,
+      },
+    });
+
+    if (!property) {
+      throw new NotFoundError('Property not found or does not belong to this customer');
+    }
+
+    // Get the customer's service provider and maintenance service
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      throw new NotFoundError('Customer not found');
+    }
+
+    // Find the maintenance service for the customer's service provider
+    const maintenanceService = await prisma.service.findFirst({
+      where: {
+        service_provider_id: customer.service_provider_id,
+        service_type: 'MAINTENANCE',
+      },
+    });
+
+    if (!maintenanceService) {
+      throw new ValidationError('No maintenance service configured for your service provider');
+    }
+
+    // Create maintenance job with CUSTOMER_REQUEST source
+    const maintenanceJob = await prisma.maintenanceJob.create({
+      data: {
+        service_id: maintenanceService.id,
+        property_id: data.property_id,
+        customer_id: customerId,
+        source: 'CUSTOMER_REQUEST',
+        category: data.category,
+        priority: data.priority,
+        title: data.title,
+        description: data.description,
+        requested_date: data.requested_date,
+        issue_photos: [],
+        work_in_progress_photos: [],
+        completion_photos: [],
+        status: 'QUOTE_PENDING',
+      },
+      include: {
+        property: true,
+      },
+    });
+
+    return maintenanceJob;
+  }
+
+  async getMaintenanceJobs(customerId: string) {
+    // Get all maintenance jobs for this customer
+    const jobs = await prisma.maintenanceJob.findMany({
+      where: {
+        customer_id: customerId,
+      },
+      include: {
+        property: {
+          select: {
+            property_name: true,
+            address: true,
+            postcode: true,
+          },
+        },
+        assigned_worker: {
+          select: {
+            first_name: true,
+            last_name: true,
+            phone: true,
+          },
+        },
+        assigned_contractor: {
+          select: {
+            company_name: true,
+            contact_name: true,
+            phone: true,
+          },
+        },
+        quote: {
+          select: {
+            id: true,
+            total: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: [
+        { created_at: 'desc' },
+      ],
+    });
+
+    return jobs;
+  }
+
   async rateMaintenanceJob(jobId: string, customerId: string, rating: number) {
     // Verify job exists and belongs to this customer
     const job = await prisma.maintenanceJob.findFirst({

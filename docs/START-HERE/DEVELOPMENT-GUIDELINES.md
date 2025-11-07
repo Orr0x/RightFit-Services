@@ -4,6 +4,32 @@
 
 ---
 
+## 🎯 PHILOSOPHY: RightFit, not QuickFix
+
+**IMPORTANT**: Before reading these technical guidelines, read **[../PHILOSOPHY.md](../PHILOSOPHY.md)** to understand our core development philosophy.
+
+**Core Principles**:
+- ✅ Quality over speed - No arbitrary deadlines
+- ✅ Build it right the first time - No "we'll fix it later"
+- ✅ Production-ready standards - Every feature, every time
+- ✅ Best-in-class quality - Compare to Stripe, Airbnb, Linear
+- ✅ User experience excellence - WCAG 2.1 AA accessibility minimum
+- ✅ Maintainable architecture - Code that lasts 5 years, not 5 months
+
+**Quality Standards** (Non-Negotiable):
+- TypeScript strict mode, zero `any` types
+- >80% test coverage (aim for >90%)
+- WCAG 2.1 AA accessibility (AAA preferred)
+- Mobile responsive, tested on real devices
+- All errors handled gracefully
+- Clean, maintainable, well-documented code
+- Performance: Sub-2 second page loads
+- Security: Built in, not bolted on
+
+**This document covers the technical "how" of collaboration. The philosophy document covers the "why" of our quality standards.**
+
+---
+
 ## 🚫 CRITICAL RULES - DO NOT BREAK
 
 ### **Rule 1: Server Management (Context-Dependent)**
@@ -313,21 +339,33 @@ Then I can help debug if there are any issues.
 
 **Before starting any task:**
 
-1. ✅ Read CURRENT_STATUS.md to understand project state
-2. ✅ Check which files exist before creating
-3. ✅ Ask human about server status
-4. ✅ Never assume servers need to be started
-5. ✅ Focus on code generation, not infrastructure
+1. ✅ **Read [../PHILOSOPHY.md](../PHILOSOPHY.md)** - Understand our quality-first approach
+2. ✅ **Read [../CURRENT-STATE.md](../CURRENT-STATE.md)** - Understand project state and priorities
+3. ✅ **Read [../ARCHITECTURE.md](../ARCHITECTURE.md)** - Understand system architecture
+4. ✅ **Check which files exist** - Before creating new ones
+5. ✅ **Ask human about server status** - Don't assume
+6. ✅ **Focus on quality first** - Then speed
 
 **Remember:**
-- You write code
-- Human runs code
-- You suggest commands
-- Human executes commands
-- You analyze results
-- Human makes final decisions
+- You write code, human runs code
+- You suggest commands, human executes commands
+- You analyze results, human makes final decisions
+- **Quality is the only metric** - Not speed
+- Build it right the first time - No technical debt
+- Production-ready standards - Every feature, every time
+
+**Quality Gates Checklist** (Every Feature):
+- ✅ TypeScript strict mode, zero `any` types
+- ✅ Tests written with >80% coverage
+- ✅ Accessibility validated (WCAG 2.1 AA)
+- ✅ Mobile responsive design
+- ✅ Error handling implemented
+- ✅ Documentation updated
+- ✅ Performance benchmarks met
 
 ---
 
-*Follow these guidelines to work effectively with human developers!*
-*Last Updated: 2025-11-02*
+*Follow these guidelines to build best-in-class software!*
+
+**Last Updated**: November 7, 2025
+**Philosophy**: RightFit, not QuickFix

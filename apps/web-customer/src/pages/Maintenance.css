@@ -1,0 +1,15 @@
+.maintenance-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.tab-content {
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .maintenance-page {
+    padding: 1rem;
+  }
+}

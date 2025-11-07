@@ -80,7 +80,7 @@ export default function CleaningDashboard() {
       // Calculate revenue from completed jobs
       const revenue = weekJobs
         .filter(j => j.status === 'COMPLETED')
-        .reduce((sum, j) => sum + (j.actual_price || j.quoted_price), 0)
+        .reduce((sum, j) => sum + Number(j.actual_price || j.quoted_price || 0), 0)
 
       setWeeklyStats({
         jobsScheduled: weekJobs.length,

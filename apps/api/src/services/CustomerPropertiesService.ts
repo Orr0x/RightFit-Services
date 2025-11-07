@@ -247,4 +247,70 @@ export class CustomerPropertiesService {
       data: { is_active: false },
     });
   }
+
+  /**
+   * Get checklist templates linked to a property
+   */
+  async getChecklistTemplates(propertyId: string) {
+    const links = await prisma.propertyChecklistTemplate.findMany({
+      where: {
+        property_id: propertyId,
+      },
+      include: {
+        checklist_template: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+
+    return links.map(link => link.checklist_template);
+  }
+
+  /**
+   * Link a checklist template to a property
+   */
+  async linkChecklistTemplate(propertyId: string, checklistTemplateId: string) {
+    // Check if link already exists
+    const existing = await prisma.propertyChecklistTemplate.findUnique({
+      where: {
+        property_id_checklist_template_id: {
+          property_id: propertyId,
+          checklist_template_id: checklistTemplateId,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new Error('This checklist template is already linked to the property');
+    }
+
+    const link = await prisma.propertyChecklistTemplate.create({
+      data: {
+        property_id: propertyId,
+        checklist_template_id: checklistTemplateId,
+      },
+      include: {
+        checklist_template: true,
+      },
+    });
+
+    return link;
+  }
+
+  /**
+   * Unlink a checklist template from a property
+   */
+  async unlinkChecklistTemplate(propertyId: string, checklistTemplateId: string) {
+    const deleted = await prisma.propertyChecklistTemplate.deleteMany({
+      where: {
+        property_id: propertyId,
+        checklist_template_id: checklistTemplateId,
+      },
+    });
+
+    if (deleted.count === 0) {
+      throw new NotFoundError('Checklist template link not found');
+    }
+  }
 }

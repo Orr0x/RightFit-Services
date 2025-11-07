@@ -9,7 +9,7 @@ import Register from './pages/Register'
 import CustomerDashboard from './pages/dashboards/CustomerDashboard'
 import Properties from './pages/Properties'
 import PropertyDetails from './pages/PropertyDetails'
-import GuestIssues from './pages/GuestIssues'
+import Maintenance from './pages/Maintenance'
 import GuestIssueDetails from './pages/GuestIssueDetails'
 import Financial from './pages/Financial'
 import QuoteApproval from './pages/QuoteApproval'
@@ -58,11 +58,11 @@ function App() {
               }
             />
             <Route
-              path="/issues"
+              path="/maintenance"
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <GuestIssues />
+                    <Maintenance />
                   </AppLayout>
                 </ProtectedRoute>
               }

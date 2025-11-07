@@ -378,3 +378,4 @@ router.delete('/:id/certificates/:certificateId', async (req: Request, res: Resp
 });
 
 export default router;
+ 

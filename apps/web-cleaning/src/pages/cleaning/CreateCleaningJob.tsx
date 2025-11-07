@@ -295,7 +295,8 @@ export default function CreateCleaningJob() {
           scheduled_date: scheduleNow ? formData.scheduled_date : undefined,
           scheduled_start_time: scheduleNow ? formData.scheduled_start_time : undefined,
           scheduled_end_time: scheduleNow ? formData.scheduled_end_time : undefined,
-          assigned_worker_id: scheduleNow ? formData.assigned_worker_id : undefined,
+          // Keep assigned_worker_id regardless of scheduling status
+          assigned_worker_id: formData.assigned_worker_id || undefined,
         }
 
         if (isEditMode && id) {
@@ -606,6 +607,17 @@ export default function CreateCleaningJob() {
                 </label>
               </div>
 
+              {/* Worker Assignment - Always visible */}
+              <Select
+                label="Assigned Worker (Optional)"
+                placeholder="Assign later"
+                options={workerOptions}
+                value={formData.assigned_worker_id || ''}
+                onChange={(e) => handleChange('assigned_worker_id', e.target.value)}
+                fullWidth
+                helperText="Can be assigned after job creation"
+              />
+
               {scheduleNow && (
                 <>
                   {/* Scheduling */}
@@ -640,17 +652,6 @@ export default function CreateCleaningJob() {
                       />
                     </div>
                   </div>
-
-                  {/* Worker Assignment */}
-                  <Select
-                    label="Assigned Worker (Optional)"
-                    placeholder="Assign later"
-                    options={workerOptions}
-                    value={formData.assigned_worker_id || ''}
-                    onChange={(e) => handleChange('assigned_worker_id', e.target.value)}
-                    fullWidth
-                    helperText="Can be assigned after job creation"
-                  />
                 </>
               )}
 

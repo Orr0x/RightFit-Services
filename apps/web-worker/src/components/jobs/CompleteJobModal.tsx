@@ -42,7 +42,7 @@ export default function CompleteJobModal({
         const workerId = localStorage.getItem('worker_id')
 
         const response = await fetch(
-          `/api/cleaning-jobs/${jobId}/timesheets?service_provider_id=${serviceProviderId}&worker_id=${workerId}&status=ACTIVE`,
+          `/api/cleaning-timesheets/job/${jobId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -52,13 +52,18 @@ export default function CompleteJobModal({
 
         if (response.ok) {
           const data = await response.json()
-          if (data.data && data.data.length > 0) {
-            const activeTimesheet = data.data[0]
+          // Filter for active timesheets for this worker
+          const activeTimesheets = data.data?.filter((ts: any) =>
+            ts.worker_id === workerId && !ts.end_time
+          ) || []
+
+          if (activeTimesheets.length > 0) {
+            const activeTimesheet = activeTimesheets[0]
             setTimesheetId(activeTimesheet.id)
 
             // Fetch existing photos for this timesheet
             const photosResponse = await fetch(
-              `/api/cleaning-jobs/${jobId}/timesheets/${activeTimesheet.id}/photos?service_provider_id=${serviceProviderId}`,
+              `/api/cleaning-timesheets/${activeTimesheet.id}/photos`,
               {
                 headers: {
                   'Authorization': `Bearer ${token}`
@@ -108,6 +113,7 @@ export default function CompleteJobModal({
     try {
       const token = localStorage.getItem('worker_token')
       const serviceProviderId = localStorage.getItem('service_provider_id')
+      const workerId = localStorage.getItem('worker_id')
 
       // Complete the job
       const response = await fetch(`/api/cleaning-jobs/${jobId}/complete`, {
@@ -117,6 +123,7 @@ export default function CompleteJobModal({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          worker_id: workerId,
           service_provider_id: serviceProviderId,
           timesheet_id: timesheetId,
           end_time: new Date().toISOString(),
@@ -202,22 +209,36 @@ export default function CompleteJobModal({
           </div>
 
           {/* Photos */}
-          {timesheetId && (
-            <div className="mb-6">
-              <PhotoUpload
-                jobId={jobId}
-                timesheetId={timesheetId}
-                photos={photos}
-                onPhotosChange={setPhotos}
-              />
-              {afterPhotos === 0 && (
-                <p className="text-sm text-amber-700 mt-2 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  At least one "After" photo is required
-                </p>
-              )}
-            </div>
-          )}
+          <div className="mb-6">
+            {timesheetId ? (
+              <>
+                <PhotoUpload
+                  jobId={jobId}
+                  timesheetId={timesheetId}
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                />
+                {afterPhotos === 0 && (
+                  <p className="text-sm text-amber-700 mt-2 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    At least one "After" photo is required
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">No Active Timesheet</p>
+                    <p className="text-sm text-amber-800 mt-1">
+                      Cannot upload photos without an active timesheet. Make sure you started the job properly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Work Performed */}
           <div className="mb-4">

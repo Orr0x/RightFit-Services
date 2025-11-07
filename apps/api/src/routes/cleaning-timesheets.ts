@@ -1,6 +1,8 @@
 import express from 'express'
 import { authenticate } from '../middleware/auth'
+import { upload } from '../middleware/upload'
 import CleaningJobTimesheetService from '../services/CleaningJobTimesheetService'
+import photosService from '../services/PhotosService'
 import logger from '../utils/logger'
 
 const router = express.Router()
@@ -150,34 +152,148 @@ router.put('/:id', async (req, res) => {
 
 /**
  * POST /api/cleaning-timesheets/:id/photos
- * Add photos to timesheet
+ * Upload and add photo to timesheet
  */
-router.post('/:id/photos', async (req, res) => {
+router.post('/:id/photos', upload.single('photo'), async (req, res) => {
   try {
-    const { photo_type, photo_urls } = req.body
+    const tenantId = req.user!.tenant_id
+    const userId = req.user!.user_id
+    const timesheetId = req.params.id
 
-    if (!photo_type || !photo_urls || !Array.isArray(photo_urls)) {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' })
+    }
+
+    const { category } = req.body
+
+    if (!category || !['BEFORE', 'AFTER', 'ISSUE'].includes(category)) {
       return res.status(400).json({
-        error: 'Missing required fields: photo_type, photo_urls (array)',
+        error: 'Invalid category. Must be: BEFORE, AFTER, or ISSUE',
       })
     }
 
-    if (!['before', 'after', 'issue'].includes(photo_type)) {
-      return res.status(400).json({
-        error: 'Invalid photo_type. Must be: before, after, or issue',
-      })
+    // Upload the photo file
+    const uploadResult = await photosService.uploadPhoto(tenantId, userId, req.file, {
+      caption: `${category} photo for timesheet ${timesheetId}`,
+    })
+
+    if (!uploadResult.uploadSuccess) {
+      return res.status(500).json({ error: uploadResult.error || 'Failed to upload photo' })
     }
+
+    // Add the photo URL to the timesheet
+    const photo_type = category.toLowerCase() as 'before' | 'after' | 'issue'
+    const photoUrl = uploadResult.photo.s3_url || uploadResult.photo.photo_url
 
     const timesheet = await CleaningJobTimesheetService.addPhotos(
-      req.params.id,
+      timesheetId,
       photo_type,
-      photo_urls
+      [photoUrl]
     )
 
-    res.json({ data: timesheet })
+    logger.info(`Photo uploaded to timesheet ${timesheetId}`, {
+      tenant_id: tenantId,
+      photo_id: uploadResult.photo.id,
+      category,
+    })
+
+    res.status(201).json({
+      data: {
+        id: uploadResult.photo.id,
+        photo_url: photoUrl,
+        category,
+        uploaded_at: uploadResult.photo.uploaded_at
+      }
+    })
   } catch (error: any) {
-    logger.error(`Error adding photos to timesheet ${req.params.id}:`, error)
-    res.status(500).json({ error: error.message || 'Failed to add photos' })
+    logger.error(`Error adding photo to timesheet ${req.params.id}:`, error)
+    res.status(500).json({ error: error.message || 'Failed to add photo' })
+  }
+})
+
+/**
+ * GET /api/cleaning-timesheets/:id/photos
+ * Get all photos for a timesheet
+ */
+router.get('/:id/photos', async (req, res) => {
+  try {
+    const timesheetId = req.params.id
+
+    // Get the timesheet to access photo arrays
+    const timesheet = await CleaningJobTimesheetService.getTimesheetById(timesheetId)
+
+    // Combine all photos with their categories
+    const photos = [
+      ...(timesheet.before_photos || []).map((url: string, index: number) => ({
+        id: `before-${index}`,
+        photo_url: url,
+        category: 'BEFORE',
+        uploaded_at: timesheet.created_at
+      })),
+      ...(timesheet.after_photos || []).map((url: string, index: number) => ({
+        id: `after-${index}`,
+        photo_url: url,
+        category: 'AFTER',
+        uploaded_at: timesheet.updated_at || timesheet.created_at
+      })),
+      ...(timesheet.issue_photos || []).map((url: string, index: number) => ({
+        id: `issue-${index}`,
+        photo_url: url,
+        category: 'ISSUE',
+        uploaded_at: timesheet.updated_at || timesheet.created_at
+      })),
+    ]
+
+    res.json({ data: photos })
+  } catch (error: any) {
+    logger.error(`Error fetching photos for timesheet ${req.params.id}:`, error)
+    res.status(500).json({ error: 'Failed to fetch photos' })
+  }
+})
+
+/**
+ * DELETE /api/cleaning-timesheets/:timesheetId/photos/:photoId
+ * Delete a photo from timesheet
+ */
+router.delete('/:timesheetId/photos/:photoId', async (req, res) => {
+  try {
+    const { timesheetId, photoId } = req.params
+
+    // Parse category and index from photoId (format: "category-index")
+    const [category, indexStr] = photoId.split('-')
+    const index = parseInt(indexStr)
+
+    if (!['before', 'after', 'issue'].includes(category) || isNaN(index)) {
+      return res.status(400).json({ error: 'Invalid photo ID format' })
+    }
+
+    const timesheet = await CleaningJobTimesheetService.getTimesheetById(timesheetId)
+    const photoArrayKey = `${category}_photos` as 'before_photos' | 'after_photos' | 'issue_photos'
+    const photoArray = (timesheet[photoArrayKey] || []) as string[]
+
+    if (index < 0 || index >= photoArray.length) {
+      return res.status(404).json({ error: 'Photo not found' })
+    }
+
+    // Remove the photo from the array
+    photoArray.splice(index, 1)
+
+    // Update the timesheet
+    await CleaningJobTimesheetService.updateTimesheet(
+      timesheetId,
+      { [photoArrayKey]: photoArray },
+      timesheet.worker_id
+    )
+
+    logger.info(`Photo deleted from timesheet ${timesheetId}`, {
+      photo_id: photoId,
+      category,
+    })
+
+    res.json({ success: true, message: 'Photo deleted' })
+  } catch (error: any) {
+    logger.error(`Error deleting photo from timesheet ${req.params.timesheetId}:`, error)
+    res.status(500).json({ error: 'Failed to delete photo' })
   }
 })
 

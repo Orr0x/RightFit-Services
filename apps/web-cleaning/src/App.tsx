@@ -34,6 +34,7 @@ import CleaningContracts from './pages/CleaningContracts'
 import ContractDetails from './pages/ContractDetails'
 import CreateContract from './pages/CreateContract'
 import PropertyCalendar from './pages/PropertyCalendar'
+import ChecklistTemplates from './pages/ChecklistTemplates'
 
 function App() {
   return (
@@ -330,6 +331,16 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <PropertyCalendar />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checklist-templates"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ChecklistTemplates />
                   </AppLayout>
                 </ProtectedRoute>
               }

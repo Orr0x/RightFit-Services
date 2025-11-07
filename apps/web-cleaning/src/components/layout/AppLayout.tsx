@@ -236,6 +236,30 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
+      id: 'checklist-templates',
+      label: 'Checklists',
+      path: '/checklist-templates',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Checklist Templates">
+          <path
+            d="M9 2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M9 2v5h5M7 10h2M7 14h2M11 10h2M11 14h2"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       id: 'financial',
       label: 'Financial',
       path: '/financial',
@@ -431,13 +455,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         },
         {
           id: '10',
+          title: 'Checklists',
+          subtitle: 'Manage checklist templates for jobs and contracts',
+          category: 'Page',
+          path: '/checklist-templates',
+        },
+        {
+          id: '11',
           title: 'Financial',
           subtitle: 'Job history and earnings',
           category: 'Page',
           path: '/financial',
         },
         {
-          id: '11',
+          id: '12',
           title: 'Certificates',
           subtitle: 'Certifications and compliance',
           category: 'Page',

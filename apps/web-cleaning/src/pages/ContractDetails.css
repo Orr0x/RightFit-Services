@@ -46,3 +46,35 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Calendar Styles for Worker Availability */
+.blocked-date {
+  background-color: #ef4444 !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.blocked-date:hover {
+  background-color: #dc2626 !important;
+}
+
+/* Ensure calendar tiles have proper styling */
+.react-calendar__tile {
+  padding: 0.75rem 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.react-calendar__tile:enabled:hover {
+  background-color: #f3f4f6;
+}
+
+.react-calendar__tile--now {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.react-calendar__tile--active {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}

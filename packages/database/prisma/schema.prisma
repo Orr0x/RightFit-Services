@@ -389,12 +389,27 @@ model Customer {
   contact_name                String               @db.VarChar(100)
   email                       String               @db.VarChar(255)
   phone                       String               @db.VarChar(20)
+  // Legacy address fields (deprecated - kept for backwards compatibility)
   address                     String?
   address_line1               String?              @db.VarChar(255)
   address_line2               String?              @db.VarChar(255)
   city                        String?              @db.VarChar(100)
   postcode                    String?              @db.VarChar(20)
   country                     String?              @db.VarChar(100)
+  // Business address
+  business_address_line1      String?              @db.VarChar(255)
+  business_address_line2      String?              @db.VarChar(255)
+  business_city               String?              @db.VarChar(100)
+  business_postcode           String?              @db.VarChar(20)
+  business_country            String?              @db.VarChar(100)
+  // Contact address (if different from business)
+  contact_address_different   Boolean              @default(false)
+  contact_address_line1       String?              @db.VarChar(255)
+  contact_address_line2       String?              @db.VarChar(255)
+  contact_city                String?              @db.VarChar(100)
+  contact_postcode            String?              @db.VarChar(20)
+  contact_country             String?              @db.VarChar(100)
+  // Customer details
   customer_type               CustomerType
   has_cleaning_contract       Boolean              @default(false)
   has_maintenance_contract    Boolean              @default(false)
@@ -417,43 +432,46 @@ model Customer {
   invoices                    Invoice[]
   portal_user                 CustomerPortalUser?
   preferences                 CustomerPreferences?
+  worker_issue_reports        WorkerIssueReport[]
 
   @@index([service_provider_id])
   @@map("customers")
 }
 
 model CustomerProperty {
-  id                             String                  @id @default(uuid())
+  id                             String                         @id @default(uuid())
   customer_id                    String
-  property_name                  String                  @db.VarChar(100)
+  property_name                  String                         @db.VarChar(100)
   address                        String
-  postcode                       String                  @db.VarChar(10)
-  property_type                  String                  @db.VarChar(50)
-  bedrooms                       Int                     @default(0)
-  bathrooms                      Int                     @default(0)
+  postcode                       String                         @db.VarChar(10)
+  property_type                  String                         @db.VarChar(50)
+  bedrooms                       Int                            @default(0)
+  bathrooms                      Int                            @default(0)
   access_instructions            String?
-  access_code                    String?                 @db.VarChar(255)
+  access_code                    String?                        @db.VarChar(255)
   cleaning_checklist_template_id String?
-  guest_portal_enabled           Boolean                 @default(false)
-  guest_portal_qr_code_url       String?                 @db.VarChar(500)
-  is_active                      Boolean                 @default(true)
+  guest_portal_enabled           Boolean                        @default(false)
+  guest_portal_qr_code_url       String?                        @db.VarChar(500)
+  is_active                      Boolean                        @default(true)
   // Enhanced property details for service providers
   photo_urls                     Json? // Array of photo URLs [{url, caption, type}]
   utility_locations              Json? // {stopTap, waterMeter, gasMeter, fuseBox, etc.}
   emergency_contacts             Json? // Array of emergency contacts [{name, phone, relation}]
   cleaner_notes                  String? // General notes for cleaners
-  wifi_ssid                      String?                 @db.VarChar(100)
-  wifi_password                  String?                 @db.VarChar(100)
+  wifi_ssid                      String?                        @db.VarChar(100)
+  wifi_password                  String?                        @db.VarChar(100)
   parking_info                   String? // Where to park
   pet_info                       String? // Info about pets
   special_requirements           String? // Any special requirements or sensitivities
-  created_at                     DateTime                @default(now())
-  updated_at                     DateTime                @updatedAt
+  created_at                     DateTime                       @default(now())
+  updated_at                     DateTime                       @updatedAt
   cleaning_jobs                  CleaningJob[]
   cleaning_quotes                CleaningQuote[]
   contract_properties            ContractProperty[]
-  customer                       Customer                @relation(fields: [customer_id], references: [id])
+  property_checklists            PropertyChecklistTemplate[]
+  customer                       Customer                       @relation(fields: [customer_id], references: [id])
   guest_issue_reports            GuestIssueReport[]
+  worker_issue_reports           WorkerIssueReport[]
   maintenance_jobs               MaintenanceJob[]
   guest_sessions                 GuestSession[]
   knowledge_base                 PropertyKnowledgeBase[]
@@ -465,30 +483,55 @@ model CustomerProperty {
 }
 
 model Worker {
-  id                  String                 @id @default(uuid())
-  service_provider_id String
-  user_id             String?
-  first_name          String                 @db.VarChar(100)
-  last_name           String                 @db.VarChar(100)
-  email               String                 @db.VarChar(255)
-  phone               String                 @db.VarChar(20)
-  worker_type         WorkerType
-  employment_type     EmploymentType
-  hourly_rate         Decimal                @db.Decimal(10, 2)
-  is_active           Boolean                @default(true)
-  max_weekly_hours    Int?
-  jobs_completed      Int                    @default(0)
-  average_rating      Decimal?               @db.Decimal(3, 2)
-  photo_url           String?                @db.Text
-  created_at          DateTime               @default(now())
-  updated_at          DateTime               @updatedAt
-  certificates        WorkerCertificate[]
-  cleaning_jobs       CleaningJob[]
-  cleaning_timesheets CleaningJobTimesheet[]
-  maintenance_jobs    MaintenanceJob[]
-  history             WorkerHistory[]
-  availability        WorkerAvailability[]
-  service_provider    ServiceProvider        @relation(fields: [service_provider_id], references: [id])
+  id                       String                 @id @default(uuid())
+  service_provider_id      String
+  user_id                  String?
+  first_name               String                 @db.VarChar(100)
+  last_name                String                 @db.VarChar(100)
+  email                    String                 @db.VarChar(255)
+  phone                    String                 @db.VarChar(20)
+  // Address fields
+  address_street           String?                @db.VarChar(255)
+  address_city             String?                @db.VarChar(100)
+  address_postcode         String?                @db.VarChar(20)
+  address_country          String?                @db.VarChar(100)
+  // Employment fields
+  worker_type              WorkerType
+  employment_type          EmploymentType
+  hourly_rate              Decimal                @db.Decimal(10, 2)
+  is_active                Boolean                @default(true)
+  max_weekly_hours         Int?
+  employment_start_date    DateTime?              @db.Date
+  // Legal/Compliance fields
+  date_of_birth            DateTime?              @db.Date
+  ni_number                String?                @db.VarChar(20) // National Insurance Number
+  driving_licence_number   String?                @db.VarChar(50)
+  driving_licence_expiry   DateTime?              @db.Date
+  // Professional fields
+  bio                      String?                @db.Text
+  skills                   String[]               @db.VarChar(100) // Array of skills
+  experience_years         Int?
+  // Emergency contact
+  emergency_contact_name   String?                @db.VarChar(100)
+  emergency_contact_phone  String?                @db.VarChar(20)
+  emergency_contact_relation String?              @db.VarChar(50)
+  // Performance metrics
+  jobs_completed           Int                    @default(0)
+  average_rating           Decimal?               @db.Decimal(3, 2)
+  // Media
+  photo_url                String?                @db.Text
+  // Timestamps
+  created_at               DateTime               @default(now())
+  updated_at               DateTime               @updatedAt
+  // Relations
+  certificates             WorkerCertificate[]
+  cleaning_jobs            CleaningJob[]
+  cleaning_timesheets      CleaningJobTimesheet[]
+  maintenance_jobs         MaintenanceJob[]
+  history                  WorkerHistory[]
+  availability             WorkerAvailability[]
+  issue_reports            WorkerIssueReport[]
+  service_provider         ServiceProvider        @relation(fields: [service_provider_id], references: [id])
 
   @@index([service_provider_id])
   @@index([worker_type])
@@ -590,6 +633,7 @@ model CleaningJob {
   property                     CustomerProperty       @relation(fields: [property_id], references: [id])
   service                      Service?               @relation(fields: [service_id], references: [id])
   maintenance_jobs             MaintenanceJob[]
+  worker_issue_reports         WorkerIssueReport[]
   timesheets                   CleaningJobTimesheet[]
   history                      CleaningJobHistory[]
 
@@ -646,6 +690,7 @@ model MaintenanceJob {
   service                      Service             @relation(fields: [service_id], references: [id])
   source_cleaning_job          CleaningJob?        @relation(fields: [source_cleaning_job_id], references: [id])
   source_guest_report          GuestIssueReport?   @relation(fields: [source_guest_report_id], references: [id])
+  worker_issue_reports         WorkerIssueReport[] @relation("WorkerIssueMaintenanceJob")
   guest_issues                 GuestIssue[]
   invoice                      Invoice?
 
@@ -716,22 +761,37 @@ model Invoice {
 }
 
 model ChecklistTemplate {
-  id                         String          @id @default(uuid())
+  id                         String                         @id @default(uuid())
   service_provider_id        String
   customer_id                String?
-  template_name              String          @db.VarChar(100)
-  property_type              String          @db.VarChar(50)
+  template_name              String                         @db.VarChar(100)
+  property_type              String                         @db.VarChar(50)
   sections                   Json
   estimated_duration_minutes Int
-  is_active                  Boolean         @default(true)
-  created_at                 DateTime        @default(now())
-  updated_at                 DateTime        @updatedAt
-  customer                   Customer?       @relation(fields: [customer_id], references: [id])
-  service_provider           ServiceProvider @relation(fields: [service_provider_id], references: [id])
+  is_active                  Boolean                        @default(true)
+  created_at                 DateTime                       @default(now())
+  updated_at                 DateTime                       @updatedAt
+  customer                   Customer?                      @relation(fields: [customer_id], references: [id])
+  service_provider           ServiceProvider                @relation(fields: [service_provider_id], references: [id])
+  property_checklists        PropertyChecklistTemplate[]
 
   @@index([service_provider_id])
   @@index([customer_id])
   @@map("checklist_templates")
+}
+
+model PropertyChecklistTemplate {
+  id                     String              @id @default(uuid())
+  property_id            String
+  checklist_template_id  String
+  created_at             DateTime            @default(now())
+  property               CustomerProperty    @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  checklist_template     ChecklistTemplate   @relation(fields: [checklist_template_id], references: [id], onDelete: Cascade)
+
+  @@unique([property_id, checklist_template_id])
+  @@index([property_id])
+  @@index([checklist_template_id])
+  @@map("property_checklist_templates")
 }
 
 model GuestIssueReport {
@@ -763,6 +823,43 @@ model GuestIssueReport {
   @@index([property_id])
   @@index([status])
   @@map("guest_issue_reports")
+}
+
+model WorkerIssueReport {
+  id                         String              @id @default(uuid())
+  property_id                String
+  customer_id                String
+  worker_id                  String
+  cleaning_job_id            String?
+  issue_type                 String              @db.VarChar(50)
+  title                      String              @db.VarChar(255)
+  issue_description          String
+  category                   String              @db.VarChar(50)
+  priority                   String              @db.VarChar(20)
+  photos                     String[]            @db.VarChar(500)
+  status                     WorkerIssueStatus   @default(SUBMITTED)
+  created_maintenance_job_id String?
+  customer_response          String?
+  customer_approved_at       DateTime?
+  customer_rejected_at       DateTime?
+  rejection_reason           String?
+  reported_at                DateTime            @default(now())
+  triaged_at                 DateTime?
+  resolved_at                DateTime?
+  created_at                 DateTime            @default(now())
+  updated_at                 DateTime            @updatedAt
+  property                   CustomerProperty    @relation(fields: [property_id], references: [id])
+  customer                   Customer            @relation(fields: [customer_id], references: [id])
+  worker                     Worker              @relation(fields: [worker_id], references: [id])
+  cleaning_job               CleaningJob?        @relation(fields: [cleaning_job_id], references: [id])
+  created_maintenance_job    MaintenanceJob?     @relation("WorkerIssueMaintenanceJob", fields: [created_maintenance_job_id], references: [id])
+
+  @@index([property_id])
+  @@index([customer_id])
+  @@index([worker_id])
+  @@index([cleaning_job_id])
+  @@index([status])
+  @@map("worker_issue_reports")
 }
 
 model PropertyShare {
@@ -928,6 +1025,14 @@ enum PricingModel {
 }
 
 enum CustomerType {
+  LANDLORD
+  LETTING_AGENT
+  PROPERTY_MANAGEMENT
+  OFFICE_MANAGEMENT
+  SHORT_LET_MANAGEMENT
+  HOLIDAY_LETS
+  COMMERCIAL
+  // Legacy types (kept for backwards compatibility)
   PROPERTY_MANAGER
   OWNER
   LETTING_AGENCY
@@ -1011,6 +1116,15 @@ enum GuestIssueStatus {
   WORK_ORDER_CREATED
   RESOLVED
   DISMISSED
+}
+
+enum WorkerIssueStatus {
+  SUBMITTED
+  CUSTOMER_REVIEWING
+  APPROVED
+  REJECTED
+  WORK_ORDER_CREATED
+  RESOLVED
 }
 
 enum ShareType {
