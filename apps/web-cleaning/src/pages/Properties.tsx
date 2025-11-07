@@ -6,6 +6,8 @@ import { useLoading } from '../hooks/useLoading'
 import { customerPropertiesAPI, type CustomerProperty } from '../lib/api'
 import './Properties.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function Properties() {
   const [customerProperties, setCustomerProperties] = useState<CustomerProperty[]>([])
   const { isLoading, withLoading } = useLoading()
@@ -20,7 +22,7 @@ export default function Properties() {
   const loadCustomerProperties = () => {
     withLoading(async () => {
       try {
-        const result = await customerPropertiesAPI.list()
+        const result = await customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID })
         setCustomerProperties(result.data)
       } catch (err: any) {
         toast.error('Failed to load customer properties')
