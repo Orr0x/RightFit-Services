@@ -1,0 +1,35 @@
+@import '../../styles/variables.css';
+
+.rf-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--rf-spacing-8);
+  color: var(--rf-color-text-secondary);
+}
+
+.rf-empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--rf-spacing-4);
+  opacity: 0.5;
+}
+
+.rf-empty-state-title {
+  font-size: var(--rf-font-size-lg);
+  font-weight: var(--rf-font-weight-semibold);
+  color: var(--rf-color-text-primary);
+  margin: 0 0 var(--rf-spacing-2) 0;
+}
+
+.rf-empty-state-description {
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-text-secondary);
+  margin: 0 0 var(--rf-spacing-4) 0;
+  max-width: 400px;
+}
+
+.rf-empty-state-action {
+  margin-top: var(--rf-spacing-2);
+}

@@ -1,0 +1,35 @@
+@import '../../styles/variables.css';
+
+.rf-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--rf-spacing-1) var(--rf-spacing-2);
+  font-size: var(--rf-font-size-xs);
+  font-weight: var(--rf-font-weight-medium);
+  border-radius: var(--rf-radius-base);
+}
+
+.rf-badge-default {
+  background-color: var(--rf-color-hover);
+  color: var(--rf-color-text-primary);
+}
+
+.rf-badge-primary {
+  background-color: var(--rf-color-primary-500);
+  color: var(--rf-color-text-inverse);
+}
+
+.rf-badge-success {
+  background-color: var(--rf-color-success);
+  color: var(--rf-color-text-inverse);
+}
+
+.rf-badge-warning {
+  background-color: var(--rf-color-warning);
+  color: var(--rf-color-text-inverse);
+}
+
+.rf-badge-error {
+  background-color: var(--rf-color-error);
+  color: var(--rf-color-text-inverse);
+}

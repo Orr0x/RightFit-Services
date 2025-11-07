@@ -1,0 +1,121 @@
+@import '../../styles/variables.css';
+
+.rf-checkbox-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rf-spacing-1);
+}
+
+.rf-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: var(--rf-spacing-2);
+  cursor: pointer;
+}
+
+.rf-checkbox-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rf-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--rf-color-border);
+  border-radius: var(--rf-radius-sm);
+  background-color: var(--rf-color-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+}
+
+.rf-checkbox:hover:not(:disabled) {
+  border-color: var(--rf-color-primary-500);
+}
+
+.rf-checkbox:focus {
+  outline: none;
+  border-color: var(--rf-color-primary-500);
+  box-shadow: 0 0 0 3px var(--rf-color-primary-100);
+}
+
+.rf-checkbox:checked {
+  background-color: var(--rf-color-primary-500);
+  border-color: var(--rf-color-primary-500);
+}
+
+.rf-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.rf-checkbox:indeterminate {
+  background-color: var(--rf-color-primary-500);
+  border-color: var(--rf-color-primary-500);
+}
+
+.rf-checkbox:indeterminate::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 10px;
+  height: 2px;
+  background-color: white;
+}
+
+.rf-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rf-checkbox-sm .rf-checkbox {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.rf-checkbox-md .rf-checkbox {
+  width: 1rem;
+  height: 1rem;
+}
+
+.rf-checkbox-lg .rf-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.rf-checkbox-label {
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rf-checkbox-disabled .rf-checkbox-label {
+  cursor: not-allowed;
+}
+
+.rf-checkbox-error-text {
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-error);
+  margin-left: calc(1rem + var(--rf-spacing-2));
+}
+
+.rf-checkbox-helper-text {
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-text-secondary);
+  margin-left: calc(1rem + var(--rf-spacing-2));
+}
+
+.rf-checkbox-wrapper-error .rf-checkbox {
+  border-color: var(--rf-color-error);
+}

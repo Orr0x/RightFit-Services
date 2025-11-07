@@ -1,0 +1,96 @@
+@import '../../styles/variables.css';
+
+.rf-textarea-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rf-spacing-1);
+}
+
+.rf-textarea-wrapper-full-width {
+  width: 100%;
+}
+
+.rf-textarea-label {
+  font-size: var(--rf-font-size-sm);
+  font-weight: var(--rf-font-weight-medium);
+  color: var(--rf-color-text-primary);
+}
+
+.rf-textarea {
+  font-family: inherit;
+  font-size: var(--rf-font-size-base);
+  line-height: 1.5;
+  color: var(--rf-color-text-primary);
+  background-color: var(--rf-color-surface);
+  border: 1px solid var(--rf-color-border);
+  border-radius: var(--rf-radius-base);
+  padding: var(--rf-spacing-2) var(--rf-spacing-3);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  min-height: 80px;
+}
+
+.rf-textarea:focus {
+  outline: none;
+  border-color: var(--rf-color-primary-500);
+  box-shadow: 0 0 0 3px var(--rf-color-primary-100);
+}
+
+.rf-textarea:disabled {
+  background-color: var(--rf-color-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.rf-textarea-sm {
+  font-size: var(--rf-font-size-sm);
+  padding: var(--rf-spacing-1) var(--rf-spacing-2);
+  min-height: 60px;
+}
+
+.rf-textarea-md {
+  font-size: var(--rf-font-size-base);
+  padding: var(--rf-spacing-2) var(--rf-spacing-3);
+  min-height: 80px;
+}
+
+.rf-textarea-lg {
+  font-size: var(--rf-font-size-base);
+  padding: var(--rf-spacing-3) var(--rf-spacing-4);
+  min-height: 120px;
+}
+
+.rf-textarea-resize-none {
+  resize: none;
+}
+
+.rf-textarea-resize-vertical {
+  resize: vertical;
+}
+
+.rf-textarea-resize-horizontal {
+  resize: horizontal;
+}
+
+.rf-textarea-resize-both {
+  resize: both;
+}
+
+.rf-textarea-error {
+  border-color: var(--rf-color-error);
+}
+
+.rf-textarea-error:focus {
+  border-color: var(--rf-color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.rf-textarea-error-text {
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-error);
+}
+
+.rf-textarea-helper-text {
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-text-secondary);
+}

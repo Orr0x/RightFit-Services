@@ -1,0 +1,199 @@
+/**
+ * Input Component Styles
+ */
+
+@import '../../styles/variables.css';
+
+/* Wrapper */
+.rf-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rf-spacing-2);
+}
+
+.rf-input-wrapper-full-width {
+  width: 100%;
+}
+
+/* Label */
+.rf-input-label {
+  display: flex;
+  align-items: center;
+  gap: var(--rf-spacing-1);
+  font-size: var(--rf-font-size-sm);
+  font-weight: var(--rf-font-weight-medium);
+  color: var(--rf-color-text-primary);
+  cursor: pointer;
+}
+
+.rf-input-required {
+  color: var(--rf-color-error);
+  font-weight: var(--rf-font-weight-bold);
+}
+
+/* Container */
+.rf-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Base Input */
+.rf-input {
+  width: 100%;
+  font-family: var(--rf-font-family-sans);
+  font-size: var(--rf-font-size-base);
+  font-weight: var(--rf-font-weight-normal);
+  color: var(--rf-color-text-primary);
+  background-color: var(--rf-color-surface);
+  border: 1px solid var(--rf-color-border);
+  border-radius: var(--rf-radius-base);
+  transition: all var(--rf-transition-fast);
+  outline: none;
+}
+
+.rf-input::placeholder {
+  color: var(--rf-color-text-secondary);
+  opacity: 0.6;
+}
+
+.rf-input:hover:not(.rf-input-disabled) {
+  border-color: var(--rf-color-border-hover);
+}
+
+.rf-input:focus {
+  border-color: var(--rf-color-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Sizes */
+.rf-input-sm {
+  padding: var(--rf-spacing-2) var(--rf-spacing-3);
+  font-size: var(--rf-font-size-sm);
+  min-height: 32px;
+}
+
+.rf-input-md {
+  padding: var(--rf-spacing-3) var(--rf-spacing-4);
+  font-size: var(--rf-font-size-base);
+  min-height: 40px;
+}
+
+.rf-input-lg {
+  padding: var(--rf-spacing-4) var(--rf-spacing-5);
+  font-size: var(--rf-font-size-lg);
+  min-height: 48px;
+}
+
+/* Variants */
+.rf-input-default {
+  background-color: var(--rf-color-surface);
+}
+
+.rf-input-filled {
+  background-color: var(--rf-color-surface-elevated);
+  border-color: transparent;
+}
+
+.rf-input-filled:hover:not(.rf-input-disabled) {
+  background-color: var(--rf-color-hover);
+}
+
+.rf-input-flushed {
+  border: none;
+  border-bottom: 2px solid var(--rf-color-border);
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* States */
+.rf-input-error {
+  border-color: var(--rf-color-error);
+}
+
+.rf-input-error:focus {
+  border-color: var(--rf-color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.rf-input-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--rf-color-hover);
+}
+
+/* Icons */
+.rf-input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rf-color-text-secondary);
+  pointer-events: none;
+}
+
+.rf-input-icon-left {
+  left: var(--rf-spacing-3);
+}
+
+.rf-input-icon-right {
+  right: var(--rf-spacing-3);
+}
+
+.rf-input-has-left-icon {
+  padding-left: 2.5rem;
+}
+
+.rf-input-has-right-icon {
+  padding-right: 2.5rem;
+}
+
+/* Prefix/Suffix */
+.rf-input-prefix,
+.rf-input-suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--rf-spacing-3);
+  font-size: var(--rf-font-size-sm);
+  color: var(--rf-color-text-secondary);
+  background-color: var(--rf-color-hover);
+  border: 1px solid var(--rf-color-border);
+  white-space: nowrap;
+}
+
+.rf-input-prefix {
+  border-right: none;
+  border-radius: var(--rf-radius-base) 0 0 var(--rf-radius-base);
+}
+
+.rf-input-suffix {
+  border-left: none;
+  border-radius: 0 var(--rf-radius-base) var(--rf-radius-base) 0;
+}
+
+.rf-input-has-prefix {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rf-input-has-suffix {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Helper/Error Text */
+.rf-input-error-text,
+.rf-input-helper-text {
+  font-size: var(--rf-font-size-sm);
+  line-height: var(--rf-line-height-normal);
+}
+
+.rf-input-error-text {
+  color: var(--rf-color-error);
+}
+
+.rf-input-helper-text {
+  color: var(--rf-color-text-secondary);
+}
