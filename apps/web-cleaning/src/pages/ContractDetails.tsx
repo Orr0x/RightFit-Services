@@ -8,6 +8,7 @@ import {
   checklistTemplatesAPI,
   cleaningQuotesAPI,
   cleaningInvoicesAPI,
+  customerPropertiesAPI,
   type ChecklistTemplate,
   type CleaningQuote,
   type CleaningInvoice
@@ -27,6 +28,8 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import ImageIcon from '@mui/icons-material/Image'
 import './ContractDetails.css'
 import './Quotes.css'
+
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface CleaningContract {
   id: string
@@ -187,10 +190,11 @@ export default function ContractDetails() {
 
   const fetchAvailableProperties = async (customerId: string) => {
     try {
-      const response = await api.get(`/api/customer-properties`, {
-        params: { customer_id: customerId },
+      const response = await customerPropertiesAPI.list({
+        customer_id: customerId,
+        service_provider_id: SERVICE_PROVIDER_ID
       })
-      setProperties(response.data.data || [])
+      setProperties(response.data || [])
     } catch (error) {
       console.error('Error fetching properties:', error)
     }
