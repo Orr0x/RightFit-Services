@@ -52,6 +52,17 @@ interface JobDetails {
   checklist: ChecklistItem[]
 }
 
+interface MaintenanceIssue {
+  id: string
+  title: string
+  issue_description: string
+  category: string
+  priority: string
+  status: string
+  reported_at: string
+  resolved_at: string | null
+}
+
 export default function JobDetails() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -63,6 +74,8 @@ export default function JobDetails() {
   const [showCompleteModal, setShowCompleteModal] = useState(false)
   const [showMaintenanceIssueModal, setShowMaintenanceIssueModal] = useState(false)
   const [propertyDetailsExpanded, setPropertyDetailsExpanded] = useState(false)
+  const [maintenanceIssues, setMaintenanceIssues] = useState<MaintenanceIssue[]>([])
+  const [loadingMaintenanceIssues, setLoadingMaintenanceIssues] = useState(false)
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -86,6 +99,11 @@ export default function JobDetails() {
 
         const data = await response.json()
         setJob(data.data)
+
+        // Fetch maintenance issues for this property
+        if (data.data?.property_id) {
+          fetchMaintenanceIssues(data.data.property_id, token, worker.service_provider_id)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
@@ -95,6 +113,29 @@ export default function JobDetails() {
 
     fetchJobDetails()
   }, [id, worker])
+
+  const fetchMaintenanceIssues = async (propertyId: string, token: string, serviceProviderId: string) => {
+    try {
+      setLoadingMaintenanceIssues(true)
+      const response = await fetch(
+        `/api/maintenance-jobs?property_id=${propertyId}&service_provider_id=${serviceProviderId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setMaintenanceIssues(data.data || [])
+      }
+    } catch (err) {
+      console.error('Error fetching maintenance issues:', err)
+    } finally {
+      setLoadingMaintenanceIssues(false)
+    }
+  }
 
 
   const refetchJob = async () => {
@@ -114,6 +155,11 @@ export default function JobDetails() {
       if (response.ok) {
         const data = await response.json()
         setJob(data.data)
+
+        // Also refresh maintenance issues
+        if (data.data?.property_id) {
+          fetchMaintenanceIssues(data.data.property_id, token, worker.service_provider_id)
+        }
       }
     } catch (err) {
       console.error('Error refetching job:', err)
@@ -152,6 +198,26 @@ export default function JobDetails() {
       case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-300'
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800 border-blue-300'
       case 'SCHEDULED': return 'bg-amber-100 text-amber-800 border-amber-300'
+      default: return 'bg-gray-100 text-gray-800 border-gray-300'
+    }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'URGENT': return 'bg-red-100 text-red-800 border-red-300'
+      case 'HIGH': return 'bg-orange-100 text-orange-800 border-orange-300'
+      case 'MEDIUM': return 'bg-blue-100 text-blue-800 border-blue-300'
+      case 'LOW': return 'bg-gray-100 text-gray-800 border-gray-300'
+      default: return 'bg-gray-100 text-gray-800 border-gray-300'
+    }
+  }
+
+  const getMaintenanceStatusColor = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-300'
+      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800 border-blue-300'
+      case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-300'
+      case 'QUOTE_REQUESTED': return 'bg-purple-100 text-purple-800 border-purple-300'
       default: return 'bg-gray-100 text-gray-800 border-gray-300'
     }
   }
@@ -486,6 +552,71 @@ export default function JobDetails() {
         </div>
       )}
 
+      {/* Property Maintenance Issues */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+        <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Wrench className="w-5 h-5" />
+          Property Maintenance Issues
+          {maintenanceIssues.length > 0 && (
+            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+              {maintenanceIssues.length}
+            </span>
+          )}
+        </h2>
+        {loadingMaintenanceIssues ? (
+          <div className="flex items-center justify-center py-4">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <p className="ml-2 text-gray-600">Loading maintenance issues...</p>
+          </div>
+        ) : maintenanceIssues.length === 0 ? (
+          <div className="text-center py-4">
+            <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">No maintenance issues reported for this property</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {maintenanceIssues.map((issue) => (
+              <div
+                key={issue.id}
+                className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-medium text-gray-900 text-sm">{issue.title}</h3>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getPriorityColor(issue.priority)}`}>
+                      {issue.priority}
+                    </span>
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getMaintenanceStatusColor(issue.status)}`}>
+                      {issue.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-gray-700 text-sm mb-2">{issue.issue_description}</p>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
+                  <span>
+                    Reported: {new Date(issue.reported_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+                {issue.resolved_at && (
+                  <div className="mt-2 text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
+                    Resolved: {new Date(issue.resolved_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Job Checklist */}
       {job.checklist && job.checklist.length > 0 && (
         <div className="mb-4">
@@ -501,20 +632,18 @@ export default function JobDetails() {
       )}
 
       {/* Report Maintenance Issue Button */}
-      {(job.status === 'IN_PROGRESS' || job.status === 'COMPLETED') && (
-        <div className="mb-4">
-          <button
-            onClick={handleReportMaintenanceIssue}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
-          >
-            <Wrench className="w-5 h-5" />
-            Report Maintenance Issue
-          </button>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            Found a maintenance issue during your cleaning? Report it here.
-          </p>
-        </div>
-      )}
+      <div className="mb-4">
+        <button
+          onClick={handleReportMaintenanceIssue}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+        >
+          <Wrench className="w-5 h-5" />
+          Report Maintenance Issue
+        </button>
+        <p className="text-xs text-gray-500 text-center mt-2">
+          Found a maintenance issue? Report it here.
+        </p>
+      </div>
 
       {/* Action Buttons */}
       <div className="fixed bottom-20 md:bottom-6 left-0 right-0 px-4 bg-white border-t border-gray-200 py-4 md:relative md:border-0 md:bg-transparent md:p-0 md:mt-6">
