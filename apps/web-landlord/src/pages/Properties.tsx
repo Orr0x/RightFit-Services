@@ -335,7 +335,6 @@ export default function Properties() {
             placeholder="Gate codes, parking info, etc."
             helperText="Include gate codes, parking info, or special entry instructions"
             maxLength={500}
-            showCount
           />
         </div>
 
