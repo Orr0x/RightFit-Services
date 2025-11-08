@@ -97,10 +97,10 @@ This migration will:
 
 ## Completion Summary
 
-**Completed**: November 7, 2025
-**Actual Time**: ~6 hours
+**Completed**: November 8, 2025
+**Actual Time**: ~8 hours (including comprehensive testing and security fixes)
 **Branch**: `feature/s1.4-migrate-web-cleaning`
-**Total Commits**: 8
+**Total Commits**: 13
 
 ### What Was Accomplished
 
@@ -110,7 +110,7 @@ This migration will:
 - ✅ Deleted 22 component files (11 components × 2 files each)
 - ⚠️ Toast component kept local due to API incompatibility (85 usages)
 
-**Critical Fixes**:
+**Critical Fixes (Nov 7)**:
 - ✅ Fixed service provider authorization issues across 21 files
 - ✅ Updated backend API to accept serviceProviderId instead of tenantId
 - ✅ Fixed GET by ID routes (4 endpoints)
@@ -118,10 +118,18 @@ This migration will:
 - ✅ Imported ui-core styles to make components visible
 - ✅ Applied consistent gradient styling to all Card components
 
+**Security & Validation Fixes (Nov 8)**:
+- ✅ **CRITICAL SECURITY**: Fixed cross-tenant data leak (jobs with null service_id)
+- ✅ **HIGH**: Implemented worker availability validation (backend + frontend)
+- ✅ **CRITICAL**: Fixed duplicate variable declaration causing API crash
+- ✅ **MEDIUM**: Fixed React null value warnings in form fields
+- ✅ **TESTING**: Comprehensive manual testing of all links, buttons, and workflows
+
 **Helper Scripts Created**:
 - ✅ `scripts/create-cleanco-service-provider.js` - Setup test service provider
+- ✅ `/tmp/check-tenants.js` - Verify cross-tenant data isolation
 
-**Key Commits**:
+**All Commits**:
 1. [2472b6a] - Properties page service_provider_id fix
 2. [cc862de] - Cleanup temporary migration scripts
 3. [60fe9f4] - Fix service provider parameters (5 pages)
@@ -130,6 +138,11 @@ This migration will:
 6. [74c2795] - Import ui-core styles
 7. [b831a63] - Fix ui-core package exports
 8. [e866bac] - Apply gradient styling to all Cards
+9. [80272bb] - **SECURITY**: Fix cross-tenant data leak
+10. [863dcfa] - Add backend worker availability validation
+11. [8400c15] - Fix duplicate variable declaration
+12. [eb3b271] - Add frontend worker availability validation
+13. [232e3b9] - Fix React null value warnings
 
 ### Challenges Overcome
 
@@ -139,12 +152,34 @@ This migration will:
 4. **Service Provider Authorization**: Backend expected tenantId but received serviceProviderId
 5. **Missing CSS**: ui-core styles weren't imported, making components invisible
 6. **Package Export Mismatch**: Fixed `styles.css` vs `style.css` filename
+7. **Cross-Tenant Data Leak**: Jobs with null service_id bypassed tenant filtering
+8. **Worker Availability**: Missing validation allowed scheduling on blocked dates
+9. **Variable Conflicts**: Duplicate declarations in availability validation logic
+10. **React Warnings**: Database null values needed conversion to empty strings
+
+### Security Findings
+
+**Critical Security Issue Discovered & Resolved**:
+
+During comprehensive testing on November 8, 2025, a cross-tenant data leak was discovered where jobs with `null` service_id were visible across different tenants. Specifically:
+- User `admin@cleaningco.test` (tenant: `tenant-cleaning-test`) could see:
+  - Job: "Loch View Cabin"
+  - Worker: "kerry robins"
+  - Belonging to tenant `b3f0c957-0aa6-47d4-a104-e7da43897572` (test2@rightfit.com)
+
+**Root Cause**: The WHERE clause in CleaningJobsService.list() only checked `service.service_provider_id`, but jobs with `service_id = null` weren't checking customer ownership.
+
+**Fix**: Updated WHERE clause to include `customer.service_provider_id` check for jobs with null service_id.
+
+**Recommendation**: Conduct security audit of all service methods to verify proper tenant isolation, especially where null foreign keys might bypass filtering.
 
 ### Outstanding Items
 
 - ⏭️ Toast component migration (deferred - requires API alignment)
 - ⏭️ README updates (deferred - low priority)
 - ⏭️ Cleaning-specific components don't exist yet in web-cleaning
+- ⏭️ Security audit of all multi-tenant queries (recommended)
+- ⏭️ Add integration tests for tenant isolation (recommended)
 
 ---
 
@@ -699,6 +734,119 @@ If migration causes critical issues:
 ---
 
 **Created**: November 7, 2025
-**Last Updated**: November 7, 2025
+**Last Updated**: November 8, 2025
 **Assigned To**: Frontend Developer
 **Sprint**: Sprint 1 - Component Library Refactor
+
+---
+
+## Post-Migration Testing & Security Findings (November 8, 2025)
+
+After the initial migration, comprehensive manual testing was performed covering all links, buttons, workflows, and calendar drag-and-drop functionality. This testing uncovered and resolved 4 critical issues:
+
+### Issue 1: Cross-Tenant Data Leak (CRITICAL SECURITY) - [80272bb]
+
+**Problem**: Jobs with `null` service_id were visible across different tenants
+- Specific case: admin@cleaningco.test could see "Loch View Cabin" and "kerry robins" from a different tenant
+- Database query revealed 5 jobs visible (should have been 4)
+
+**Root Cause**:
+```typescript
+// OLD (vulnerable):
+const where: any = {
+  OR: [
+    { service_id: null },  // ❌ No customer check!
+    { service: { service_provider_id: serviceProviderId } },
+  ],
+};
+```
+
+**Fix**:
+```typescript
+// NEW (secure):
+const where: any = {
+  OR: [
+    {
+      service_id: null,
+      customer: { service_provider_id: serviceProviderId }  // ✅ Check customer ownership
+    },
+    { service: { service_provider_id: serviceProviderId } },
+  ],
+};
+```
+
+**Files Modified**: `apps/api/src/services/CleaningJobsService.ts` (list() and getById() methods)
+
+### Issue 2: Worker Availability Validation Missing (HIGH) - [863dcfa, eb3b271]
+
+**Problem**: Workers could be scheduled on dates they had blocked in their availability
+
+**Backend Fix** [863dcfa]:
+- Added WorkerAvailabilityService to CleaningJobsService
+- Implemented availability checks in create() and update() methods
+- Throws ValidationError if worker is unavailable
+
+**Frontend Fix** [eb3b271]:
+- Made validateJobReschedule async in PropertyCalendar.tsx
+- Added blocked dates check before API call
+- Shows user-friendly error with reason (e.g., "John Smith is not available on this date (Vacation)")
+
+**Files Modified**:
+- `apps/api/src/services/CleaningJobsService.ts`
+- `apps/web-cleaning/src/pages/PropertyCalendar.tsx`
+
+### Issue 3: Duplicate Variable Declaration (CRITICAL - API Crash) - [8400c15]
+
+**Problem**: `SyntaxError: Identifier 'newWorkerId' has already been declared`
+- Variable declared twice: once for availability validation, once for worker history tracking
+
+**Fix**: Renamed second occurrence to `finalWorkerId`
+
+**Files Modified**: `apps/api/src/services/CleaningJobsService.ts`
+
+### Issue 4: React Null Value Warnings (MEDIUM) - [232e3b9]
+
+**Problem**: `Warning: value prop on select should not be null`
+- Database null values being set directly on React controlled components
+
+**Fix**: Added null coalescing operators (`|| ''`) for all optional fields:
+```typescript
+service_id: job.service_id || '',
+property_id: job.property_id || '',
+customer_id: job.customer_id || '',
+scheduled_start_time: job.scheduled_start_time || '',
+scheduled_end_time: job.scheduled_end_time || '',
+```
+
+**Files Modified**: `apps/web-cleaning/src/pages/cleaning/CreateCleaningJob.tsx`
+
+### Comprehensive Test Results
+
+**Status**: ✅ ALL TESTS PASSED
+
+User confirmed:
+- ✅ All links working
+- ✅ All buttons functional
+- ✅ No cross-tenant leaks
+- ✅ Availability validation working
+- ✅ No console errors
+- ✅ No React warnings
+- ✅ Creating new jobs works
+- ✅ Editing existing jobs works
+- ✅ Calendar drag-and-drop rescheduling works
+- ✅ Worker assignment works
+- ✅ Availability blocking works
+
+### Security Recommendations
+
+⚠️ While the specific cross-tenant leak has been fixed, it's recommended to:
+
+1. Conduct a security audit of all service methods to verify proper tenant isolation
+2. Review all Prisma queries for similar patterns where `null` foreign keys bypass filtering
+3. Add integration tests specifically for multi-tenant data isolation
+4. Consider adding automated security scanning for tenant boundary violations
+
+### Documentation
+
+Full detailed test results documented in:
+- `TEST-RESULTS-S1.4-MIGRATION.md` - Comprehensive testing findings and verification
