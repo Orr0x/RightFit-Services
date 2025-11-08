@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
 import { useToast } from '../components/ui'
-import { cleaningJobsAPI, type CleaningJob } from '../lib/api'
+import { cleaningJobsAPI, workerAvailabilityAPI, type CleaningJob } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
 import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
@@ -134,7 +134,7 @@ export default function PropertyCalendar() {
   }
 
   // Validate if job can be moved to new date
-  const validateJobReschedule = (job: CleaningJob, newDateStr: string): { valid: boolean; message?: string } => {
+  const validateJobReschedule = async (job: CleaningJob, newDateStr: string): Promise<{ valid: boolean; message?: string }> => {
     // Don't allow rescheduling completed or cancelled jobs
     if (job.status === 'COMPLETED') {
       return { valid: false, message: 'Cannot reschedule completed jobs' }
@@ -178,10 +178,28 @@ export default function PropertyCalendar() {
           }
         }
       }
-    }
 
-    // TODO: Check worker availability once availability API is implemented
-    // For now, we'll allow all moves that pass the above checks
+      // Check worker availability (blocked dates)
+      try {
+        const blockedDates = await workerAvailabilityAPI.list(job.assigned_worker_id, {
+          status: 'BLOCKED',
+          from_date: newDateStr,
+          to_date: newDateStr,
+        })
+
+        if (blockedDates.length > 0) {
+          const workerName = `${job.assigned_worker?.first_name} ${job.assigned_worker?.last_name}`
+          const reason = blockedDates[0].reason ? ` (${blockedDates[0].reason})` : ''
+          return {
+            valid: false,
+            message: `${workerName} is not available on this date${reason}`
+          }
+        }
+      } catch (error) {
+        console.error('Error checking worker availability:', error)
+        // Don't block the reschedule if availability check fails - let backend validate
+      }
+    }
 
     return { valid: true }
   }
@@ -236,7 +254,7 @@ export default function PropertyCalendar() {
     }
 
     // Validate the move
-    const validation = validateJobReschedule(job, newDateStr)
+    const validation = await validateJobReschedule(job, newDateStr)
     if (!validation.valid) {
       toast.error(validation.message || 'Cannot reschedule this job')
       return
