@@ -156,15 +156,15 @@ export default function CreateCleaningJob() {
     try {
       const job = await cleaningJobsAPI.get(id!)
       setFormData({
-        service_id: job.service_id,
-        property_id: job.property_id,
-        customer_id: job.customer_id,
+        service_id: job.service_id || '',
+        property_id: job.property_id || '',
+        customer_id: job.customer_id || '',
         contract_id: job.contract_id || '',
         quote_id: job.quote_id || '',
         assigned_worker_id: job.assigned_worker_id || '',
         scheduled_date: convertToDateInputFormat(job.scheduled_date),
-        scheduled_start_time: job.scheduled_start_time,
-        scheduled_end_time: job.scheduled_end_time,
+        scheduled_start_time: job.scheduled_start_time || '',
+        scheduled_end_time: job.scheduled_end_time || '',
         pricing_type: job.pricing_type,
         quoted_price: job.quoted_price,
         checklist_template_id: job.checklist_template_id || '',
