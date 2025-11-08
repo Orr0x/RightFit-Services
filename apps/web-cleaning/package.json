@@ -25,8 +25,6 @@
     "@emotion/styled": "11.13.5",
     "@mui/icons-material": "5.16.9",
     "@mui/material": "5.16.9",
-    "@rightfit/ui-cleaning": "*",
-    "@rightfit/ui-core": "*",
     "@types/react-calendar": "^4.1.0",
     "axios": "^1.6.2",
     "jspdf": "^3.0.3",
