@@ -44,12 +44,16 @@ export default function CreateMaintenanceIssueModal({
     const fetchIssuePhotos = async () => {
       try {
         const token = localStorage.getItem('worker_token')
-        const serviceProviderId = localStorage.getItem('service_provider_id')
         const workerId = localStorage.getItem('worker_id')
 
-        // Get active timesheet
+        if (!workerId) {
+          console.error('No worker ID found in localStorage')
+          return
+        }
+
+        // Get active timesheet using the dedicated endpoint
         const timesheetResponse = await fetch(
-          `/api/cleaning-jobs/${jobId}/timesheets?service_provider_id=${serviceProviderId}&worker_id=${workerId}`,
+          `/api/cleaning-timesheets/job/${jobId}/active?worker_id=${workerId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -59,27 +63,27 @@ export default function CreateMaintenanceIssueModal({
 
         if (timesheetResponse.ok) {
           const timesheetData = await timesheetResponse.json()
-          if (timesheetData.data && timesheetData.data.length > 0) {
-            const timesheet = timesheetData.data[0]
+          const activeTimesheet = timesheetData.data
 
-            // Get photos for this timesheet
-            const photosResponse = await fetch(
-              `/api/cleaning-jobs/${jobId}/timesheets/${timesheet.id}/photos?service_provider_id=${serviceProviderId}`,
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
+          // Get photos for this timesheet
+          const photosResponse = await fetch(
+            `/api/cleaning-timesheets/${activeTimesheet.id}/photos`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
               }
-            )
-
-            if (photosResponse.ok) {
-              const photosData = await photosResponse.json()
-              const issuePhotoUrls = photosData.data
-                .filter((photo: any) => photo.category === 'ISSUE')
-                .map((photo: any) => photo.photo_url)
-              setIssuePhotos(issuePhotoUrls)
             }
+          )
+
+          if (photosResponse.ok) {
+            const photosData = await photosResponse.json()
+            const issuePhotoUrls = photosData.data
+              .filter((photo: any) => photo.category === 'ISSUE')
+              .map((photo: any) => photo.photo_url)
+            setIssuePhotos(issuePhotoUrls)
           }
+        } else if (timesheetResponse.status === 404) {
+          console.warn('No active timesheet found. Job may not have been started yet.')
         }
       } catch (err) {
         console.error('Error fetching issue photos:', err)
