@@ -38,11 +38,18 @@ export default function CompleteJobModal({
     const fetchTimesheet = async () => {
       try {
         const token = localStorage.getItem('worker_token')
-        const serviceProviderId = localStorage.getItem('service_provider_id')
         const workerId = localStorage.getItem('worker_id')
 
+        if (!workerId) {
+          console.error('No worker ID found in localStorage')
+          return
+        }
+
+        console.log('Fetching active timesheet for job:', jobId, 'worker:', workerId)
+
+        // Use new dedicated endpoint for getting active timesheet
         const response = await fetch(
-          `/api/cleaning-timesheets/job/${jobId}`,
+          `/api/cleaning-timesheets/job/${jobId}/active?worker_id=${workerId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -52,30 +59,30 @@ export default function CompleteJobModal({
 
         if (response.ok) {
           const data = await response.json()
-          // Filter for active timesheets for this worker
-          const activeTimesheets = data.data?.filter((ts: any) =>
-            ts.worker_id === workerId && !ts.end_time
-          ) || []
+          const activeTimesheet = data.data
 
-          if (activeTimesheets.length > 0) {
-            const activeTimesheet = activeTimesheets[0]
-            setTimesheetId(activeTimesheet.id)
+          console.log('Found active timesheet:', activeTimesheet.id)
+          setTimesheetId(activeTimesheet.id)
 
-            // Fetch existing photos for this timesheet
-            const photosResponse = await fetch(
-              `/api/cleaning-timesheets/${activeTimesheet.id}/photos`,
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
+          // Fetch existing photos for this timesheet
+          const photosResponse = await fetch(
+            `/api/cleaning-timesheets/${activeTimesheet.id}/photos`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
               }
-            )
-
-            if (photosResponse.ok) {
-              const photosData = await photosResponse.json()
-              setPhotos(photosData.data || [])
             }
+          )
+
+          if (photosResponse.ok) {
+            const photosData = await photosResponse.json()
+            setPhotos(photosData.data || [])
+            console.log('Loaded existing photos:', photosData.data?.length || 0)
           }
+        } else if (response.status === 404) {
+          console.warn('No active timesheet found. Job may not have been started properly.')
+        } else {
+          console.error('Failed to fetch active timesheet:', response.status)
         }
       } catch (err) {
         console.error('Error fetching timesheet:', err)

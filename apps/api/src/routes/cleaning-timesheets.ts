@@ -73,6 +73,36 @@ router.get('/:id', async (req, res) => {
 })
 
 /**
+ * GET /api/cleaning-timesheets/job/:jobId/active
+ * Get active (incomplete) timesheet for a job and specific worker
+ */
+router.get('/job/:jobId/active', async (req, res) => {
+  try {
+    const { worker_id } = req.query
+
+    if (!worker_id) {
+      return res.status(400).json({ error: 'worker_id query parameter is required' })
+    }
+
+    const timesheets = await CleaningJobTimesheetService.getTimesheetsByJob(req.params.jobId)
+
+    // Find active timesheet for this worker (no end_time)
+    const activeTimesheet = timesheets.find(ts =>
+      ts.worker_id === worker_id && ts.end_time === null
+    )
+
+    if (!activeTimesheet) {
+      return res.status(404).json({ error: 'No active timesheet found for this job and worker' })
+    }
+
+    res.json({ data: activeTimesheet })
+  } catch (error: any) {
+    logger.error(`Error fetching active timesheet for job ${req.params.jobId}:`, error)
+    res.status(500).json({ error: 'Failed to fetch active timesheet' })
+  }
+})
+
+/**
  * GET /api/cleaning-timesheets/job/:jobId
  * Get all timesheets for a job
  */
