@@ -66,10 +66,16 @@ export class CleaningJobsService {
   ) {
     const skip = (page - 1) * limit;
 
-    // Build where clause - include jobs with no service OR jobs with service belonging to this provider
+    // Build where clause - include jobs belonging to this provider
+    // Either through service relation OR through customer relation (for jobs without service)
     const where: any = {
       OR: [
-        { service_id: null },
+        {
+          service_id: null,
+          customer: {
+            service_provider_id: serviceProviderId,
+          },
+        },
         {
           service: {
             service_provider_id: serviceProviderId,
@@ -136,18 +142,13 @@ export class CleaningJobsService {
       prisma.cleaningJob.count({ where }),
     ]);
 
-    // Filter out jobs that have a service belonging to a different provider
-    const filteredJobs = jobs.filter(job =>
-      !job.service || job.service.service_provider_id === serviceProviderId
-    );
-
     return {
-      data: filteredJobs,
+      data: jobs,
       pagination: {
         page,
         limit,
-        total: filteredJobs.length,
-        totalPages: Math.ceil(filteredJobs.length / limit),
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
@@ -186,9 +187,17 @@ export class CleaningJobsService {
       throw new NotFoundError('Cleaning job not found');
     }
 
-    // Verify ownership: job must either have no service, or have a service that belongs to this provider
-    if (job.service && job.service.service_provider_id !== serviceProviderId) {
-      throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
+    // Verify ownership: job must belong to this provider either through service or customer
+    if (job.service) {
+      // If job has a service, verify it belongs to this provider
+      if (job.service.service_provider_id !== serviceProviderId) {
+        throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
+      }
+    } else {
+      // If job has no service, verify customer belongs to this provider
+      if (job.customer?.service_provider_id !== serviceProviderId) {
+        throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
+      }
     }
 
     return job;
