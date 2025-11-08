@@ -219,6 +219,227 @@ Based on E2E test specifications:
 
 ---
 
+## Post-Migration Comprehensive Testing (November 8, 2025)
+
+After initial migration success, comprehensive manual testing was performed to verify all functionality, links, and workflows. This testing uncovered several critical issues that were immediately fixed.
+
+### Issues Found and Fixed
+
+#### 1. 🔴 CRITICAL SECURITY: Cross-Tenant Data Leak (Commit: `80272bb`)
+
+**Severity**: CRITICAL
+**Type**: Security Vulnerability
+**Status**: ✅ FIXED
+
+**Problem**:
+- Jobs with `null` service_id were visible across different tenants
+- User logged in as `admin@cleaningco.test` (tenant: `tenant-cleaning-test`) could see:
+  - Job: "Loch View Cabin"
+  - Worker: "kerry robins"
+  - Belonging to tenant `b3f0c957-0aa6-47d4-a104-e7da43897572` (test2@rightfit.com)
+- Total jobs visible: 5 (including 1 cross-tenant job)
+
+**Root Cause**:
+```typescript
+// apps/api/src/services/CleaningJobsService.ts:71-78 (OLD)
+const where: any = {
+  OR: [
+    { service_id: null },  // ❌ No customer check!
+    {
+      service: {
+        service_provider_id: serviceProviderId,
+      },
+    },
+  ],
+};
+```
+
+**Fix Applied**:
+```typescript
+// apps/api/src/services/CleaningJobsService.ts:71-85 (NEW)
+const where: any = {
+  OR: [
+    {
+      service_id: null,
+      customer: {
+        service_provider_id: serviceProviderId,  // ✅ Check customer ownership!
+      },
+    },
+    {
+      service: {
+        service_provider_id: serviceProviderId,
+      },
+    },
+  ],
+};
+```
+
+**Verification**:
+- Created database query script to verify filtering
+- Before fix: 5 jobs (including cross-tenant leak)
+- After fix: 4 jobs (all belonging to correct tenant)
+- Cross-tenant job `dbda05d8...` ("Loch View Cabin") correctly filtered out
+
+**Files Modified**:
+- `apps/api/src/services/CleaningJobsService.ts` - Updated list() method WHERE clause
+- `apps/api/src/services/CleaningJobsService.ts` - Updated getById() ownership verification
+
+---
+
+#### 2. ⚠️ Worker Availability Validation Missing (Commits: `863dcfa`, `eb3b271`)
+
+**Severity**: HIGH
+**Type**: Business Logic / UX
+**Status**: ✅ FIXED
+
+**Problem**:
+- Workers could be scheduled on dates they had blocked in availability
+- Example: John Smith scheduled on November 9, 2025, despite blocking Nov 8-9 in availability
+- Backend allowed invalid scheduling
+- Frontend drag-and-drop showed confusing 400 errors
+
+**Fix Applied (Backend)**:
+```typescript
+// apps/api/src/services/CleaningJobsService.ts:224-234
+// Verify worker is available on the scheduled date
+if (input.assigned_worker_id && input.scheduled_date) {
+  const isAvailable = await this.availabilityService.isWorkerAvailable(
+    input.assigned_worker_id,
+    input.scheduled_date
+  );
+
+  if (!isAvailable) {
+    throw new ValidationError('Worker is not available on the scheduled date');
+  }
+}
+```
+
+**Fix Applied (Frontend)**:
+```typescript
+// apps/web-cleaning/src/pages/PropertyCalendar.tsx:182-201
+// Check worker availability (blocked dates)
+try {
+  const blockedDates = await workerAvailabilityAPI.list(job.assigned_worker_id, {
+    status: 'BLOCKED',
+    from_date: newDateStr,
+    to_date: newDateStr,
+  })
+
+  if (blockedDates.length > 0) {
+    const workerName = `${job.assigned_worker?.first_name} ${job.assigned_worker?.last_name}`
+    const reason = blockedDates[0].reason ? ` (${blockedDates[0].reason})` : ''
+    return {
+      valid: false,
+      message: `${workerName} is not available on this date${reason}`
+    }
+  }
+} catch (error) {
+  console.error('Error checking worker availability:', error)
+  // Don't block the reschedule if availability check fails - let backend validate
+}
+```
+
+**Benefits**:
+- Backend prevents invalid scheduling in create() and update() methods
+- Frontend shows user-friendly error BEFORE API call
+- No more confusing 400 Bad Request errors
+- Shows reason for blocked date (e.g., "Vacation")
+
+**Files Modified**:
+- `apps/api/src/services/CleaningJobsService.ts` - Added availability validation
+- `apps/web-cleaning/src/pages/PropertyCalendar.tsx` - Added frontend validation
+
+---
+
+#### 3. 🐛 Syntax Error: Duplicate Variable Declaration (Commit: `8400c15`)
+
+**Severity**: CRITICAL (Crash)
+**Type**: Code Error
+**Status**: ✅ FIXED
+
+**Problem**:
+```
+SyntaxError: Identifier 'newWorkerId' has already been declared
+    at CleaningJobsService.ts:294
+```
+
+**Root Cause**:
+Variable `newWorkerId` declared twice in update() method:
+1. Line 338: For availability validation
+2. Line 387: For worker history tracking
+
+**Fix Applied**:
+Renamed second occurrence to `finalWorkerId` for worker history tracking
+
+**Files Modified**:
+- `apps/api/src/services/CleaningJobsService.ts` - Renamed variable to avoid conflict
+
+---
+
+#### 4. ⚠️ React Warning: Null Values in Form Fields (Commit: `232e3b9`)
+
+**Severity**: MEDIUM
+**Type**: Code Quality / UX
+**Status**: ✅ FIXED
+
+**Problem**:
+```
+Warning: `value` prop on `select` should not be null.
+Consider using an empty string to clear the component or `undefined` for uncontrolled components.
+```
+
+**Root Cause**:
+When loading job for editing, database `null` values weren't converted to empty strings:
+```typescript
+// CreateCleaningJob.tsx:159 (OLD)
+service_id: job.service_id,  // ❌ Could be null
+```
+
+**Fix Applied**:
+```typescript
+// CreateCleaningJob.tsx:159 (NEW)
+service_id: job.service_id || '',  // ✅ Convert null to ''
+property_id: job.property_id || '',
+customer_id: job.customer_id || '',
+scheduled_start_time: job.scheduled_start_time || '',
+scheduled_end_time: job.scheduled_end_time || '',
+```
+
+**Files Modified**:
+- `apps/web-cleaning/src/pages/cleaning/CreateCleaningJob.tsx` - Added null coalescing
+
+---
+
+### Final Comprehensive Test Results
+
+**Testing Date**: November 8, 2025
+**Tester**: User (manual)
+**Test Coverage**: All links, buttons, workflows, calendar drag-and-drop
+
+#### Test Results Summary
+✅ **All links working** - Navigation verified across all pages
+✅ **All buttons functional** - No broken interactions
+✅ **No cross-tenant leaks** - Data properly isolated by tenant
+✅ **Availability validation working** - Cannot schedule on blocked dates
+✅ **No console errors** - Clean browser console
+✅ **No React warnings** - Form fields properly handled
+
+#### Jobs Verified
+- Creating new jobs ✅
+- Editing existing jobs ✅
+- Scheduling/rescheduling via calendar drag-and-drop ✅
+- Worker assignment ✅
+- Availability blocking ✅
+
+#### Commits Applied
+1. `80272bb` - SECURITY: Fix cross-tenant data leak
+2. `863dcfa` - Add backend worker availability validation
+3. `8400c15` - Fix duplicate variable declaration
+4. `eb3b271` - Add frontend worker availability validation
+5. `232e3b9` - Fix React null value warnings
+
+---
+
 ## Recommendations
 
 ### High Priority
@@ -241,31 +462,54 @@ Based on E2E test specifications:
 
 ## Conclusion
 
-### ✅ MIGRATION SUCCESSFUL
+### ✅ MIGRATION SUCCESSFUL WITH SECURITY FIXES
 
-All critical data links and workflows remain intact after the component library migration:
+All critical data links and workflows remain intact after the component library migration, and critical security vulnerabilities discovered during testing have been resolved:
 
 - **API Tests**: 67/72 passing (93%) - all core data operations working
-- **Manual Testing**: User confirmed all features functioning correctly
+- **Manual Testing**: User confirmed all features functioning correctly (Nov 7 & 8)
 - **Data Flow**: All service provider authorization and API calls working
 - **UI Consistency**: Gradient styling applied consistently across all cards
 - **Build Status**: Application builds and runs without errors
+- **Security**: Cross-tenant data leak identified and FIXED ✅
+- **Validation**: Worker availability validation implemented ✅
+- **Code Quality**: All syntax errors and React warnings resolved ✅
 
-### Expected Test Failures
-All test failures are expected and not related to the migration:
+### Test Failures Summary
+
+**Expected Test Failures** (Not blocking):
 1. Component tests reference deleted local components (by design)
 2. One API test needs parameter update (trivial fix)
 3. Some test setup files missing (not created yet)
 4. AWS SDK mock needed for test environment
 
+**Critical Issues Found & Fixed** (November 8, 2025):
+1. ✅ Cross-tenant data leak (SECURITY - CRITICAL)
+2. ✅ Worker availability validation missing (HIGH)
+3. ✅ Syntax error causing API crash (CRITICAL)
+4. ✅ React null value warnings (MEDIUM)
+
 ### Deployment Readiness
+
 ✅ **Ready for Code Review**
 ✅ **Ready for Merge to Main** (after review)
 ✅ **No Breaking Changes to Data Links**
 ✅ **All Acceptance Criteria Met**
+✅ **Security Vulnerabilities Patched**
+✅ **Comprehensive Testing Complete**
+
+### Security Audit Recommendation
+
+⚠️ **IMPORTANT**: A cross-tenant data leak was discovered during testing. While this specific issue has been fixed, it's recommended to:
+
+1. Conduct a security audit of all service methods to verify proper tenant isolation
+2. Review all Prisma queries for similar patterns where `null` foreign keys bypass filtering
+3. Add integration tests specifically for multi-tenant data isolation
+4. Consider adding automated security scanning for tenant boundary violations
 
 ---
 
-**Generated**: November 7, 2025
-**Testing By**: Claude (automated) + User (manual)
-**Status**: ✅ PASSED
+**Initial Testing**: November 7, 2025 (Component Migration)
+**Comprehensive Testing**: November 8, 2025 (Security & Functionality)
+**Testing By**: Claude (automated) + User (manual comprehensive)
+**Final Status**: ✅ PASSED (with security patches applied)
