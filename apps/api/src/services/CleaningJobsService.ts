@@ -66,11 +66,16 @@ export class CleaningJobsService {
   ) {
     const skip = (page - 1) * limit;
 
-    // Build where clause
+    // Build where clause - include jobs with no service OR jobs with service belonging to this provider
     const where: any = {
-      service: {
-        service_provider_id: serviceProviderId,
-      },
+      OR: [
+        { service_id: null },
+        {
+          service: {
+            service_provider_id: serviceProviderId,
+          },
+        },
+      ],
     };
 
     if (filters?.status) {
@@ -102,6 +107,7 @@ export class CleaningJobsService {
         take: limit,
         orderBy: { scheduled_date: 'desc' },
         include: {
+          service: true,
           property: {
             select: {
               id: true,
@@ -130,13 +136,18 @@ export class CleaningJobsService {
       prisma.cleaningJob.count({ where }),
     ]);
 
+    // Filter out jobs that have a service belonging to a different provider
+    const filteredJobs = jobs.filter(job =>
+      !job.service || job.service.service_provider_id === serviceProviderId
+    );
+
     return {
-      data: jobs,
+      data: filteredJobs,
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+        total: filteredJobs.length,
+        totalPages: Math.ceil(filteredJobs.length / limit),
       },
     };
   }
