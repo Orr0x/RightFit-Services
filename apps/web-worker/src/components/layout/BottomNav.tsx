@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Calendar, ClipboardList, User, Clock } from 'lucide-react'
+import { Home, Calendar, ClipboardList, User, Clock, Wrench } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface NavItem {
   path: string
@@ -7,20 +8,40 @@ interface NavItem {
   label: string
 }
 
-const navItems: NavItem[] = [
-  { path: '/dashboard', icon: Home, label: 'Home' },
-  { path: '/jobs', icon: ClipboardList, label: 'Jobs' },
-  { path: '/schedule', icon: Calendar, label: 'Schedule' },
-  { path: '/availability', icon: Clock, label: 'Availability' },
-  { path: '/profile', icon: User, label: 'Profile' },
-]
-
 export default function BottomNav() {
   const location = useLocation()
+  const { worker } = useAuth()
+
+  const isCleaningWorker = worker?.worker_type === 'CLEANER' || worker?.worker_type === 'GENERAL'
+  const isMaintenanceWorker = worker?.worker_type === 'MAINTENANCE' || worker?.worker_type === 'GENERAL'
+
+  // Build navigation items based on worker type
+  const navItems: NavItem[] = [
+    { path: '/dashboard', icon: Home, label: 'Home' },
+  ]
+
+  // Add job navigation based on worker type
+  if (worker?.worker_type === 'GENERAL') {
+    // GENERAL workers see both cleaning and maintenance jobs
+    navItems.push({ path: '/jobs', icon: ClipboardList, label: 'Cleaning' })
+    navItems.push({ path: '/maintenance-jobs', icon: Wrench, label: 'Maintenance' })
+  } else if (worker?.worker_type === 'MAINTENANCE') {
+    // MAINTENANCE workers only see maintenance jobs
+    navItems.push({ path: '/maintenance-jobs', icon: Wrench, label: 'Jobs' })
+  } else {
+    // CLEANER workers (default) only see cleaning jobs
+    navItems.push({ path: '/jobs', icon: ClipboardList, label: 'Jobs' })
+  }
+
+  // Add common navigation items
+  navItems.push(
+    { path: '/schedule', icon: Calendar, label: 'Schedule' },
+    { path: '/profile', icon: User, label: 'Profile' }
+  )
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-      <div className="grid grid-cols-5">
+      <div className={`grid ${navItems.length === 6 ? 'grid-cols-6' : navItems.length === 5 ? 'grid-cols-5' : 'grid-cols-4'}`}>
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.path ||
