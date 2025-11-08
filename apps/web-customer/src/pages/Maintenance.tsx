@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
-import { Card, Spinner, Button, useToast } from '../components/ui'
+import { Card, Spinner, Button } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import CreateMaintenanceRequestModal from '../components/maintenance/CreateMaintenanceRequestModal'
 import GuestReportsTab from '../components/maintenance/GuestReportsTab'
 import WorkerReportsTab from '../components/maintenance/WorkerReportsTab'

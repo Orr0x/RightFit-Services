@@ -1,4 +1,4 @@
-import { Card } from './ui'
+import { Card } from '@rightfit/ui-core'
 import type { MaintenanceJob } from '../lib/api'
 
 interface KanbanViewProps {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, SearchBar, ProfileMenu, type NavItem, type SearchResult } from '../navigation'
-import { ThemeToggle } from '../ui/ThemeToggle'
+// import { ThemeToggle } from '../ui/ThemeToggle' // Commented out during migration
 import { useAuth } from '../../contexts/AuthContext'
 import './AppLayout.css'
 
@@ -390,8 +390,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           </div>
 
           <div className="app-header-actions">
-            {/* Theme Toggle */}
-            <ThemeToggle />
+            {/* Theme Toggle - commented out during migration */}
+            {/* <ThemeToggle /> */}
 
             {/* Profile Menu */}
             <ProfileMenu

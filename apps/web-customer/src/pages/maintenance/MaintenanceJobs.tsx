@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Spinner, EmptyState, useToast, Badge } from '../../components/ui'
+import { Button, Input, Card, Spinner, EmptyState, Badge } from '@rightfit/ui-core'
+import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Spinner, Badge, useToast } from '../components/ui'
+import { Button, Card, Spinner, Badge } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { maintenanceJobsAPI, type MaintenanceJob, api } from '../lib/api'
 import ContractorSchedulingModal from '../components/ContractorSchedulingModal'
@@ -120,18 +121,18 @@ export default function MaintenanceJobDetails() {
     )
   }
 
-  const priorityColors: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+  const priorityColors: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'error'> = {
     LOW: 'success',
     MEDIUM: 'warning',
     HIGH: 'error',
     CRITICAL: 'error',
   }
 
-  const statusColors: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+  const statusColors: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'error'> = {
     QUOTE_PENDING: 'warning',
-    QUOTE_SENT: 'info',
+    QUOTE_SENT: 'primary',
     APPROVED: 'success',
-    SCHEDULED: 'info',
+    SCHEDULED: 'primary',
     IN_PROGRESS: 'warning',
     COMPLETED: 'success',
     CANCELLED: 'error',
@@ -151,10 +152,10 @@ export default function MaintenanceJobDetails() {
           <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
         </div>
         <div className="flex gap-2">
-          <Badge variant={priorityColors[job.priority] || 'info'}>
+          <Badge variant={priorityColors[job.priority] || 'default'}>
             {job.priority} PRIORITY
           </Badge>
-          <Badge variant={statusColors[job.status] || 'info'}>
+          <Badge variant={statusColors[job.status] || 'default'}>
             {job.status}
           </Badge>
         </div>

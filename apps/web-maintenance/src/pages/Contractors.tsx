@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Button, Card, Spinner, EmptyState, useToast, Badge, Modal, Input } from '../components/ui'
+import { Button, Card, Spinner, EmptyState, Badge, Modal, Input } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { api } from '../lib/api'
 import '../pages/Properties.css'
@@ -276,7 +277,7 @@ export default function Contractors() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <h3 className="property-name">{contractor.company_name}</h3>
                         {contractor.preferred_contractor && (
-                          <Badge variant="success" size="sm">⭐ Preferred</Badge>
+                          <Badge variant="success">⭐ Preferred</Badge>
                         )}
                       </div>
                       {contractor.contact_name && (
@@ -290,7 +291,7 @@ export default function Contractors() {
                       {contractor.specialties && contractor.specialties.length > 0 && (
                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '8px' }}>
                           {contractor.specialties.map((specialty, idx) => (
-                            <Badge key={idx} variant="default" size="sm">{specialty}</Badge>
+                            <Badge key={idx} variant="default">{specialty}</Badge>
                           ))}
                         </div>
                       )}
@@ -309,7 +310,7 @@ export default function Contractors() {
                     </div>
                     <div className="property-actions">
                       <Button
-                        variant={contractor.preferred_contractor ? 'default' : 'secondary'}
+                        variant={contractor.preferred_contractor ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={() => handleTogglePreferred(contractor.id, contractor.preferred_contractor || false)}
                       >

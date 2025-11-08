@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Spinner, EmptyState, useToast, Button } from '../ui'
+import { Card, Spinner, EmptyState, Button } from '@rightfit/ui-core'
+import { useToast } from '../ui'
 import { useLoading } from '../../hooks/useLoading'
 import { User, Calendar } from 'lucide-react'
 
@@ -233,7 +234,7 @@ export default function WorkerReportsTab({ refreshKey, onRefresh }: WorkerReport
                     setRejectingId(null)
                     setRejectionReason('')
                   }}
-                  variant="outline"
+                  variant="secondary"
                   className="flex-1"
                 >
                   Cancel
@@ -250,7 +251,7 @@ export default function WorkerReportsTab({ refreshKey, onRefresh }: WorkerReport
               </Button>
               <Button
                 onClick={() => setRejectingId(issue.id)}
-                variant="outline"
+                variant="secondary"
                 className="flex-1"
               >
                 Reject

@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Modal } from './ui/Modal'
-import { Button } from './ui/Button'
-import { Badge } from './ui/Badge'
-import { Spinner } from './ui/Spinner'
-import { useToast } from './ui/Toast'
+import { Modal, Button, Badge, Spinner } from '@rightfit/ui-core'
+import { useToast } from './ui'
 import { api } from '../lib/api'
 
 const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
@@ -334,15 +331,15 @@ export default function ContractorSchedulingModal({
                         </h4>
 
                         {contractor.type === 'external' ? (
-                          <Badge color="blue">External</Badge>
+                          <Badge variant="primary">External</Badge>
                         ) : contractor.isAvailable ? (
-                          <Badge color="green">Available</Badge>
+                          <Badge variant="success">Available</Badge>
                         ) : (
-                          <Badge color="red">Busy</Badge>
+                          <Badge variant="error">Busy</Badge>
                         )}
 
                         {contractor.isPreferred && (
-                          <Badge color="yellow">⭐ Preferred</Badge>
+                          <Badge variant="warning">⭐ Preferred</Badge>
                         )}
                       </div>
 

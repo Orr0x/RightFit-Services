@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, AlertTriangle } from 'lucide-react'
-import { Button, useToast } from '../ui'
+import { Button } from '@rightfit/ui-core'
+import { useToast } from '../ui'
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_PRIORITIES } from '@rightfit/shared'
 
 interface Property {
@@ -279,7 +280,7 @@ export default function CreateMaintenanceRequestModal({ onClose, onSuccess }: Cr
               type="button"
               onClick={onClose}
               disabled={submitting}
-              variant="outline"
+              variant="secondary"
               className="flex-1"
             >
               Cancel

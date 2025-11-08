@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Modal } from './ui/Modal'
-import { Button } from './ui/Button'
-import { useToast } from './ui/Toast'
+import { Modal, Button } from '@rightfit/ui-core'
+import { useToast } from './ui'
 import PhotoUpload from './PhotoUpload'
 import { api } from '../lib/api'
 

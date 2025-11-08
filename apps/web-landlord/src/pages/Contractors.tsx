@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Modal, Spinner, EmptyState, Checkbox, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState, Checkbox } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { contractorsAPI } from '../lib/api'
 import './Properties.css'

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Spinner, Button, useToast, Badge } from '../components/ui'
+import { Card, Spinner, Button, Badge } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { Download as DownloadIcon } from '@mui/icons-material'
 
 interface InvoiceLineItem {
@@ -124,7 +125,7 @@ export default function InvoiceDetails() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/invoices')}>
+        <Button variant="secondary" size="sm" onClick={() => navigate('/invoices')}>
           ← Back to Invoices
         </Button>
       </div>
@@ -252,7 +253,7 @@ export default function InvoiceDetails() {
               <DownloadIcon className="mr-2" />
               Download PDF
             </Button>
-            <Button variant="outline" onClick={() => navigate('/invoices')} className="flex-1">
+            <Button variant="secondary" onClick={() => navigate('/invoices')} className="flex-1">
               View All Invoices
             </Button>
           </div>

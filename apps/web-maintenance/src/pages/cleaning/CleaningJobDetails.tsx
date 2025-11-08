@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Button, Card, Spinner, useToast, Badge } from '../../components/ui'
+import { Button, Card, Spinner, Badge } from '@rightfit/ui-core'
+import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, maintenanceJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -69,11 +70,11 @@ export default function CleaningJobDetails() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'SCHEDULED': return 'blue'
-      case 'IN_PROGRESS': return 'yellow'
-      case 'COMPLETED': return 'green'
-      case 'CANCELLED': return 'red'
-      default: return 'gray'
+      case 'SCHEDULED': return 'primary'
+      case 'IN_PROGRESS': return 'warning'
+      case 'COMPLETED': return 'success'
+      case 'CANCELLED': return 'error'
+      default: return 'default'
     }
   }
 
@@ -107,7 +108,7 @@ export default function CleaningJobDetails() {
           </Button>
           <h1 className="text-3xl font-bold">Cleaning Job Details</h1>
         </div>
-        <Badge color={getStatusColor(job.status)}>
+        <Badge variant={getStatusColor(job.status)}>
           {job.status.replace('_', ' ')}
         </Badge>
       </div>

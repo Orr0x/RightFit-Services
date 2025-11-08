@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
-import { Button } from './ui/Button'
-import { Spinner } from './ui/Spinner'
-import { useToast } from './ui/Toast'
+import { Button, Spinner } from '@rightfit/ui-core'
+import { useToast } from './ui'
 import { api } from '../lib/api'
 
 interface PhotoUploadProps {

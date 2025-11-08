@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { certificatesAPI, propertiesAPI } from '../lib/api'
 import './Properties.css'
@@ -98,7 +99,11 @@ export default function Certificates() {
       </div>
 
       {certificates.length === 0 ? (
-        <EmptyState title="No certificates" description="Add certificates to track compliance" primaryAction={{ label: 'Add Certificate', onClick: () => handleOpenDialog() }} />
+        <EmptyState
+          title="No certificates"
+          description="Add certificates to track compliance"
+          action={<Button onClick={() => handleOpenDialog()}>Add Certificate</Button>}
+        />
       ) : (
         <div className={`properties-${viewMode}`}>
           {certificates.map((c) => (

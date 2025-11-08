@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Spinner, EmptyState, useToast, Button } from '../components/ui'
+import { Card, Spinner, EmptyState, Button } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { customerPortalAPI, type CustomerProperty } from '../lib/api'
 import './Properties.css'
@@ -127,7 +128,7 @@ export default function Properties() {
 
               <div className="property-actions" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation() // Prevent card click

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Button, Badge, Spinner, EmptyState, useToast, Modal } from '../components/ui'
+import { Card, Button, Badge, Spinner, EmptyState, Modal } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 
 interface Quote {

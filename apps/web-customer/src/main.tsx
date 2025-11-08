@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@rightfit/ui-core/style.css'
 import './styles/variables.css'
 import './styles/accessibility.css'
 import './index.css'

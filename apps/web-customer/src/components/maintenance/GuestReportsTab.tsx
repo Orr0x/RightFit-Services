@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Spinner, EmptyState, useToast, Button } from '../ui'
+import { Card, Spinner, EmptyState, Button } from '@rightfit/ui-core'
+import { useToast } from '../ui'
 import { useLoading } from '../../hooks/useLoading'
 
 interface GuestIssue {
@@ -181,7 +182,7 @@ export default function GuestReportsTab({ refreshKey, onRefresh }: GuestReportsT
             </Button>
             <Button
               onClick={() => handleDismiss(issue.id)}
-              variant="outline"
+              variant="secondary"
               className="flex-1"
             >
               Dismiss

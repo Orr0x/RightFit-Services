@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Spinner, EmptyState, useToast, Button } from '../components/ui'
+import { Card, Spinner, EmptyState, Button } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import './GuestIssues.css'
 
@@ -264,7 +265,7 @@ export default function GuestIssues() {
                       Submit to Maintenance
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onClick={() => handleDismissIssue(issue.id)}
                     >

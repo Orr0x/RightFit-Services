@@ -17,6 +17,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@rightfit/ui-core": "*",
     "@emotion/react": "11.13.5",
     "@emotion/styled": "11.13.5",
     "@mui/icons-material": "5.16.9",

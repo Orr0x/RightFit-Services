@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Spinner, Button, useToast } from '../components/ui'
+import { Card, Spinner, Button } from '@rightfit/ui-core'
+import { useToast } from '../components/ui'
 
 interface GuestIssue {
   id: string
@@ -190,7 +191,7 @@ export default function GuestIssueDetails() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/issues')}>
+        <Button variant="secondary" size="sm" onClick={() => navigate('/issues')}>
           ← Back to Issues
         </Button>
       </div>
@@ -330,7 +331,7 @@ export default function GuestIssueDetails() {
                 <Button variant="primary" onClick={handleSubmitIssue}>
                   Submit to Maintenance Team
                 </Button>
-                <Button variant="outline" onClick={handleDismissIssue}>
+                <Button variant="secondary" onClick={handleDismissIssue}>
                   Dismiss Issue
                 </Button>
               </div>

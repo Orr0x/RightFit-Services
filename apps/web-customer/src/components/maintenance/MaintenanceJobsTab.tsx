@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Spinner, EmptyState, useToast } from '../ui'
+import { Card, Spinner, EmptyState } from '@rightfit/ui-core'
+import { useToast } from '../ui'
 import { useLoading } from '../../hooks/useLoading'
 import { MapPin, User, DollarSign } from 'lucide-react'
 
