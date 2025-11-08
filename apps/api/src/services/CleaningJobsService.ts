@@ -382,13 +382,14 @@ export class CleaningJobsService {
       console.error('Failed to record job history:', error);
     });
 
-    // Track worker assignment changes
+    // Track worker assignment changes (reuse variables from availability check above)
     const oldWorkerId = oldJob.assigned_worker_id;
-    const newWorkerId = cleanedData.assigned_worker_id;
+    // newWorkerId is already declared above for availability check - use cleanedData value for history
+    const finalWorkerId = cleanedData.assigned_worker_id;
 
-    if (oldWorkerId !== newWorkerId) {
+    if (oldWorkerId !== finalWorkerId) {
       // Worker was unassigned (removed from job)
-      if (oldWorkerId && !newWorkerId) {
+      if (oldWorkerId && !finalWorkerId) {
         await this.workerHistoryService.recordJobUnassigned(
           oldWorkerId,
           job.id,
@@ -399,10 +400,10 @@ export class CleaningJobsService {
         });
       }
       // Worker was reassigned to different worker
-      else if (oldWorkerId && newWorkerId && oldWorkerId !== newWorkerId) {
+      else if (oldWorkerId && finalWorkerId && oldWorkerId !== finalWorkerId) {
         if (job.scheduled_date) {
           await this.workerHistoryService.recordJobReassigned(
-            newWorkerId,
+            finalWorkerId,
             job.id,
             'CLEANING',
             job.property?.property_name,
@@ -423,10 +424,10 @@ export class CleaningJobsService {
         });
       }
       // Worker was newly assigned (wasn't assigned before)
-      else if (!oldWorkerId && newWorkerId) {
+      else if (!oldWorkerId && finalWorkerId) {
         if (job.scheduled_date) {
           await this.workerHistoryService.recordJobAssigned(
-            newWorkerId,
+            finalWorkerId,
             job.id,
             'CLEANING',
             job.property?.property_name,
