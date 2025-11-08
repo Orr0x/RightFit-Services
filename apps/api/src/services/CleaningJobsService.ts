@@ -142,13 +142,8 @@ export class CleaningJobsService {
   }
 
   async getById(id: string, serviceProviderId: string) {
-    const job = await prisma.cleaningJob.findFirst({
-      where: {
-        id,
-        service: {
-          service_provider_id: serviceProviderId,
-        },
-      },
+    const job = await prisma.cleaningJob.findUnique({
+      where: { id },
       include: {
         service: true,
         property: true,
@@ -177,6 +172,11 @@ export class CleaningJobsService {
     });
 
     if (!job) {
+      throw new NotFoundError('Cleaning job not found');
+    }
+
+    // Verify ownership: job must either have no service, or have a service that belongs to this provider
+    if (job.service && job.service.service_provider_id !== serviceProviderId) {
       throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
     }
 
