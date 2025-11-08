@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, SearchBar, ProfileMenu, type NavItem, type SearchResult } from '../navigation'
-import { ThemeToggle } from '../ui/ThemeToggle'
+import { ThemeToggle } from '../ui'
 import { useAuth } from '../../contexts/AuthContext'
 import './AppLayout.css'
 

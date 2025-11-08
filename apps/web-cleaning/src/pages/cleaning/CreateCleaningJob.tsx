@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Button, Input, Card, useToast, Spinner, Select, Badge, type SelectOption } from '../../components/ui'
+import { Button, Input, Card, Spinner, Select, Badge, type SelectOption } from '@rightfit/ui-core';
+import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
 import { useAuth } from '../../contexts/AuthContext'
-import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import {
   cleaningJobsAPI,
   cleaningContractsAPI,
@@ -22,10 +22,11 @@ import {
 } from '../../lib/api'
 import { useNavigate, useParams } from 'react-router-dom'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 type JobTab = 'contract' | 'oneoff'
 
 export default function CreateCleaningJob() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const isEditMode = Boolean(id)
@@ -102,7 +103,7 @@ export default function CreateCleaningJob() {
     try {
       const [contractsData, propsData, servicesData, workersData, templatesData] = await Promise.all([
         cleaningContractsAPI.list({
-          service_provider_id: SERVICE_PROVIDER_ID,
+          service_provider_id: user.tenant_id,  // Use tenant_id, not ServiceProvider.id
           status: 'ACTIVE',
         }),
         customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID }),
@@ -153,17 +154,17 @@ export default function CreateCleaningJob() {
   const loadJob = async () => {
     setIsLoadingJob(true)
     try {
-      const job = await cleaningJobsAPI.get(id!, SERVICE_PROVIDER_ID)
+      const job = await cleaningJobsAPI.get(id!)
       setFormData({
-        service_id: job.service_id,
-        property_id: job.property_id,
-        customer_id: job.customer_id,
+        service_id: job.service_id || '',
+        property_id: job.property_id || '',
+        customer_id: job.customer_id || '',
         contract_id: job.contract_id || '',
         quote_id: job.quote_id || '',
         assigned_worker_id: job.assigned_worker_id || '',
         scheduled_date: convertToDateInputFormat(job.scheduled_date),
-        scheduled_start_time: job.scheduled_start_time,
-        scheduled_end_time: job.scheduled_end_time,
+        scheduled_start_time: job.scheduled_start_time || '',
+        scheduled_end_time: job.scheduled_end_time || '',
         pricing_type: job.pricing_type,
         quoted_price: job.quoted_price,
         checklist_template_id: job.checklist_template_id || '',

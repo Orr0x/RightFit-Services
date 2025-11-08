@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
-import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
-import { Select } from '../ui/Select'
-import { Textarea } from '../ui/Textarea'
-import { useToast } from '../ui/Toast'
-import { Spinner } from '../ui/Spinner'
+import { Button } from '@rightfit/ui-core'
+import { Input } from '@rightfit/ui-core'
+import { Select } from '@rightfit/ui-core'
+import { Textarea } from '@rightfit/ui-core'
+import { useToast } from '../ui'
+import { Spinner } from '@rightfit/ui-core'
 
 interface CreateCalendarEntryModalProps {
   onClose: () => void

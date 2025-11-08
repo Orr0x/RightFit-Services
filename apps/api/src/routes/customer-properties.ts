@@ -27,10 +27,21 @@ router.get('/', requireServiceProvider, async (req: Request, res: Response, next
 });
 
 // GET /api/customer-properties/:id
-router.get('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.serviceProvider!.id;
-    const property = await customerPropertiesService.getById(req.params.id, serviceProviderId);
+    const tenantId = req.user!.tenant_id;
+
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    const property = await customerPropertiesService.getById(req.params.id, serviceProvider.id);
     res.json({ data: property });
   } catch (error) {
     next(error);
@@ -44,17 +55,17 @@ router.get('/:id/history', async (req: Request, res: Response, next: NextFunctio
     const propertyId = req.params.id;
     const limit = parseInt(req.query.limit as string) || 50;
 
-    // Get service provider ID from tenant
-    const serviceProvider = await prisma.serviceProvider.findUnique({
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
       where: { tenant_id: tenantId },
-      select: { id: true },
+      select: { id: true }
     });
 
     if (!serviceProvider) {
       return res.status(404).json({ error: 'Service provider not found for this tenant' });
     }
 
-    // Verify property belongs to tenant
+    // Verify property belongs to service provider
     await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Get property history
@@ -104,17 +115,17 @@ router.get('/:id/checklist-templates', async (req: Request, res: Response, next:
     const tenantId = req.user!.tenant_id;
     const propertyId = req.params.id;
 
-    // Get service provider ID from tenant
-    const serviceProvider = await prisma.serviceProvider.findUnique({
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
       where: { tenant_id: tenantId },
-      select: { id: true },
+      select: { id: true }
     });
 
     if (!serviceProvider) {
       return res.status(404).json({ error: 'Service provider not found for this tenant' });
     }
 
-    // Verify property belongs to tenant
+    // Verify property belongs to service provider
     await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Get linked checklist templates
@@ -136,17 +147,17 @@ router.post('/:id/checklist-templates', async (req: Request, res: Response, next
       return res.status(400).json({ error: 'checklist_template_id is required' });
     }
 
-    // Get service provider ID from tenant
-    const serviceProvider = await prisma.serviceProvider.findUnique({
+    // Look up service provider for this tenant
+    const serviceProvider = await require('@rightfit/database').prisma.serviceProvider.findUnique({
       where: { tenant_id: tenantId },
-      select: { id: true },
+      select: { id: true }
     });
 
     if (!serviceProvider) {
       return res.status(404).json({ error: 'Service provider not found for this tenant' });
     }
 
-    // Verify property belongs to tenant
+    // Verify property belongs to service provider
     await customerPropertiesService.getById(propertyId, serviceProvider.id);
 
     // Link checklist template to property
@@ -164,18 +175,8 @@ router.delete('/:id/checklist-templates/:templateId', async (req: Request, res: 
     const propertyId = req.params.id;
     const templateId = req.params.templateId;
 
-    // Get service provider ID from tenant
-    const serviceProvider = await prisma.serviceProvider.findUnique({
-      where: { tenant_id: tenantId },
-      select: { id: true },
-    });
-
-    if (!serviceProvider) {
-      return res.status(404).json({ error: 'Service provider not found for this tenant' });
-    }
-
     // Verify property belongs to tenant
-    await customerPropertiesService.getById(propertyId, serviceProvider.id);
+    await customerPropertiesService.getById(propertyId, tenantId);
 
     // Unlink checklist template from property
     await customerPropertiesService.unlinkChecklistTemplate(propertyId, templateId);

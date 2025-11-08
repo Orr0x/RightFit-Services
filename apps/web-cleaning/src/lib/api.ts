@@ -726,10 +726,8 @@ export const cleaningJobsAPI = {
     return response.data
   },
 
-  get: async (id: string, serviceProviderId: string) => {
-    const response = await api.get<{ data: CleaningJob }>(`/api/cleaning-jobs/${id}`, {
-      params: { service_provider_id: serviceProviderId },
-    })
+  get: async (id: string) => {
+    const response = await api.get<{ data: CleaningJob }>(`/api/cleaning-jobs/${id}`)
     return response.data.data
   },
 
@@ -749,10 +747,8 @@ export const cleaningJobsAPI = {
     })
   },
 
-  getHistory: async (id: string, serviceProviderId: string) => {
-    const response = await api.get<{ data: JobHistoryEntry[] }>(`/api/cleaning-jobs/${id}/history`, {
-      params: { service_provider_id: serviceProviderId },
-    })
+  getHistory: async (id: string) => {
+    const response = await api.get<{ data: JobHistoryEntry[] }>(`/api/cleaning-jobs/${id}/history`)
     return response.data.data
   },
 }

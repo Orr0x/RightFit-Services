@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
-import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import { workersAPI, type Worker } from '../lib/api'
 import '../pages/Properties.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function Workers() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const navigate = useNavigate()
   const [workers, setWorkers] = useState<Worker[]>([])
   const { isLoading, withLoading } = useLoading()

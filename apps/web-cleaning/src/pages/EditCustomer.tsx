@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, Input, Select, Spinner, useToast, Checkbox, Modal, type SelectOption, Tabs, TabPanel } from '../components/ui'
+import { Button, Card, Input, Select, Spinner, Checkbox, Modal, type SelectOption } from '@rightfit/ui-core';
+import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import {
   customersAPI,
@@ -18,6 +19,7 @@ import {
 import './Quotes.css'
 
 const UK_PHONE_REGEX = /^(?:(?:\+44\s?|0)(?:\d\s?){9,10})$/
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 export default function EditCustomer() {
   const { id } = useParams<{ id: string }>()
@@ -148,7 +150,7 @@ export default function EditCustomer() {
 
       // Load properties
       if (activeTab === 'properties') {
-        const propertiesData = await customerPropertiesAPI.list({ customer_id: id })
+        const propertiesData = await customerPropertiesAPI.list({ customer_id: id, service_provider_id: SERVICE_PROVIDER_ID })
         setProperties(propertiesData.data || [])
       }
 

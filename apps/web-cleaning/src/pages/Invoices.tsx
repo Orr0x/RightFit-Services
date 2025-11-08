@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Badge, Spinner, Select, type SelectOption } from '../components/ui'
+import { Button, Card, Input, Badge, Spinner, Select, type SelectOption } from '@rightfit/ui-core';
 import { cleaningInvoicesAPI, type CleaningInvoice } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import './Invoices.css'

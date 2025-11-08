@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Card, Spinner, useToast } from '../components/ui'
+import { Card, Spinner } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { financialAPI } from '../lib/api'
 import './Properties.css'

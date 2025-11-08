@@ -2,10 +2,10 @@ import { useState } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { api } from '../../lib/api'
-import { Button } from '../ui/Button'
-import { Textarea } from '../ui/Textarea'
-import { useToast } from '../ui/Toast'
-import { Spinner } from '../ui/Spinner'
+import { Button } from '@rightfit/ui-core'
+import { Textarea } from '@rightfit/ui-core'
+import { useToast } from '../ui'
+import { Spinner } from '@rightfit/ui-core'
 
 interface StartJobModalProps {
   job: {

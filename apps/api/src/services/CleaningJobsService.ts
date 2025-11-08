@@ -4,6 +4,7 @@ import { CleaningJobHistoryService } from './CleaningJobHistoryService';
 import { PropertyHistoryService } from './PropertyHistoryService';
 import { WorkerHistoryService } from './WorkerHistoryService';
 import CleaningJobTimesheetService from './CleaningJobTimesheetService';
+import { WorkerAvailabilityService } from './WorkerAvailabilityService';
 
 export interface CreateCleaningJobInput {
   service_id: string;
@@ -44,11 +45,13 @@ export class CleaningJobsService {
   private historyService: CleaningJobHistoryService;
   private propertyHistoryService: PropertyHistoryService;
   private workerHistoryService: WorkerHistoryService;
+  private availabilityService: WorkerAvailabilityService;
 
   constructor() {
     this.historyService = new CleaningJobHistoryService();
     this.propertyHistoryService = new PropertyHistoryService();
     this.workerHistoryService = new WorkerHistoryService();
+    this.availabilityService = new WorkerAvailabilityService();
   }
 
   async list(
@@ -66,11 +69,22 @@ export class CleaningJobsService {
   ) {
     const skip = (page - 1) * limit;
 
-    // Build where clause
+    // Build where clause - include jobs belonging to this provider
+    // Either through service relation OR through customer relation (for jobs without service)
     const where: any = {
-      service: {
-        service_provider_id: serviceProviderId,
-      },
+      OR: [
+        {
+          service_id: null,
+          customer: {
+            service_provider_id: serviceProviderId,
+          },
+        },
+        {
+          service: {
+            service_provider_id: serviceProviderId,
+          },
+        },
+      ],
     };
 
     if (filters?.status) {
@@ -102,6 +116,7 @@ export class CleaningJobsService {
         take: limit,
         orderBy: { scheduled_date: 'desc' },
         include: {
+          service: true,
           property: {
             select: {
               id: true,
@@ -142,13 +157,8 @@ export class CleaningJobsService {
   }
 
   async getById(id: string, serviceProviderId: string) {
-    const job = await prisma.cleaningJob.findFirst({
-      where: {
-        id,
-        service: {
-          service_provider_id: serviceProviderId,
-        },
-      },
+    const job = await prisma.cleaningJob.findUnique({
+      where: { id },
       include: {
         service: true,
         property: true,
@@ -177,7 +187,20 @@ export class CleaningJobsService {
     });
 
     if (!job) {
-      throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
+      throw new NotFoundError('Cleaning job not found');
+    }
+
+    // Verify ownership: job must belong to this provider either through service or customer
+    if (job.service) {
+      // If job has a service, verify it belongs to this provider
+      if (job.service.service_provider_id !== serviceProviderId) {
+        throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
+      }
+    } else {
+      // If job has no service, verify customer belongs to this provider
+      if (job.customer?.service_provider_id !== serviceProviderId) {
+        throw new NotFoundError('Cleaning job not found or does not belong to this service provider');
+      }
     }
 
     return job;
@@ -195,6 +218,18 @@ export class CleaningJobsService {
 
       if (!service) {
         throw new ValidationError('Invalid service ID');
+      }
+    }
+
+    // Verify worker is available on the scheduled date
+    if (input.assigned_worker_id && input.scheduled_date) {
+      const isAvailable = await this.availabilityService.isWorkerAvailable(
+        input.assigned_worker_id,
+        input.scheduled_date
+      );
+
+      if (!isAvailable) {
+        throw new ValidationError('Worker is not available on the scheduled date');
       }
     }
 
@@ -299,26 +334,38 @@ export class CleaningJobsService {
       }
     }
 
+    // Verify worker is available if worker or date is being updated
+    const newWorkerId = input.assigned_worker_id !== undefined
+      ? input.assigned_worker_id
+      : oldJob.assigned_worker_id;
+    const newScheduledDate = input.scheduled_date !== undefined
+      ? input.scheduled_date
+      : oldJob.scheduled_date;
+
+    // Check availability if we have both worker and date (and worker is not being unassigned)
+    if (newWorkerId && newWorkerId !== '' && newScheduledDate) {
+      const isAvailable = await this.availabilityService.isWorkerAvailable(
+        newWorkerId,
+        newScheduledDate
+      );
+
+      if (!isAvailable) {
+        throw new ValidationError('Worker is not available on the scheduled date');
+      }
+    }
+
     // Extract only the fields that exist on CleaningJob model and clean optional FKs
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { service_provider_id, ...validData } = input;
 
     // Convert empty strings to null for optional foreign key fields
-    const cleanedData: Record<string, any> = {};
-
-    // Only include fields that were actually provided (not undefined)
-    Object.keys(validData).forEach((key) => {
-      const value = validData[key as keyof typeof validData];
-      if (value !== undefined) {
-        // Convert empty strings to null for optional foreign key fields
-        if ((key === 'service_id' || key === 'assigned_worker_id' ||
-             key === 'contract_id' || key === 'checklist_template_id') && value === '') {
-          cleanedData[key] = null;
-        } else {
-          cleanedData[key] = value;
-        }
-      }
-    });
+    const cleanedData = {
+      ...validData,
+      service_id: validData.service_id === '' ? null : validData.service_id,
+      assigned_worker_id: validData.assigned_worker_id === '' ? null : validData.assigned_worker_id,
+      contract_id: validData.contract_id === '' ? null : validData.contract_id,
+      checklist_template_id: validData.checklist_template_id === '' ? null : validData.checklist_template_id,
+    };
 
     const job = await prisma.cleaningJob.update({
       where: { id },
@@ -335,13 +382,14 @@ export class CleaningJobsService {
       console.error('Failed to record job history:', error);
     });
 
-    // Track worker assignment changes (only if assigned_worker_id was provided in the update)
+    // Track worker assignment changes (reuse variables from availability check above)
     const oldWorkerId = oldJob.assigned_worker_id;
-    const newWorkerId = 'assigned_worker_id' in cleanedData ? cleanedData.assigned_worker_id : oldWorkerId;
+    // newWorkerId is already declared above for availability check - use cleanedData value for history
+    const finalWorkerId = cleanedData.assigned_worker_id;
 
-    if (oldWorkerId !== newWorkerId) {
+    if (oldWorkerId !== finalWorkerId) {
       // Worker was unassigned (removed from job)
-      if (oldWorkerId && !newWorkerId) {
+      if (oldWorkerId && !finalWorkerId) {
         await this.workerHistoryService.recordJobUnassigned(
           oldWorkerId,
           job.id,
@@ -352,10 +400,10 @@ export class CleaningJobsService {
         });
       }
       // Worker was reassigned to different worker
-      else if (oldWorkerId && newWorkerId && oldWorkerId !== newWorkerId) {
+      else if (oldWorkerId && finalWorkerId && oldWorkerId !== finalWorkerId) {
         if (job.scheduled_date) {
           await this.workerHistoryService.recordJobReassigned(
-            newWorkerId,
+            finalWorkerId,
             job.id,
             'CLEANING',
             job.property?.property_name,
@@ -376,10 +424,10 @@ export class CleaningJobsService {
         });
       }
       // Worker was newly assigned (wasn't assigned before)
-      else if (!oldWorkerId && newWorkerId) {
+      else if (!oldWorkerId && finalWorkerId) {
         if (job.scheduled_date) {
           await this.workerHistoryService.recordJobAssigned(
-            newWorkerId,
+            finalWorkerId,
             job.id,
             'CLEANING',
             job.property?.property_name,
@@ -388,32 +436,6 @@ export class CleaningJobsService {
             console.error('Failed to record job assignment in worker history:', error);
           });
         }
-      }
-    }
-
-    // Track schedule changes (if worker is assigned and date changed)
-    if (
-      newWorkerId && // Worker is assigned
-      cleanedData.scheduled_date && // New date was provided
-      oldJob.scheduled_date // Old date exists
-    ) {
-      const oldDate = new Date(oldJob.scheduled_date).toISOString().split('T')[0];
-      const newDate = typeof cleanedData.scheduled_date === 'string'
-        ? cleanedData.scheduled_date
-        : new Date(cleanedData.scheduled_date).toISOString().split('T')[0];
-
-      if (oldDate !== newDate) {
-        await this.workerHistoryService.recordJobRescheduled(
-          newWorkerId,
-          job.id,
-          'CLEANING',
-          job.property?.property_name,
-          oldDate,
-          newDate,
-          userId
-        ).catch((error) => {
-          console.error('Failed to record job reschedule in worker history:', error);
-        });
       }
     }
 

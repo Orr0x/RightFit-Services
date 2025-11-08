@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { cleaningJobsAPI, type JobHistoryEntry } from '../lib/api'
-import { Card } from './ui'
-import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
+import { Card } from '@rightfit/ui-core'
+
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface JobHistoryTimelineProps {
   jobId: string
 }
 
 export function JobHistoryTimeline({ jobId }: JobHistoryTimelineProps) {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [history, setHistory] = useState<JobHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +22,7 @@ export function JobHistoryTimeline({ jobId }: JobHistoryTimelineProps) {
     try {
       setLoading(true)
       setError(null)
-      const data = await cleaningJobsAPI.getHistory(jobId, SERVICE_PROVIDER_ID)
+      const data = await cleaningJobsAPI.getHistory(jobId)
       setHistory(data)
     } catch (err: any) {
       console.error('Error loading job history:', err)

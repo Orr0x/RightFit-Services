@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, Badge, Spinner, useToast, Modal, Input, Textarea } from '../components/ui'
+import { Button, Card, Badge, Spinner, Modal, Input, Textarea } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { cleaningQuotesAPI, type CleaningQuote } from '../lib/api'
 import { generateQuotePDF } from '../utils/pdfGenerator'

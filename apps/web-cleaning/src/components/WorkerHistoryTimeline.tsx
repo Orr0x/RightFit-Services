@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { workersAPI, type WorkerHistoryEntry } from '../lib/api'
-import { Card } from './ui'
-import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
+import { Card } from '@rightfit/ui-core'
+
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface WorkerHistoryTimelineProps {
   workerId: string
 }
 
 export function WorkerHistoryTimeline({ workerId }: WorkerHistoryTimelineProps) {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [history, setHistory] = useState<WorkerHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

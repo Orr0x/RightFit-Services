@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, Input, Select, Spinner, useToast, Textarea, type SelectOption } from '../components/ui'
+import { Button, Card, Input, Select, Spinner, Textarea, type SelectOption } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -13,6 +14,8 @@ import {
 interface LineItem extends CreateQuoteLineItemData {
   id: string
 }
+
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 export default function EditQuote() {
   const { id } = useParams<{ id: string }>()
@@ -117,7 +120,7 @@ export default function EditQuote() {
 
       try {
         setLoadingProperties(true)
-        const result = await customerPropertiesAPI.list({ customer_id: customerId })
+        const result = await customerPropertiesAPI.list({ customer_id: customerId, service_provider_id: SERVICE_PROVIDER_ID })
         const options = (result.data || []).map((property) => ({
           value: property.id,
           label: property.property_name,

@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Modal, Spinner, EmptyState, useToast } from '../components/ui'
+import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
-import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
-import { checklistTemplatesAPI, customersAPI, type ChecklistTemplate, type ChecklistSection, type ChecklistItem, type CreateChecklistTemplateData } from '../lib/api'
+import { checklistTemplatesAPI, customersAPI, type ChecklistTemplate, type ChecklistSection, type CreateChecklistTemplateData } from '../lib/api'
 import './Quotes.css'
+
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface FormSection {
   title: string
-  items: ChecklistItem[]
+  items: string[]
   images: string[]
 }
 
 export default function ChecklistTemplates() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [filteredTemplates, setFilteredTemplates] = useState<ChecklistTemplate[]>([])
   const { isLoading, withLoading } = useLoading()
@@ -32,7 +33,7 @@ export default function ChecklistTemplates() {
   })
 
   const [sections, setSections] = useState<FormSection[]>([
-    { title: '', items: [{ label: '', completed: false }], images: [] }
+    { title: '', items: [''], images: [] }
   ])
   const [uploadingImage, setUploadingImage] = useState(false)
 
@@ -85,9 +86,9 @@ export default function ChecklistTemplates() {
       const templateSections = Array.isArray(template.sections) ? template.sections : []
       setSections(templateSections.length > 0 ? templateSections.map(s => ({
         title: s.title,
-        items: s.items && s.items.length > 0 ? s.items : [{ label: '', completed: false }],
+        items: s.items && s.items.length > 0 ? s.items : [''],
         images: s.images || []
-      })) : [{ title: '', items: [{ label: '', completed: false }], images: [] }])
+      })) : [{ title: '', items: [''], images: [] }])
     } else {
       setEditingTemplate(null)
       setFormData({
@@ -97,7 +98,7 @@ export default function ChecklistTemplates() {
         is_active: true,
         customer_id: '',
       })
-      setSections([{ title: '', items: [{ label: '', completed: false }], images: [] }])
+      setSections([{ title: '', items: [''], images: [] }])
     }
     setOpenDialog(true)
   }
@@ -127,7 +128,7 @@ export default function ChecklistTemplates() {
     try {
       const sectionsData: ChecklistSection[] = validSections.map(s => ({
         title: s.title,
-        items: s.items.filter(item => item.label.trim() !== ''),
+        items: s.items.filter(item => item.trim() !== ''),
         images: s.images || []
       }))
 
@@ -176,7 +177,7 @@ export default function ChecklistTemplates() {
   }
 
   const addSection = () => {
-    setSections([...sections, { title: '', items: [{ label: '', completed: false }], images: [] }])
+    setSections([...sections, { title: '', items: [''], images: [] }])
   }
 
   const removeSection = (index: number) => {
@@ -195,7 +196,7 @@ export default function ChecklistTemplates() {
 
   const addItem = (sectionIndex: number) => {
     const newSections = [...sections]
-    newSections[sectionIndex].items.push({ label: '', completed: false })
+    newSections[sectionIndex].items.push('')
     setSections(newSections)
   }
 
@@ -211,7 +212,7 @@ export default function ChecklistTemplates() {
 
   const updateItem = (sectionIndex: number, itemIndex: number, value: string) => {
     const newSections = [...sections]
-    newSections[sectionIndex].items[itemIndex] = { label: value, completed: false }
+    newSections[sectionIndex].items[itemIndex] = value
     setSections(newSections)
   }
 
@@ -539,7 +540,7 @@ export default function ChecklistTemplates() {
                     {section.items.map((item, itemIdx) => (
                       <div key={itemIdx} className="flex gap-2">
                         <Input
-                          value={item.label}
+                          value={item}
                           onChange={(e) => updateItem(sectionIdx, itemIdx, e.target.value)}
                           placeholder="e.g., Clean countertops"
                           className="flex-1"

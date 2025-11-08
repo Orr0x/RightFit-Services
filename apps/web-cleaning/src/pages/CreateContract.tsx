@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { api } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
-import { Button, Card, Input, Select, Spinner, useToast, Radio } from '../components/ui'
-import { Textarea } from '../components/ui/Textarea'
+import { Button, Card, Input, Select, Spinner, Radio, Textarea } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 
 interface Customer {
   id: string

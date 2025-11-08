@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Spinner, EmptyState, useToast, Badge } from '../../components/ui'
+import { Button, Input, Card, Spinner, EmptyState, Badge } from '@rightfit/ui-core';
+import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
-import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function MaintenanceJobs() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [jobs, setJobs] = useState<MaintenanceJob[]>([])
   const [filteredJobs, setFilteredJobs] = useState<MaintenanceJob[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -59,26 +60,26 @@ export default function MaintenanceJobs() {
     setFilteredJobs(filtered)
   }
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityVariant = (priority: string) => {
     switch (priority) {
-      case 'URGENT': return 'red'
-      case 'HIGH': return 'orange'
-      case 'MEDIUM': return 'yellow'
-      case 'LOW': return 'gray'
-      default: return 'gray'
+      case 'URGENT': return 'error'
+      case 'HIGH': return 'warning'
+      case 'MEDIUM': return 'warning'
+      case 'LOW': return 'default'
+      default: return 'default'
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
-      case 'QUOTE_PENDING': return 'orange'
-      case 'QUOTE_SENT': return 'blue'
-      case 'APPROVED': return 'green'
-      case 'SCHEDULED': return 'purple'
-      case 'IN_PROGRESS': return 'yellow'
-      case 'COMPLETED': return 'green'
-      case 'CANCELLED': return 'red'
-      default: return 'gray'
+      case 'QUOTE_PENDING': return 'warning'
+      case 'QUOTE_SENT': return 'primary'
+      case 'APPROVED': return 'success'
+      case 'SCHEDULED': return 'primary'
+      case 'IN_PROGRESS': return 'warning'
+      case 'COMPLETED': return 'success'
+      case 'CANCELLED': return 'error'
+      default: return 'default'
     }
   }
 
@@ -175,10 +176,10 @@ export default function MaintenanceJobs() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold text-lg">{job.title}</h3>
-                    <Badge color={getPriorityColor(job.priority)}>
+                    <Badge variant={getPriorityVariant(job.priority) as 'default' | 'primary' | 'success' | 'warning' | 'error'}>
                       {job.priority}
                     </Badge>
-                    <Badge color={getStatusColor(job.status)}>
+                    <Badge variant={getStatusVariant(job.status) as 'default' | 'primary' | 'success' | 'warning' | 'error'}>
                       {job.status.replace(/_/g, ' ')}
                     </Badge>
                   </div>

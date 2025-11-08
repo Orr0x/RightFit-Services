@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Spinner, EmptyState, useToast, Select, type SelectOption } from '../../components/ui'
+import { Button, Input, Card, Spinner, EmptyState, Select, type SelectOption } from '@rightfit/ui-core';
+import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
-import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
 import { cleaningJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
 import './CleaningJobs.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 type ViewMode = 'list' | 'grid'
 
 export default function CleaningJobs() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [jobs, setJobs] = useState<CleaningJob[]>([])
   const [filteredJobs, setFilteredJobs] = useState<CleaningJob[]>([])
   const [searchQuery, setSearchQuery] = useState('')

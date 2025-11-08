@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Card, Spinner, useToast, Badge, Tabs, TabPanel } from '../components/ui'
+import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
+import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
-import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import {
   customersAPI,
   customerPropertiesAPI,
@@ -25,8 +25,9 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import WorkIcon from '@mui/icons-material/Work'
 import './ContractDetails.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function CustomerDetails() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [customer, setCustomer] = useState<Customer | null>(null)
@@ -64,10 +65,7 @@ export default function CustomerDetails() {
     if (!id) return
 
     try {
-      const result = await customerPropertiesAPI.list({
-        customer_id: id,
-        service_provider_id: SERVICE_PROVIDER_ID,
-      })
+      const result = await customerPropertiesAPI.list({ customer_id: id, service_provider_id: SERVICE_PROVIDER_ID })
       setProperties(result.data)
     } catch (err) {
       console.log('No properties found for customer')
@@ -79,7 +77,7 @@ export default function CustomerDetails() {
 
     try {
       const result = await cleaningContractsAPI.list({
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: 'sp-cleaning-test',
         customer_id: id,
       })
       setContracts(result || [])
@@ -92,7 +90,7 @@ export default function CustomerDetails() {
     if (!id) return
 
     try {
-      const result = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID, {
+      const result = await cleaningJobsAPI.list('sp-cleaning-test', {
         customer_id: id,
         page: 1,
         limit: 10,

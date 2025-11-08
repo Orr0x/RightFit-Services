@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Modal, Button, Select, useToast } from '../ui'
-import { cleaningJobsAPI, workersAPI, workerAvailabilityAPI, type CleaningJob, type Worker, type WorkerAvailability } from '../../lib/api'
-import { useRequiredServiceProvider } from '../../hooks/useServiceProvider'
+import { Modal, Button, Select } from '@rightfit/ui-core'
+import { useToast } from '../ui'
+import { cleaningJobsAPI, workersAPI, type CleaningJob, type Worker } from '../../lib/api'
+
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
 interface QuickEditJobModalProps {
   job: CleaningJob
@@ -26,7 +28,6 @@ const generateTimeOptions = () => {
 }
 
 export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEditJobModalProps) {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [workers, setWorkers] = useState<Worker[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingWorkers, setLoadingWorkers] = useState(true)
@@ -36,9 +37,6 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
   const [endTime, setEndTime] = useState(job.scheduled_end_time)
   const [workerId, setWorkerId] = useState(job.assigned_worker_id || '')
   const [status, setStatus] = useState(job.status)
-
-  const [allJobs, setAllJobs] = useState<CleaningJob[]>([])
-  const [workerAvailability, setWorkerAvailability] = useState<Map<string, WorkerAvailability[]>>(new Map())
 
   const timeOptions = generateTimeOptions()
 
@@ -52,7 +50,6 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
   useEffect(() => {
     if (isOpen) {
       fetchWorkers()
-      fetchJobsAndAvailability()
       // Reset form when modal opens
       setStartTime(job.scheduled_start_time)
       setEndTime(job.scheduled_end_time)
@@ -76,111 +73,6 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
     } finally {
       setLoadingWorkers(false)
     }
-  }
-
-  const fetchJobsAndAvailability = async () => {
-    try {
-      // Fetch all jobs for the job date
-      const jobsResult = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID)
-      setAllJobs(jobsResult.data)
-
-      // Fetch worker availability for all workers
-      const workersList = await workersAPI.list(SERVICE_PROVIDER_ID)
-      const activeWorkerIds = workersList
-        .filter(w => w.is_active && (w.worker_type === 'CLEANER' || w.worker_type === 'BOTH'))
-        .map(w => w.id)
-
-      const availabilityMap = new Map<string, WorkerAvailability[]>()
-
-      await Promise.all(
-        activeWorkerIds.map(async (workerId) => {
-          try {
-            const jobDate = new Date(job.scheduled_date)
-            const startDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate())
-            const endDate = new Date(jobDate.getFullYear(), jobDate.getMonth(), jobDate.getDate())
-
-            const availability = await workerAvailabilityAPI.list(workerId, {
-              status: 'BLOCKED',
-              from_date: startDate.toISOString().split('T')[0],
-              to_date: endDate.toISOString().split('T')[0],
-            })
-            availabilityMap.set(workerId, availability)
-          } catch (error) {
-            console.error(`Error loading availability for worker ${workerId}:`, error)
-            availabilityMap.set(workerId, [])
-          }
-        })
-      )
-
-      setWorkerAvailability(availabilityMap)
-    } catch (error) {
-      console.error('Error loading jobs and availability:', error)
-    }
-  }
-
-  const parseTimeToMinutes = (timeStr: string): number => {
-    const [hours, minutes] = timeStr.split(':').map(Number)
-    return hours * 60 + minutes
-  }
-
-  const timesOverlap = (start1: string, end1: string, start2: string, end2: string): boolean => {
-    const start1Min = parseTimeToMinutes(start1)
-    const end1Min = parseTimeToMinutes(end1)
-    const start2Min = parseTimeToMinutes(start2)
-    const end2Min = parseTimeToMinutes(end2)
-
-    return start1Min < end2Min && end1Min > start2Min
-  }
-
-  const isWorkerBlocked = (workerId: string): boolean => {
-    const availability = workerAvailability.get(workerId)
-    if (!availability || availability.length === 0) return false
-
-    const jobDate = new Date(job.scheduled_date)
-    jobDate.setHours(0, 0, 0, 0)
-
-    return availability.some(avail => {
-      const start = new Date(avail.start_date)
-      const end = new Date(avail.end_date)
-      start.setHours(0, 0, 0, 0)
-      end.setHours(23, 59, 59, 999)
-      return jobDate >= start && jobDate <= end
-    })
-  }
-
-  const isWorkerAvailable = (workerId: string): boolean => {
-    // Skip check if this is the currently assigned worker
-    if (workerId === job.assigned_worker_id) {
-      return true
-    }
-
-    // Check if worker is blocked on this date
-    if (isWorkerBlocked(workerId)) {
-      return false
-    }
-
-    // Check for schedule conflicts
-    const jobDateStr = new Date(job.scheduled_date).toISOString().split('T')[0]
-    const workerJobsOnDate = allJobs.filter(j =>
-      j.id !== job.id && // Exclude current job
-      j.assigned_worker_id === workerId &&
-      new Date(j.scheduled_date).toISOString().split('T')[0] === jobDateStr &&
-      j.status !== 'CANCELLED' // Ignore cancelled jobs
-    )
-
-    // Check for time conflicts
-    for (const existingJob of workerJobsOnDate) {
-      if (timesOverlap(
-        startTime,
-        endTime,
-        existingJob.scheduled_start_time,
-        existingJob.scheduled_end_time
-      )) {
-        return false
-      }
-    }
-
-    return true
   }
 
   const handleSave = async () => {
@@ -212,17 +104,13 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
     }
   }
 
-  const availableWorkers = workers.filter(w => isWorkerAvailable(w.id))
-
   const workerOptions = [
     { value: '', label: 'Unassigned' },
-    ...availableWorkers.map(w => ({
+    ...workers.map(w => ({
       value: w.id,
       label: `${w.first_name} ${w.last_name}`
     }))
   ]
-
-  const unavailableCount = workers.length - availableWorkers.length
 
   return (
     <Modal
@@ -302,13 +190,7 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
             options={workerOptions}
             disabled={loadingWorkers}
             fullWidth
-            helperText={
-              loadingWorkers
-                ? 'Loading workers...'
-                : unavailableCount > 0
-                ? `${unavailableCount} worker${unavailableCount > 1 ? 's' : ''} unavailable (blocked or already scheduled)`
-                : undefined
-            }
+            helperText={loadingWorkers ? 'Loading workers...' : undefined}
           />
         </div>
 

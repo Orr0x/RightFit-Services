@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Button, Card, Spinner, Badge } from '../components/ui'
-import { useToast } from '../components/ui/Toast'
-import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
-import { cleaningJobsAPI, workerAvailabilityAPI, type CleaningJob, type WorkerAvailability } from '../lib/api'
+import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
+import { useToast } from '../components/ui'
+import { cleaningJobsAPI, workerAvailabilityAPI, type CleaningJob } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
 import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
 import './PropertyCalendar.css'
 import './ContractDetails.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function PropertyCalendar() {
-  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [jobs, setJobs] = useState<CleaningJob[]>([])
   const [loading, setLoading] = useState(true)
   const [draggingJobId, setDraggingJobId] = useState<string | null>(null)
   const [dragOverDate, setDragOverDate] = useState<string | null>(null)
   const [editingJob, setEditingJob] = useState<CleaningJob | null>(null)
-  const [workerAvailability, setWorkerAvailability] = useState<Map<string, WorkerAvailability[]>>(new Map())
   const toast = useToast()
   const navigate = useNavigate()
 
@@ -31,70 +30,12 @@ export default function PropertyCalendar() {
       // Load all jobs to show past, present, and future
       const result = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID)
       setJobs(result.data)
-
-      // Load worker availability for all assigned workers
-      await loadWorkerAvailability(result.data)
     } catch (error: any) {
       console.error('Error loading jobs:', error)
       toast.error('Failed to load cleaning jobs')
     } finally {
       setLoading(false)
     }
-  }
-
-  const loadWorkerAvailability = async (jobsList: CleaningJob[]) => {
-    try {
-      // Get unique worker IDs from jobs
-      const workerIds = new Set(
-        jobsList
-          .filter(job => job.assigned_worker_id)
-          .map(job => job.assigned_worker_id!)
-      )
-
-      // Fetch availability for each worker (covering current month +/- 2 months)
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 2, 1)
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 3, 0)
-
-      const availabilityMap = new Map<string, WorkerAvailability[]>()
-
-      await Promise.all(
-        Array.from(workerIds).map(async (workerId) => {
-          try {
-            const availability = await workerAvailabilityAPI.list(workerId, {
-              status: 'BLOCKED',
-              from_date: startDate.toISOString().split('T')[0],
-              to_date: endDate.toISOString().split('T')[0],
-            })
-            availabilityMap.set(workerId, availability)
-          } catch (error) {
-            console.error(`Error loading availability for worker ${workerId}:`, error)
-            // Continue with empty availability for this worker
-            availabilityMap.set(workerId, [])
-          }
-        })
-      )
-
-      setWorkerAvailability(availabilityMap)
-    } catch (error) {
-      console.error('Error loading worker availability:', error)
-      // Non-critical error, continue without availability data
-    }
-  }
-
-  const isWorkerBlocked = (workerId: string, dateStr: string): boolean => {
-    const availability = workerAvailability.get(workerId)
-    if (!availability || availability.length === 0) return false
-
-    const checkDate = new Date(dateStr)
-    checkDate.setHours(0, 0, 0, 0)
-
-    return availability.some(avail => {
-      const start = new Date(avail.start_date)
-      const end = new Date(avail.end_date)
-      start.setHours(0, 0, 0, 0)
-      end.setHours(23, 59, 59, 999)
-      return checkDate >= start && checkDate <= end
-    })
   }
 
   const getDaysInMonth = (date: Date) => {
@@ -193,7 +134,7 @@ export default function PropertyCalendar() {
   }
 
   // Validate if job can be moved to new date
-  const validateJobReschedule = (job: CleaningJob, newDateStr: string): { valid: boolean; message?: string } => {
+  const validateJobReschedule = async (job: CleaningJob, newDateStr: string): Promise<{ valid: boolean; message?: string }> => {
     // Don't allow rescheduling completed or cancelled jobs
     if (job.status === 'COMPLETED') {
       return { valid: false, message: 'Cannot reschedule completed jobs' }
@@ -214,15 +155,6 @@ export default function PropertyCalendar() {
 
     // Check for worker conflicts if worker is assigned
     if (job.assigned_worker_id) {
-      // Check if worker is blocked on the target date
-      if (isWorkerBlocked(job.assigned_worker_id, newDateStr)) {
-        const workerName = `${job.assigned_worker?.first_name} ${job.assigned_worker?.last_name}`
-        return {
-          valid: false,
-          message: `${workerName} is marked as unavailable on this date`
-        }
-      }
-
       // Get all jobs for this worker on the new date
       const workerJobsOnDate = jobs.filter(j =>
         j.id !== job.id && // Exclude the job being moved
@@ -245,6 +177,27 @@ export default function PropertyCalendar() {
             message: `${workerName} is already scheduled from ${existingJob.scheduled_start_time} to ${existingJob.scheduled_end_time} on this date`
           }
         }
+      }
+
+      // Check worker availability (blocked dates)
+      try {
+        const blockedDates = await workerAvailabilityAPI.list(job.assigned_worker_id, {
+          status: 'BLOCKED',
+          from_date: newDateStr,
+          to_date: newDateStr,
+        })
+
+        if (blockedDates.length > 0) {
+          const workerName = `${job.assigned_worker?.first_name} ${job.assigned_worker?.last_name}`
+          const reason = blockedDates[0].reason ? ` (${blockedDates[0].reason})` : ''
+          return {
+            valid: false,
+            message: `${workerName} is not available on this date${reason}`
+          }
+        }
+      } catch (error) {
+        console.error('Error checking worker availability:', error)
+        // Don't block the reschedule if availability check fails - let backend validate
       }
     }
 
@@ -301,7 +254,7 @@ export default function PropertyCalendar() {
     }
 
     // Validate the move
-    const validation = validateJobReschedule(job, newDateStr)
+    const validation = await validateJobReschedule(job, newDateStr)
     if (!validation.valid) {
       toast.error(validation.message || 'Cannot reschedule this job')
       return
