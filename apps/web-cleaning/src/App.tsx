@@ -35,6 +35,7 @@ import ContractDetails from './pages/ContractDetails'
 import CreateContract from './pages/CreateContract'
 import PropertyCalendar from './pages/PropertyCalendar'
 import ChecklistTemplates from './pages/ChecklistTemplates'
+import WorkerAccessDenied from './pages/WorkerAccessDenied'
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/worker-access-denied" element={<WorkerAccessDenied />} />
             <Route
               path="/dashboard"
               element={

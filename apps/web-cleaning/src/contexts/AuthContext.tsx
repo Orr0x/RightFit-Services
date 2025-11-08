@@ -28,6 +28,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  isWorker: boolean // Track if user is a worker
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
   logout: () => void
@@ -42,20 +43,55 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isWorker, setIsWorker] = useState(false)
+
+  // Check if user is a worker (has worker profile)
+  const checkIfWorker = async (token: string) => {
+    try {
+      const response = await fetch('/api/workers/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // If we get worker data, user is a worker
+        setIsWorker(!!data.data)
+        localStorage.setItem('is_worker', 'true')
+        return true
+      } else {
+        setIsWorker(false)
+        localStorage.removeItem('is_worker')
+        return false
+      }
+    } catch (error) {
+      // If endpoint fails or worker not found, user is not a worker
+      setIsWorker(false)
+      localStorage.removeItem('is_worker')
+      return false
+    }
+  }
 
   useEffect(() => {
     // Check if user is already logged in
     const token = localStorage.getItem('access_token')
     const storedUser = localStorage.getItem('user')
+    const storedIsWorker = localStorage.getItem('is_worker')
 
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser))
+        setIsWorker(storedIsWorker === 'true')
+
+        // Re-check worker status on mount to ensure it's current
+        checkIfWorker(token)
       } catch (error) {
         console.error('Failed to parse stored user:', error)
         localStorage.removeItem('user')
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
+        localStorage.removeItem('is_worker')
       }
     }
 
@@ -82,6 +118,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('user', JSON.stringify(userWithTenant))
 
       setUser(userWithTenant)
+
+      // Check if user is a worker
+      await checkIfWorker(access_token)
     } catch (error) {
       console.error('Login failed:', error)
       throw error
@@ -118,7 +157,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
+    localStorage.removeItem('is_worker')
     setUser(null)
+    setIsWorker(false)
   }
 
   return (
@@ -127,6 +168,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        isWorker,
         login,
         register,
         logout,
