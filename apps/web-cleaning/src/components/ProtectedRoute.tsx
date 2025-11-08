@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, isWorker } = useAuth()
+  const { isAuthenticated, isLoading, isWorker, user } = useAuth()
 
   if (isLoading) {
     return (
@@ -22,7 +22,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // Block workers from accessing admin portal
-  if (isWorker) {
+  // BUT allow admins with worker profiles (dual-role users)
+  if (isWorker && user?.role === 'MEMBER') {
     return <Navigate to="/worker-access-denied" replace />
   }
 
