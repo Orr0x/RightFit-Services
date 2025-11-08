@@ -51,11 +51,22 @@ router.get('/', requireServiceProvider, async (req: Request, res: Response, next
 });
 
 // GET /api/cleaning-jobs/:id
-router.get('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.serviceProvider!.id;
+    const tenantId = req.user!.tenant_id;
 
-    const job = await cleaningJobsService.getById(req.params.id, serviceProviderId);
+    // Look up service provider from user's tenant
+    const { prisma } = require('@rightfit/database');
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    const job = await cleaningJobsService.getById(req.params.id, serviceProvider.id);
     res.json({ data: job });
   } catch (error) {
     next(error);
@@ -63,12 +74,23 @@ router.get('/:id', requireServiceProvider, async (req: Request, res: Response, n
 });
 
 // GET /api/cleaning-jobs/:id/history
-router.get('/:id/history', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const serviceProviderId = req.serviceProvider!.id;
+    const tenantId = req.user!.tenant_id;
+
+    // Look up service provider from user's tenant
+    const { prisma } = require('@rightfit/database');
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
 
     // Verify job belongs to this provider
-    await cleaningJobsService.getById(req.params.id, serviceProviderId);
+    await cleaningJobsService.getById(req.params.id, serviceProvider.id);
 
     // Get history
     const history = await historyService.getJobHistory(req.params.id);

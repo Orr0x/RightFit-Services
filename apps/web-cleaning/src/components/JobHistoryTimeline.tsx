@@ -22,7 +22,7 @@ export function JobHistoryTimeline({ jobId }: JobHistoryTimelineProps) {
     try {
       setLoading(true)
       setError(null)
-      const data = await cleaningJobsAPI.getHistory(jobId, SERVICE_PROVIDER_ID)
+      const data = await cleaningJobsAPI.getHistory(jobId)
       setHistory(data)
     } catch (err: any) {
       console.error('Error loading job history:', err)

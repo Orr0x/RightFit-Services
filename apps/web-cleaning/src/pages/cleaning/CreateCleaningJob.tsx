@@ -154,7 +154,7 @@ export default function CreateCleaningJob() {
   const loadJob = async () => {
     setIsLoadingJob(true)
     try {
-      const job = await cleaningJobsAPI.get(id!, SERVICE_PROVIDER_ID)
+      const job = await cleaningJobsAPI.get(id!)
       setFormData({
         service_id: job.service_id,
         property_id: job.property_id,

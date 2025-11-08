@@ -90,7 +90,7 @@ export default function CleaningJobDetails() {
 
     withLoading(async () => {
       try {
-        const data = await cleaningJobsAPI.get(id, SERVICE_PROVIDER_ID)
+        const data = await cleaningJobsAPI.get(id)
         setJob(data)
       } catch (err: any) {
         toast.error('Failed to load job details')
