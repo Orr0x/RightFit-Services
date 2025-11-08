@@ -44,17 +44,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('access_token')
-    const storedUser = localStorage.getItem('user')
+    const token = localStorage.getItem('maintenance_access_token')
+    const storedUser = localStorage.getItem('maintenance_user')
 
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser))
       } catch (error) {
         console.error('Failed to parse stored user:', error)
-        localStorage.removeItem('user')
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('maintenance_user')
+        localStorage.removeItem('maintenance_access_token')
+        localStorage.removeItem('maintenance_refresh_token')
       }
     }
 
@@ -74,10 +74,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         tenant_name: tenant.tenant_name,
       }
 
-      // Store tokens
-      localStorage.setItem('access_token', access_token)
-      localStorage.setItem('refresh_token', refresh_token)
-      localStorage.setItem('user', JSON.stringify(userWithTenant))
+      // Store tokens with maintenance_ prefix
+      localStorage.setItem('maintenance_access_token', access_token)
+      localStorage.setItem('maintenance_refresh_token', refresh_token)
+      localStorage.setItem('maintenance_user', JSON.stringify(userWithTenant))
 
       setUser(userWithTenant)
     } catch (error) {
@@ -99,10 +99,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         tenant_name: tenant.tenant_name,
       }
 
-      // Store tokens
-      localStorage.setItem('access_token', access_token)
-      localStorage.setItem('refresh_token', refresh_token)
-      localStorage.setItem('user', JSON.stringify(userWithTenant))
+      // Store tokens with maintenance_ prefix
+      localStorage.setItem('maintenance_access_token', access_token)
+      localStorage.setItem('maintenance_refresh_token', refresh_token)
+      localStorage.setItem('maintenance_user', JSON.stringify(userWithTenant))
 
       setUser(userWithTenant)
     } catch (error) {
@@ -112,9 +112,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const logout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
+    localStorage.removeItem('maintenance_access_token')
+    localStorage.removeItem('maintenance_refresh_token')
+    localStorage.removeItem('maintenance_user')
     setUser(null)
   }
 

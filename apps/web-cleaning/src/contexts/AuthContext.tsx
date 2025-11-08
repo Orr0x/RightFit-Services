@@ -58,26 +58,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const data = await response.json()
         // If we get worker data, user is a worker
         setIsWorker(!!data.data)
-        localStorage.setItem('is_worker', 'true')
+        localStorage.setItem('cleaning_is_worker', 'true')
         return true
       } else {
         setIsWorker(false)
-        localStorage.removeItem('is_worker')
+        localStorage.removeItem('cleaning_is_worker')
         return false
       }
     } catch (error) {
       // If endpoint fails or worker not found, user is not a worker
       setIsWorker(false)
-      localStorage.removeItem('is_worker')
+      localStorage.removeItem('cleaning_is_worker')
       return false
     }
   }
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('access_token')
-    const storedUser = localStorage.getItem('user')
-    const storedIsWorker = localStorage.getItem('is_worker')
+    const token = localStorage.getItem('cleaning_access_token')
+    const storedUser = localStorage.getItem('cleaning_user')
+    const storedIsWorker = localStorage.getItem('cleaning_is_worker')
 
     if (token && storedUser) {
       try {
@@ -88,10 +88,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         checkIfWorker(token)
       } catch (error) {
         console.error('Failed to parse stored user:', error)
-        localStorage.removeItem('user')
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('is_worker')
+        localStorage.removeItem('cleaning_user')
+        localStorage.removeItem('cleaning_access_token')
+        localStorage.removeItem('cleaning_refresh_token')
+        localStorage.removeItem('cleaning_is_worker')
       }
     }
 
@@ -112,10 +112,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         service_provider_id: service_provider_id || null,
       }
 
-      // Store tokens
-      localStorage.setItem('access_token', access_token)
-      localStorage.setItem('refresh_token', refresh_token)
-      localStorage.setItem('user', JSON.stringify(userWithTenant))
+      // Store tokens with cleaning_ prefix
+      localStorage.setItem('cleaning_access_token', access_token)
+      localStorage.setItem('cleaning_refresh_token', refresh_token)
+      localStorage.setItem('cleaning_user', JSON.stringify(userWithTenant))
 
       setUser(userWithTenant)
 
@@ -141,10 +141,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         service_provider_id: service_provider_id || null,
       }
 
-      // Store tokens
-      localStorage.setItem('access_token', access_token)
-      localStorage.setItem('refresh_token', refresh_token)
-      localStorage.setItem('user', JSON.stringify(userWithTenant))
+      // Store tokens with cleaning_ prefix
+      localStorage.setItem('cleaning_access_token', access_token)
+      localStorage.setItem('cleaning_refresh_token', refresh_token)
+      localStorage.setItem('cleaning_user', JSON.stringify(userWithTenant))
 
       setUser(userWithTenant)
     } catch (error) {
@@ -154,10 +154,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const logout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
-    localStorage.removeItem('is_worker')
+    localStorage.removeItem('cleaning_access_token')
+    localStorage.removeItem('cleaning_refresh_token')
+    localStorage.removeItem('cleaning_user')
+    localStorage.removeItem('cleaning_is_worker')
     setUser(null)
     setIsWorker(false)
   }

@@ -13,7 +13,7 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem('maintenance_access_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -35,14 +35,14 @@ api.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token')
+        const refreshToken = localStorage.getItem('maintenance_refresh_token')
         if (refreshToken) {
           const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
             refresh_token: refreshToken,
           })
 
           const { access_token } = response.data
-          localStorage.setItem('access_token', access_token)
+          localStorage.setItem('maintenance_access_token', access_token)
 
           // Retry original request with new token
           if (!originalRequest.headers) {
@@ -53,8 +53,8 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed, clear tokens and redirect to login
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('maintenance_access_token')
+        localStorage.removeItem('maintenance_refresh_token')
         window.location.href = '/login'
         return Promise.reject(refreshError)
       }
