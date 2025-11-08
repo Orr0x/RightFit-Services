@@ -4,6 +4,7 @@ import { CleaningJobHistoryService } from './CleaningJobHistoryService';
 import { PropertyHistoryService } from './PropertyHistoryService';
 import { WorkerHistoryService } from './WorkerHistoryService';
 import CleaningJobTimesheetService from './CleaningJobTimesheetService';
+import { WorkerAvailabilityService } from './WorkerAvailabilityService';
 
 export interface CreateCleaningJobInput {
   service_id: string;
@@ -44,11 +45,13 @@ export class CleaningJobsService {
   private historyService: CleaningJobHistoryService;
   private propertyHistoryService: PropertyHistoryService;
   private workerHistoryService: WorkerHistoryService;
+  private availabilityService: WorkerAvailabilityService;
 
   constructor() {
     this.historyService = new CleaningJobHistoryService();
     this.propertyHistoryService = new PropertyHistoryService();
     this.workerHistoryService = new WorkerHistoryService();
+    this.availabilityService = new WorkerAvailabilityService();
   }
 
   async list(
@@ -218,6 +221,18 @@ export class CleaningJobsService {
       }
     }
 
+    // Verify worker is available on the scheduled date
+    if (input.assigned_worker_id && input.scheduled_date) {
+      const isAvailable = await this.availabilityService.isWorkerAvailable(
+        input.assigned_worker_id,
+        input.scheduled_date
+      );
+
+      if (!isAvailable) {
+        throw new ValidationError('Worker is not available on the scheduled date');
+      }
+    }
+
     // Convert empty strings to undefined for optional foreign key fields
     const cleanedData: any = {
       service_id: input.service_id || undefined,
@@ -316,6 +331,26 @@ export class CleaningJobsService {
 
       if (!service) {
         throw new ValidationError('Invalid service ID');
+      }
+    }
+
+    // Verify worker is available if worker or date is being updated
+    const newWorkerId = input.assigned_worker_id !== undefined
+      ? input.assigned_worker_id
+      : oldJob.assigned_worker_id;
+    const newScheduledDate = input.scheduled_date !== undefined
+      ? input.scheduled_date
+      : oldJob.scheduled_date;
+
+    // Check availability if we have both worker and date (and worker is not being unassigned)
+    if (newWorkerId && newWorkerId !== '' && newScheduledDate) {
+      const isAvailable = await this.availabilityService.isWorkerAvailable(
+        newWorkerId,
+        newScheduledDate
+      );
+
+      if (!isAvailable) {
+        throw new ValidationError('Worker is not available on the scheduled date');
       }
     }
 
