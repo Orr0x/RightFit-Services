@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Camera, FileText, X, Image as ImageIcon } from 'lucide-react'
+import { Camera, FileText, X, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { getPhotoUrl } from '../../config/api'
 
 interface JobNotesSectionProps {
@@ -24,6 +24,7 @@ export default function JobNotesSection({
   const [error, setError] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   const [initialPhotoCount] = useState(initialPhotos.length)
+  const [expanded, setExpanded] = useState(false)
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -68,7 +69,7 @@ export default function JobNotesSection({
     }
   }
 
-  const handleRemovePhoto = async (photoUrl: string, index: number) => {
+  const handleRemovePhoto = async (index: number) => {
     // If job is completed, only allow removing photos added after completion
     if (isCompleted && index < initialPhotoCount) {
       setError('Cannot remove photos from completed jobs. You can only add new photos.')
@@ -122,26 +123,49 @@ export default function JobNotesSection({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-gray-700" />
+      <div className="flex items-center justify-between mb-3">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2"
+        >
+          <FileText className="w-5 h-5 text-gray-900" />
           <h2 className="font-semibold text-gray-900">Job Notes & Photos</h2>
           {isCompleted && (
             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
               Add-only mode
             </span>
           )}
-        </div>
-        {hasChanges && (
+          {photos.length > 0 && (
+            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+              {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+            </span>
+          )}
+        </button>
+        <div className="flex items-center gap-2">
+          {hasChanges && expanded && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Notes'}
+            </button>
+          )}
           <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            onClick={() => setExpanded(!expanded)}
+            className="p-1"
           >
-            {saving ? 'Saving...' : 'Save Notes'}
+            {expanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
           </button>
-        )}
+        </div>
       </div>
+
+      {expanded && (
+        <div>
 
       {/* Notes */}
       <div className="mb-4">
@@ -197,7 +221,7 @@ export default function JobNotesSection({
                   />
                   {canDelete && (
                     <button
-                      onClick={() => handleRemovePhoto(photo, index)}
+                      onClick={() => handleRemovePhoto(index)}
                       className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3 h-3" />
@@ -230,6 +254,8 @@ export default function JobNotesSection({
       {error && (
         <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
         </div>
       )}
     </div>

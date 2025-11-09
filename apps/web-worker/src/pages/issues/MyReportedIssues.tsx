@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, AlertTriangle, CheckCircle, XCircle, Clock,
-  Wrench, MapPin, User, Calendar
+  Wrench, MapPin, ChevronDown, ChevronUp
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { getPhotoUrl } from '../../config/api'
@@ -45,6 +45,7 @@ export default function MyReportedIssues() {
   const [issues, setIssues] = useState<WorkerIssueReport[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchMyIssues()
@@ -146,6 +147,18 @@ export default function MyReportedIssues() {
     })
   }
 
+  const toggleCard = (issueId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(issueId)) {
+        newSet.delete(issueId)
+      } else {
+        newSet.add(issueId)
+      }
+      return newSet
+    })
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -217,6 +230,7 @@ export default function MyReportedIssues() {
             {issues.map((issue) => {
               const statusInfo = getStatusInfo(issue.status)
               const StatusIcon = statusInfo.icon
+              const isExpanded = expandedCards.has(issue.id)
 
               return (
                 <div
@@ -224,8 +238,11 @@ export default function MyReportedIssues() {
                   className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div className="p-4">
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    {/* Header - Clickable */}
+                    <button
+                      onClick={() => toggleCard(issue.id)}
+                      className="w-full flex items-start justify-between gap-3 mb-3 text-left"
+                    >
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 text-lg mb-1">
                           {issue.title}
@@ -237,84 +254,106 @@ export default function MyReportedIssues() {
                           </div>
                         )}
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(issue.priority)}`}>
-                        {issue.priority}
-                      </span>
-                    </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`px-2 py-1 text-xs font-medium rounded border ${getPriorityColor(issue.priority)}`}>
+                          {issue.priority}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-500" />
+                        )}
+                      </div>
+                    </button>
 
-                    {/* Description */}
-                    <p className="text-gray-700 text-sm mb-3">
-                      {issue.issue_description}
-                    </p>
-
-                    {/* Category and Date */}
-                    <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                      <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
-                      <span>Reported: {formatDate(issue.reported_at)}</span>
-                    </div>
-
-                    {/* Photos */}
-                    {issue.photos && issue.photos.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs text-gray-600 mb-2">
+                    {/* Status - Always visible */}
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${statusInfo.color} mb-3`}>
+                      <StatusIcon className={`w-4 h-4 ${statusInfo.iconColor}`} />
+                      <p className="font-medium text-xs">{statusInfo.label}</p>
+                      {issue.photos && issue.photos.length > 0 && (
+                        <span className="ml-auto text-xs opacity-75">
                           {issue.photos.length} photo{issue.photos.length !== 1 ? 's' : ''}
-                        </p>
-                        <div className="flex gap-2 overflow-x-auto">
-                          {issue.photos.map((photo, idx) => (
-                            <img
-                              key={idx}
-                              src={getPhotoUrl(photo)}
-                              alt={`Issue photo ${idx + 1}`}
-                              className="w-20 h-20 object-cover rounded border border-gray-200"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Status */}
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${statusInfo.color}`}>
-                      <StatusIcon className={`w-5 h-5 ${statusInfo.iconColor}`} />
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{statusInfo.label}</p>
-                        {issue.status === 'APPROVED' && issue.customer_approved_at && (
-                          <p className="text-xs opacity-75">
-                            Approved on {formatDate(issue.customer_approved_at)}
-                          </p>
-                        )}
-                        {issue.status === 'REJECTED' && issue.customer_rejected_at && (
-                          <p className="text-xs opacity-75">
-                            Rejected on {formatDate(issue.customer_rejected_at)}
-                          </p>
-                        )}
-                      </div>
+                        </span>
+                      )}
                     </div>
 
-                    {/* Rejection Reason */}
-                    {issue.status === 'REJECTED' && issue.rejection_reason && (
-                      <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
-                        <p className="text-xs font-medium text-red-900 mb-1">Rejection Reason:</p>
-                        <p className="text-sm text-red-800">{issue.rejection_reason}</p>
-                      </div>
-                    )}
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <div>
+                        {/* Description */}
+                        <p className="text-gray-700 text-sm mb-3">
+                          {issue.issue_description}
+                        </p>
 
-                    {/* Maintenance Job Info */}
-                    {issue.status === 'APPROVED' && issue.created_maintenance_job && (
-                      <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          <div className="flex-1">
-                            <p className="text-xs font-medium text-green-900">
-                              Maintenance Job Created
-                            </p>
-                            <p className="text-sm text-green-800">
-                              {issue.created_maintenance_job.title}
-                            </p>
-                            <p className="text-xs text-green-700 capitalize">
-                              Status: {issue.created_maintenance_job.status.replace(/_/g, ' ')}
-                            </p>
-                          </div>
+                        {/* Category and Date */}
+                        <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                          <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
+                          <span>Reported: {formatDate(issue.reported_at)}</span>
                         </div>
+
+                        {/* Photos */}
+                        {issue.photos && issue.photos.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-600 mb-2">
+                              {issue.photos.length} photo{issue.photos.length !== 1 ? 's' : ''}
+                            </p>
+                            <div className="flex gap-2 overflow-x-auto">
+                              {issue.photos.map((photo, idx) => (
+                                <img
+                                  key={idx}
+                                  src={getPhotoUrl(photo)}
+                                  alt={`Issue photo ${idx + 1}`}
+                                  className="w-20 h-20 object-cover rounded border border-gray-200"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Additional Status Details */}
+                        {(issue.status === 'APPROVED' && issue.customer_approved_at) ||
+                         (issue.status === 'REJECTED' && issue.customer_rejected_at) ? (
+                          <div className="mb-3">
+                            {issue.status === 'APPROVED' && issue.customer_approved_at && (
+                              <p className="text-xs text-gray-600">
+                                Approved on {formatDate(issue.customer_approved_at)}
+                              </p>
+                            )}
+                            {issue.status === 'REJECTED' && issue.customer_rejected_at && (
+                              <p className="text-xs text-gray-600">
+                                Rejected on {formatDate(issue.customer_rejected_at)}
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
+
+                        {/* Rejection Reason */}
+                        {issue.status === 'REJECTED' && issue.rejection_reason && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                            <p className="text-xs font-medium text-red-900 mb-1">Rejection Reason:</p>
+                            <p className="text-sm text-red-800">{issue.rejection_reason}</p>
+                          </div>
+                        )}
+
+                        {/* Maintenance Job Info */}
+                        {issue.status === 'APPROVED' && issue.created_maintenance_job && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <div className="flex-1">
+                                <p className="text-xs font-medium text-green-900">
+                                  Maintenance Job Created
+                                </p>
+                                <p className="text-sm text-green-800">
+                                  {issue.created_maintenance_job.title}
+                                </p>
+                                <p className="text-xs text-green-700 capitalize">
+                                  Status: {issue.created_maintenance_job.status.replace(/_/g, ' ')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

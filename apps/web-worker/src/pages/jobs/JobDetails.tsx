@@ -92,10 +92,14 @@ export default function JobDetails() {
   const [showStartModal, setShowStartModal] = useState(false)
   const [showCompleteModal, setShowCompleteModal] = useState(false)
   const [showMaintenanceIssueModal, setShowMaintenanceIssueModal] = useState(false)
-  const [propertyDetailsExpanded, setPropertyDetailsExpanded] = useState(false)
+  const [scheduleExpanded, setScheduleExpanded] = useState(false)
+  const [propertyExpanded, setPropertyExpanded] = useState(false)
+  const [accessExpanded, setAccessExpanded] = useState(false)
+  const [customerExpanded, setCustomerExpanded] = useState(false)
+  const [issuesExpanded, setIssuesExpanded] = useState(false)
+  const [checklistExpanded, setChecklistExpanded] = useState(false)
   const [reportedIssues, setReportedIssues] = useState<WorkerReportedIssue[]>([])
   const [loadingReportedIssues, setLoadingReportedIssues] = useState(false)
-  const [issuesExpanded, setIssuesExpanded] = useState(false)
   const [selectedIssue, setSelectedIssue] = useState<WorkerReportedIssue | null>(null)
 
   useEffect(() => {
@@ -122,7 +126,7 @@ export default function JobDetails() {
         setJob(data.data)
 
         // Fetch worker-reported issues for this property
-        if (data.data?.property_id) {
+        if (data.data?.property_id && token) {
           fetchReportedIssues(data.data.property_id, token)
         }
       } catch (err) {
@@ -178,7 +182,7 @@ export default function JobDetails() {
         setJob(data.data)
 
         // Also refresh worker-reported issues
-        if (data.data?.property_id) {
+        if (data.data?.property_id && token) {
           fetchReportedIssues(data.data.property_id, token)
         }
       }
@@ -321,160 +325,176 @@ export default function JobDetails() {
 
       {/* Schedule Info */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Schedule
-        </h2>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Date:</span>
-            <span className="font-medium text-gray-900">{formatDate(job.scheduled_date)}</span>
+        <button
+          onClick={() => setScheduleExpanded(!scheduleExpanded)}
+          className="w-full flex items-center justify-between gap-2 mb-3"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-gray-900" />
+            <h2 className="font-semibold text-gray-900">Schedule</h2>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Time:</span>
-            <span className="font-medium text-gray-900">
-              {job.scheduled_start_time && job.scheduled_end_time
-                ? `${job.scheduled_start_time} - ${job.scheduled_end_time}`
-                : '-'}
-            </span>
+          {scheduleExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
+        </button>
+
+        {scheduleExpanded && (
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Date:</span>
+              <span className="font-medium text-gray-900">{formatDate(job.scheduled_date)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Time:</span>
+              <span className="font-medium text-gray-900">
+                {job.scheduled_start_time && job.scheduled_end_time
+                  ? `${job.scheduled_start_time} - ${job.scheduled_end_time}`
+                  : '-'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Assigned to:</span>
+              <span className="font-medium text-gray-900">
+                {job.assigned_worker ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}` : 'Not assigned'}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Assigned to:</span>
-            <span className="font-medium text-gray-900">
-              {job.assigned_worker ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}` : 'Not assigned'}
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Property Information */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Home className="w-5 h-5" />
-          Property Information
-        </h2>
-        <div className="space-y-3">
-          <div className="flex items-start gap-2">
-            <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <span className="text-gray-700">{job.property.address}</span>
-              {job.property.postcode && (
-                <span className="text-gray-600 text-sm ml-2">{job.property.postcode}</span>
-              )}
-            </div>
+        <button
+          onClick={() => setPropertyExpanded(!propertyExpanded)}
+          className="w-full flex items-center justify-between gap-2 mb-3"
+        >
+          <div className="flex items-center gap-2">
+            <Home className="w-5 h-5 text-gray-900" />
+            <h2 className="font-semibold text-gray-900">Property Information</h2>
           </div>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Home className="w-4 h-4 text-gray-500" />
-              <span className="text-gray-700 capitalize">{job.property.property_type}</span>
-            </div>
-            {job.property.bedrooms !== null && (
-              <div className="flex items-center gap-2">
-                <Bed className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">{job.property.bedrooms} Bed</span>
-              </div>
-            )}
-            {job.property.bathrooms !== null && (
-              <div className="flex items-center gap-2">
-                <Bath className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-700">{job.property.bathrooms} Bath</span>
-              </div>
-            )}
-          </div>
-
-          {/* Expanded Details */}
-          {propertyDetailsExpanded && (
-            <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
-              {job.property.cleaner_notes && (
-                <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                  <h3 className="font-semibold text-blue-900 text-sm mb-1">Cleaner Notes</h3>
-                  <p className="text-blue-800 text-sm whitespace-pre-wrap">{job.property.cleaner_notes}</p>
-                </div>
-              )}
-
-              {job.property.special_requirements && (
-                <div className="bg-purple-50 border border-purple-200 rounded p-3">
-                  <h3 className="font-semibold text-purple-900 text-sm mb-1">Special Requirements</h3>
-                  <p className="text-purple-800 text-sm whitespace-pre-wrap">{job.property.special_requirements}</p>
-                </div>
-              )}
-
-              {job.property.utility_locations && (
-                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                  <h3 className="font-semibold text-gray-900 text-sm mb-2">Utility Locations</h3>
-                  <div className="text-sm text-gray-700 space-y-1">
-                    {Object.entries(job.property.utility_locations).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
-                        <span className="font-medium">{value as string}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {job.property.emergency_contacts && Array.isArray(job.property.emergency_contacts) && job.property.emergency_contacts.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded p-3">
-                  <h3 className="font-semibold text-red-900 text-sm mb-2">Emergency Contacts</h3>
-                  <div className="space-y-2">
-                    {job.property.emergency_contacts.map((contact: any, index: number) => (
-                      <div key={index} className="text-sm">
-                        <p className="font-medium text-red-900">{contact.name} {contact.relation && `(${contact.relation})`}</p>
-                        <a href={`tel:${contact.phone}`} className="text-red-700 hover:text-red-800">{contact.phone}</a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {job.property.photo_urls && Array.isArray(job.property.photo_urls) && job.property.photo_urls.length > 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                  <h3 className="font-semibold text-gray-900 text-sm mb-2">Property Photos</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {job.property.photo_urls.map((photo: any, index: number) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={photo.url}
-                          alt={photo.caption || `Photo ${index + 1}`}
-                          className="w-full h-32 object-cover rounded"
-                        />
-                        {photo.caption && (
-                          <p className="text-xs text-gray-600 mt-1">{photo.caption}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          {propertyExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
           )}
+        </button>
 
-          <button
-            onClick={() => setPropertyDetailsExpanded(!propertyDetailsExpanded)}
-            className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300"
-          >
-            {propertyDetailsExpanded ? (
-              <>
-                <ChevronUp className="w-4 h-4" />
-                Hide Additional Details
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4" />
-                Show Additional Details
-              </>
+        {propertyExpanded && (
+          <div className="space-y-3">
+            <div className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-gray-700">{job.property.address}</span>
+                {job.property.postcode && (
+                  <span className="text-gray-600 text-sm ml-2">{job.property.postcode}</span>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Home className="w-4 h-4 text-gray-500" />
+                <span className="text-gray-700 capitalize">{job.property.property_type}</span>
+              </div>
+              {job.property.bedrooms !== null && (
+                <div className="flex items-center gap-2">
+                  <Bed className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{job.property.bedrooms} Bed</span>
+                </div>
+              )}
+              {job.property.bathrooms !== null && (
+                <div className="flex items-center gap-2">
+                  <Bath className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{job.property.bathrooms} Bath</span>
+                </div>
+              )}
+            </div>
+
+            {job.property.cleaner_notes && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <h3 className="font-semibold text-blue-900 text-sm mb-1">Cleaner Notes</h3>
+                <p className="text-blue-800 text-sm whitespace-pre-wrap">{job.property.cleaner_notes}</p>
+              </div>
             )}
-          </button>
-        </div>
+
+            {job.property.special_requirements && (
+              <div className="bg-purple-50 border border-purple-200 rounded p-3">
+                <h3 className="font-semibold text-purple-900 text-sm mb-1">Special Requirements</h3>
+                <p className="text-purple-800 text-sm whitespace-pre-wrap">{job.property.special_requirements}</p>
+              </div>
+            )}
+
+            {job.property.utility_locations && (
+              <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                <h3 className="font-semibold text-gray-900 text-sm mb-2">Utility Locations</h3>
+                <div className="text-sm text-gray-700 space-y-1">
+                  {Object.entries(job.property.utility_locations).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                      <span className="font-medium">{value as string}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {job.property.emergency_contacts && Array.isArray(job.property.emergency_contacts) && job.property.emergency_contacts.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded p-3">
+                <h3 className="font-semibold text-red-900 text-sm mb-2">Emergency Contacts</h3>
+                <div className="space-y-2">
+                  {job.property.emergency_contacts.map((contact: any, index: number) => (
+                    <div key={index} className="text-sm">
+                      <p className="font-medium text-red-900">{contact.name} {contact.relation && `(${contact.relation})`}</p>
+                      <a href={`tel:${contact.phone}`} className="text-red-700 hover:text-red-800">{contact.phone}</a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {job.property.photo_urls && Array.isArray(job.property.photo_urls) && job.property.photo_urls.length > 0 && (
+              <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                <h3 className="font-semibold text-gray-900 text-sm mb-2">Property Photos</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {job.property.photo_urls.map((photo: any, index: number) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={photo.url}
+                        alt={photo.caption || `Photo ${index + 1}`}
+                        className="w-full h-32 object-cover rounded"
+                      />
+                      {photo.caption && (
+                        <p className="text-xs text-gray-600 mt-1">{photo.caption}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Access Information */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Key className="w-5 h-5" />
-          Access Information
-        </h2>
-        <div className="space-y-3 text-sm">
+        <button
+          onClick={() => setAccessExpanded(!accessExpanded)}
+          className="w-full flex items-center justify-between gap-2 mb-3"
+        >
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-gray-900" />
+            <h2 className="font-semibold text-gray-900">Access Information</h2>
+          </div>
+          {accessExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
+        </button>
+
+        {accessExpanded && (
+          <div className="space-y-3 text-sm">
           {job.property.access_instructions && (
             <div>
               <span className="text-gray-600 font-medium">Instructions:</span>
@@ -532,17 +552,30 @@ export default function JobDetails() {
            !job.property.pets && (
             <p className="text-gray-500 italic">No access information provided</p>
           )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Customer Information */}
       {job.customer && (job.customer.contact_name || job.customer.organization_name || job.customer.phone || job.customer.email) && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-          <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Customer Information
-          </h2>
-          <div className="space-y-2 text-sm">
+          <button
+            onClick={() => setCustomerExpanded(!customerExpanded)}
+            className="w-full flex items-center justify-between gap-2 mb-3"
+          >
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5 text-gray-900" />
+              <h2 className="font-semibold text-gray-900">Customer Information</h2>
+            </div>
+            {customerExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
+          </button>
+
+          {customerExpanded && (
+            <div className="space-y-2 text-sm">
             {(job.customer.organization_name || job.customer.contact_name) && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Name:</span>
@@ -573,7 +606,8 @@ export default function JobDetails() {
                 </a>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -670,15 +704,35 @@ export default function JobDetails() {
 
       {/* Job Checklist */}
       {job.checklist && job.checklist.length > 0 && (
-        <div className="mb-4">
-          <JobChecklist
-            jobId={job.id}
-            items={job.checklist}
-            readOnly={job.status === 'COMPLETED'}
-            onUpdate={(updatedItems) => {
-              setJob(prevJob => prevJob ? { ...prevJob, checklist: updatedItems } : null)
-            }}
-          />
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+          <button
+            onClick={() => setChecklistExpanded(!checklistExpanded)}
+            className="w-full flex items-center justify-between gap-2 mb-3"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-gray-900" />
+              <h2 className="font-semibold text-gray-900">Job Checklist</h2>
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                {job.checklist.filter(item => item.completed).length}/{job.checklist.length}
+              </span>
+            </div>
+            {checklistExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
+          </button>
+
+          {checklistExpanded && (
+            <JobChecklist
+              jobId={job.id}
+              items={job.checklist}
+              readOnly={job.status === 'COMPLETED'}
+              onUpdate={(updatedItems) => {
+                setJob(prevJob => prevJob ? { ...prevJob, checklist: updatedItems } : null)
+              }}
+            />
+          )}
         </div>
       )}
 

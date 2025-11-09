@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, MapPin, ArrowLeft } from 'lucide-react'
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, MapPin, ArrowLeft, Ban } from 'lucide-react'
 import Calendar from 'react-calendar'
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO, isWithinInterval } from 'date-fns'
 import { useAuth } from '../../contexts/AuthContext'
@@ -111,6 +111,23 @@ export default function MySchedule() {
     )
   }
 
+  const getBlockedDatesForMonth = () => {
+    const monthStart = startOfMonth(selectedDate)
+    const monthEnd = endOfMonth(selectedDate)
+
+    return availability.filter(block => {
+      const start = parseISO(block.start_date)
+      const end = parseISO(block.end_date)
+
+      // Check if the blocked period overlaps with the current month
+      return (
+        isWithinInterval(start, { start: monthStart, end: monthEnd }) ||
+        isWithinInterval(end, { start: monthStart, end: monthEnd }) ||
+        (start <= monthStart && end >= monthEnd)
+      )
+    })
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-300'
@@ -150,6 +167,7 @@ export default function MySchedule() {
   }
 
   const selectedDateJobs = getJobsForDate(selectedDate)
+  const blockedDatesThisMonth = getBlockedDatesForMonth()
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-6">
@@ -336,6 +354,51 @@ export default function MySchedule() {
                 </div>
               )}
             </div>
+
+            {/* Blocked Dates for this Month */}
+            {blockedDatesThisMonth.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban className="w-5 h-5 text-red-600" />
+                  <h3 className="font-bold text-gray-900">
+                    Blocked Dates for this Month
+                  </h3>
+                  <span className="ml-auto text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
+                    {blockedDatesThisMonth.length}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {blockedDatesThisMonth.map((block) => {
+                    const startDate = parseISO(block.start_date)
+                    const endDate = parseISO(block.end_date)
+                    const isSameDay = format(startDate, 'yyyy-MM-dd') === format(endDate, 'yyyy-MM-dd')
+
+                    return (
+                      <div
+                        key={block.id}
+                        className="bg-red-50 border border-red-200 rounded-lg p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-red-900">
+                              {isSameDay
+                                ? format(startDate, 'MMM d, yyyy')
+                                : `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`}
+                            </p>
+                            {block.reason && (
+                              <p className="text-xs text-red-700 mt-1">
+                                {block.reason}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
