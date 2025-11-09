@@ -42,6 +42,7 @@ import workerAvailabilityRoutes from './routes/worker-availability'
 import workerIssuesRoutes from './routes/worker-issues'
 import workerIssuePhotosRoutes from './routes/worker-issue-photos'
 import uploadsRoutes from './routes/uploads'
+import navigationRoutes from './routes/navigation'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
 import logger from './utils/logger'
@@ -165,6 +166,8 @@ app.use('/api/worker-issue-photos', workerIssuePhotosRoutes)
 app.use('/api/uploads', uploadsRoutes)
 // Property sharing routes
 app.use('/api/property-shares', propertySharesRoutes)
+// Navigation routes (GPS, geocoding, routing, weather)
+app.use('/api/navigation', navigationRoutes)
 
 // Apply general rate limiting to all other API routes
 app.use('/api', generalApiRateLimiter)
