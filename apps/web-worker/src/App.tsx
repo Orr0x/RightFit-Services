@@ -12,6 +12,8 @@ import ManageAvailability from './pages/availability/ManageAvailability'
 import WorkerProfile from './pages/profile/WorkerProfile'
 import WorkHistory from './pages/history/WorkHistory'
 import MyReportedIssues from './pages/issues/MyReportedIssues'
+import MyChecklists from './pages/checklists/MyChecklists'
+import UsefulInfo from './pages/info/UsefulInfo'
 
 function App() {
   return (
@@ -109,6 +111,30 @@ function App() {
               <ProtectedRoute>
                 <WorkerLayout>
                   <WorkHistory />
+                </WorkerLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* My Checklists */}
+          <Route
+            path="/checklists"
+            element={
+              <ProtectedRoute>
+                <WorkerLayout>
+                  <MyChecklists />
+                </WorkerLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Useful Info */}
+          <Route
+            path="/useful-info"
+            element={
+              <ProtectedRoute>
+                <WorkerLayout>
+                  <UsefulInfo />
                 </WorkerLayout>
               </ProtectedRoute>
             }

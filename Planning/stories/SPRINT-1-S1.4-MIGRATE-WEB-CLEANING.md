@@ -952,3 +952,183 @@ After the main migration was completed and tested, additional feature work and b
 - ✅ No console errors or React warnings
 
 **Ready for Next Story**: S1.5 - Migrate Remaining Apps
+
+---
+
+## Additional Work: Worker App Enhancements & Checklist Integration (November 9, 2025 - Session 2)
+
+After completing the job notes feature, additional worker app improvements were requested focused on providing workers with reference materials and improving checklist functionality.
+
+### Feature 1: My Checklists Reference Page
+
+**Problem**: Workers needed access to reference checklist templates from their assigned jobs to review cleaning standards and procedures.
+
+**Solution Implemented**:
+
+1. **New Page Created**: `/checklists` route
+   - Displays all checklist templates from jobs assigned to the worker
+   - Worker-specific filtering (only templates from their jobs)
+   - Deduplication logic (same template may be used in multiple jobs)
+   - Search functionality by template name or property type
+   - Expandable checklist items with section grouping
+
+2. **Data Transformation**:
+   - Fetches worker's assigned jobs from API
+   - Extracts unique checklist template IDs
+   - Transforms JSON sections into flat items array with section info
+   - Groups items by section (BEDROOMS, KITCHEN, BATHROOM, etc.)
+   - Displays as numbered, read-only reference checklist
+
+3. **Dashboard Integration**:
+   - Added "My Checklists" quick action button
+   - Icon: ListChecks (teal color)
+   - Accessible from worker dashboard
+
+**Files Created**:
+- `apps/web-worker/src/pages/checklists/MyChecklists.tsx` - Main checklist reference page
+- Updated `apps/web-worker/src/App.tsx` - Added /checklists route
+- Updated `apps/web-worker/src/pages/dashboard/WorkerDashboard.tsx` - Added quick action button
+
+### Feature 2: Useful Information Section
+
+**Problem**: Workers needed access to safety guidelines, regulatory information, and important reference materials while on the job.
+
+**Solution Implemented**:
+
+1. **Comprehensive Safety Information Page**: `/useful-info` route
+   - **COSHH Information** (Control of Substances Hazardous to Health):
+     - What is COSHH
+     - Common hazardous substances
+     - Emergency procedures for chemical exposure
+   - **Health & Safety Executive (HSE)**:
+     - Worker rights at work
+     - Reporting hazards
+     - HSE resources with external links
+   - **Safety at Work**:
+     - Personal Protective Equipment (PPE) requirements
+     - Manual handling techniques
+     - Preventing slips, trips & falls
+     - Working at heights safety
+   - **Emergency Contacts**:
+     - UK emergency services (999, 111)
+     - Company contacts
+     - First aid guidance
+   - **General Work Guidance**:
+     - Professional standards
+     - Quality assurance
+     - Environmental responsibility
+
+2. **Interactive UI**:
+   - Expandable sections with color-coded icons
+   - External links to official HSE resources
+   - Bullet-point lists for easy scanning
+   - Mobile-responsive design with bottom padding
+   - Back to Dashboard navigation
+
+3. **Dashboard Integration**:
+   - Added "Useful Info" quick action button
+   - Icon: BookOpen (indigo color)
+   - Accessible from worker dashboard
+
+**Files Created**:
+- `apps/web-worker/src/pages/info/UsefulInfo.tsx` - Main safety information page
+- Updated `apps/web-worker/src/App.tsx` - Added /useful-info route
+- Updated `apps/web-worker/src/pages/dashboard/WorkerDashboard.tsx` - Added quick action button
+
+### Feature 3: Complete Checklist Integration
+
+**Problem**: Checklists created in cleaning portal weren't displaying in worker app job details, and checkboxes weren't functional.
+
+**Issues Fixed**:
+
+1. **Cleaning Portal Checklist Display**:
+   - Fixed [object Object] display in template editor
+   - Added proper section grouping (BEDROOMS, KITCHEN, etc.)
+   - Implemented inline styles for guaranteed rendering
+   - Made checklist card expandable in job details
+
+2. **Worker App Checklist Display**:
+   - Fixed interface mismatch (task → label)
+   - Added section field to ChecklistItem interface
+   - Implemented section grouping in job details
+   - Added proper styling with progress indicators
+
+3. **Checklist Item Update API**:
+   - Created `PUT /api/cleaning-jobs/:id/checklist/:itemId` endpoint
+   - Updates completed status for individual items
+   - Recalculates checklist_completed_items count
+   - Includes proper service provider authorization
+   - Verifies job ownership through customer relation
+
+4. **Data Structure Fixes**:
+   - CleaningJobsService now populates checklist_items when creating jobs
+   - Sections JSON properly flattened with section info preserved
+   - Template sections parsed and transformed correctly
+   - Client-side population for old jobs missing checklist data
+
+**Files Modified**:
+- `apps/api/src/routes/cleaning-jobs.ts` - Added checklist item update endpoint
+- `apps/api/src/services/CleaningJobsService.ts` - Enhanced checklist population logic
+- `apps/web-cleaning/src/pages/ChecklistTemplates.tsx` - Fixed [object Object] display
+- `apps/web-cleaning/src/pages/cleaning/CleaningJobDetails.tsx` - Added section grouping
+- `apps/web-worker/src/components/jobs/JobChecklist.tsx` - Fixed interface and added sections
+- `apps/web-worker/src/pages/checklists/MyChecklists.tsx` - Added section grouping
+
+### Data Quality Improvements
+
+**Problem**: Checklist templates had inconsistent data formats causing display issues.
+
+**Fixes**:
+- Template loading: Extract label from item objects instead of displaying objects
+- Template saving: Convert string items to {id, label} structure
+- Section preservation: Maintain section info through transformation pipeline
+- Null handling: Added optional chaining for safe property access
+
+### Testing & Verification
+
+**User Confirmed**:
+- ✅ My Checklists page loading correctly
+- ✅ Checklists filtered to worker's assigned jobs
+- ✅ Section titles displaying (BEDROOMS, KITCHEN, etc.)
+- ✅ Useful Info page with all safety content
+- ✅ Expandable sections working
+- ✅ External HSE links functional
+- ✅ Checklist checkboxes updating correctly in job details
+- ✅ Progress bar updating as items completed
+- ✅ Cleaning portal checklist display working
+- ✅ All navigation working (back buttons, quick actions)
+
+### Code Quality
+
+**Best Practices Followed**:
+- TypeScript interfaces for type safety
+- Optional chaining for null safety
+- Proper loading states with spinners
+- Error handling in API calls
+- User-friendly error messages
+- Responsive mobile design
+- Accessible navigation patterns
+- Consistent UI/UX with Tailwind CSS
+- RESTful API design
+- Proper authorization checks
+
+### Current Status (November 9, Session 2)
+
+**All Features Operational**:
+- ✅ My Checklists page complete and tested
+- ✅ Useful Info page with comprehensive safety content
+- ✅ Dashboard quick actions working
+- ✅ Checklist integration fully functional
+- ✅ API endpoint for checkbox updates working
+- ✅ Section grouping across all displays
+- ✅ Data transformation pipeline robust
+- ✅ No console errors or warnings
+- ✅ Mobile responsive design
+
+**Pending**: Commit to Git
+
+**Recommendations**:
+1. Consider adding ability to download checklists as PDF
+2. Add search functionality to Useful Info page
+3. Consider adding training videos/modules in future
+4. Add user feedback system for safety information

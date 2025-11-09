@@ -138,6 +138,71 @@ router.put('/:id', requireServiceProvider, async (req: Request, res: Response, n
   }
 });
 
+// PUT /api/cleaning-jobs/:id/checklist/:itemId - Update checklist item completion
+router.put('/:id/checklist/:itemId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+    const { completed } = req.body;
+
+    // Look up service provider from user's tenant
+    const { prisma } = require('@rightfit/database');
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    // Get the job and verify ownership
+    const job = await prisma.cleaningJob.findFirst({
+      where: {
+        id: req.params.id
+      },
+      include: {
+        customer: {
+          select: { service_provider_id: true }
+        }
+      }
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    if (job.customer.service_provider_id !== serviceProvider.id) {
+      return res.status(403).json({ error: 'Not authorized to update this job' });
+    }
+
+    // Update the checklist item
+    const checklistItems = job.checklist_items as any[] || [];
+    const itemIndex = checklistItems.findIndex(item => item.id === req.params.itemId);
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Checklist item not found' });
+    }
+
+    checklistItems[itemIndex].completed = completed;
+
+    // Recalculate completed count
+    const completedCount = checklistItems.filter(item => item.completed).length;
+
+    // Update the job
+    const updatedJob = await prisma.cleaningJob.update({
+      where: { id: req.params.id },
+      data: {
+        checklist_items: checklistItems,
+        checklist_completed_items: completedCount
+      }
+    });
+
+    res.json({ data: updatedJob });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // DELETE /api/cleaning-jobs/:id
 router.delete('/:id', requireServiceProvider, async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { format } from 'date-fns'
-import { Calendar, Clock, CheckCircle, Briefcase, MapPin, ChevronRight, Wrench, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar, Clock, CheckCircle, Briefcase, MapPin, ChevronRight, Wrench, ClipboardList, ChevronDown, ChevronUp, BookOpen, ListChecks } from 'lucide-react'
 import { CleaningJob } from '../../types'
 
 export default function WorkerDashboard() {
@@ -309,7 +309,7 @@ export default function WorkerDashboard() {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
         {isCleaningWorker && (
           <button
             onClick={() => window.location.href = '/jobs'}
@@ -348,6 +348,24 @@ export default function WorkerDashboard() {
           <Clock className="w-6 h-6 text-purple-600 mb-2" />
           <p className="font-semibold text-gray-900">Availability</p>
           <p className="text-sm text-gray-600">Block dates</p>
+        </button>
+
+        <button
+          onClick={() => window.location.href = '/checklists'}
+          className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-left"
+        >
+          <ListChecks className="w-6 h-6 text-teal-600 mb-2" />
+          <p className="font-semibold text-gray-900">My Checklists</p>
+          <p className="text-sm text-gray-600">Reference guides</p>
+        </button>
+
+        <button
+          onClick={() => window.location.href = '/useful-info'}
+          className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-left"
+        >
+          <BookOpen className="w-6 h-6 text-indigo-600 mb-2" />
+          <p className="font-semibold text-gray-900">Useful Info</p>
+          <p className="text-sm text-gray-600">Safety & guidelines</p>
         </button>
       </div>
     </div>

@@ -3,9 +3,10 @@ import { CheckCircle, Circle, AlertCircle } from 'lucide-react'
 
 export interface ChecklistItem {
   id: string
-  task: string
+  label: string
+  section?: string
   completed: boolean
-  order_index: number
+  order_index?: number
 }
 
 interface JobChecklistProps {
@@ -126,51 +127,75 @@ export default function JobChecklist({
       </div>
 
       {/* Checklist Items */}
-      <div className="space-y-2">
-        {items
-          .sort((a, b) => a.order_index - b.order_index)
-          .map((item) => (
-            <div
-              key={item.id}
-              className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
-                readOnly
-                  ? 'border-gray-200 bg-gray-50'
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
-              } ${item.completed ? 'bg-green-50 border-green-200' : ''} ${
-                updating === item.id ? 'opacity-50' : ''
-              }`}
-              onClick={() => !readOnly && toggleItem(item.id)}
-            >
-              {/* Checkbox Icon */}
-              <div className="flex-shrink-0 mt-0.5">
-                {item.completed ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <Circle className="w-5 h-5 text-gray-400" />
-                )}
-              </div>
+      <div className="space-y-4">
+        {(() => {
+          // Group items by section
+          const sections: { [key: string]: ChecklistItem[] } = {}
+          const sortedItems = items.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
 
-              {/* Task Text */}
-              <div className="flex-1 min-w-0">
-                <p
-                  className={`text-sm ${
-                    item.completed
-                      ? 'text-gray-500 line-through'
-                      : 'text-gray-900 font-medium'
-                  }`}
-                >
-                  {item.task}
-                </p>
-              </div>
+          sortedItems.forEach((item) => {
+            const sectionName = item.section || 'General'
+            if (!sections[sectionName]) {
+              sections[sectionName] = []
+            }
+            sections[sectionName].push(item)
+          })
 
-              {/* Loading Indicator */}
-              {updating === item.id && (
-                <div className="flex-shrink-0">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
+          return Object.entries(sections).map(([sectionName, sectionItems]) => (
+            <div key={sectionName}>
+              {/* Section Header */}
+              <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
+                {sectionName}
+              </h4>
+
+              {/* Section Items */}
+              <div className="space-y-2">
+                {sectionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
+                      readOnly
+                        ? 'border-gray-200 bg-gray-50'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
+                    } ${item.completed ? 'bg-green-50 border-green-200' : ''} ${
+                      updating === item.id ? 'opacity-50' : ''
+                    }`}
+                    onClick={() => !readOnly && toggleItem(item.id)}
+                  >
+                    {/* Checkbox Icon */}
+                    <div className="flex-shrink-0 mt-0.5">
+                      {item.completed ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+
+                    {/* Task Text */}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm ${
+                          item.completed
+                            ? 'text-gray-500 line-through'
+                            : 'text-gray-900 font-medium'
+                        }`}
+                      >
+                        {item.label}
+                      </p>
+                    </div>
+
+                    {/* Loading Indicator */}
+                    {updating === item.id && (
+                      <div className="flex-shrink-0">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+          ))
+        })()}
       </div>
 
       {/* Completion Message */}

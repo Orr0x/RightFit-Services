@@ -5,6 +5,7 @@ import { PropertyHistoryService } from './PropertyHistoryService';
 import { WorkerHistoryService } from './WorkerHistoryService';
 import CleaningJobTimesheetService from './CleaningJobTimesheetService';
 import { WorkerAvailabilityService } from './WorkerAvailabilityService';
+import { randomUUID } from 'crypto';
 
 export interface CreateCleaningJobInput {
   service_id: string;
@@ -208,7 +209,13 @@ export class CleaningJobsService {
       }
     }
 
-    return job;
+    // Transform checklist_items JSON to array for frontend
+    const transformedJob = {
+      ...job,
+      checklist: job.checklist_items ? (Array.isArray(job.checklist_items) ? job.checklist_items : []) : []
+    };
+
+    return transformedJob;
   }
 
   async create(input: CreateCleaningJobInput, serviceProviderId: string) {
@@ -238,6 +245,38 @@ export class CleaningJobsService {
       }
     }
 
+    // If checklist template is provided, fetch and transform it
+    let checklistItems: any[] = [];
+    let totalItems = 0;
+    if (input.checklist_template_id) {
+      const template = await prisma.checklistTemplate.findUnique({
+        where: { id: input.checklist_template_id },
+      });
+
+      if (template && template.sections) {
+        const sections = typeof template.sections === 'string'
+          ? JSON.parse(template.sections)
+          : template.sections;
+
+        // Flatten all items from all sections, preserving section info
+        if (Array.isArray(sections)) {
+          sections.forEach((section: any) => {
+            if (section.items && Array.isArray(section.items)) {
+              section.items.forEach((item: any) => {
+                checklistItems.push({
+                  id: item.id || randomUUID(),
+                  label: item.label || item.text || '',
+                  section: section.title || '',
+                  completed: false
+                });
+                totalItems++;
+              });
+            }
+          });
+        }
+      }
+    }
+
     // Convert empty strings to undefined for optional foreign key fields
     const cleanedData: any = {
       service_id: input.service_id || undefined,
@@ -246,7 +285,9 @@ export class CleaningJobsService {
       contract_id: input.contract_id || undefined,
       assigned_worker_id: input.assigned_worker_id || undefined,
       checklist_template_id: input.checklist_template_id || undefined,
-      checklist_total_items: input.checklist_total_items || 0,
+      checklist_items: checklistItems.length > 0 ? checklistItems : undefined,
+      checklist_total_items: totalItems,
+      checklist_completed_items: 0,
       pricing_type: input.pricing_type,
       quoted_price: input.quoted_price,
       status: input.status || 'PENDING',

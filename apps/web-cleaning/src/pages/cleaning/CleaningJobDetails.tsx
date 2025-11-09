@@ -23,6 +23,8 @@ import PlayCircleIcon from '@mui/icons-material/PlayCircle'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AddIcon from '@mui/icons-material/Add'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import '../ContractDetails.css'
 import '../PropertyDetails.css'
 import '../Quotes.css'
@@ -58,6 +60,7 @@ export default function CleaningJobDetails() {
   const [issueDescription, setIssueDescription] = useState('')
   const [issueCategory, setIssueCategory] = useState('PLUMBING')
   const [issuePriority, setIssuePriority] = useState<'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM')
+  const [isChecklistExpanded, setIsChecklistExpanded] = useState(false)
 
   // Tab state
   const [activeTab, setActiveTab] = useState('details')
@@ -91,6 +94,43 @@ export default function CleaningJobDetails() {
     withLoading(async () => {
       try {
         const data = await cleaningJobsAPI.get(id)
+
+        // If job has a checklist template but no checklist_items, fetch and populate them
+        if (data.checklist_template_id && (!data.checklist_items || data.checklist_items.length === 0)) {
+          try {
+            const template = await checklistTemplatesAPI.get(data.checklist_template_id)
+
+            // Parse sections and flatten to items
+            if (template.sections) {
+              const sections = typeof template.sections === 'string'
+                ? JSON.parse(template.sections)
+                : template.sections
+
+              const items: any[] = []
+              if (Array.isArray(sections)) {
+                sections.forEach((section: any) => {
+                  if (section.items && Array.isArray(section.items)) {
+                    section.items.forEach((item: any) => {
+                      items.push({
+                        id: item.id || `item-${items.length}`,
+                        label: item.label || item.text || '',
+                        section: section.title || '',
+                        completed: false
+                      })
+                    })
+                  }
+                })
+              }
+
+              // Add items to job data
+              data.checklist_items = items
+              data.checklist_total_items = items.length
+            }
+          } catch (templateErr) {
+            console.error('Failed to load checklist template:', templateErr)
+          }
+        }
+
         setJob(data)
       } catch (err: any) {
         toast.error('Failed to load job details')
@@ -924,9 +964,9 @@ export default function CleaningJobDetails() {
             </Card>
           ) : (
             <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <span className="text-2xl">✅</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>✅</span>
                   Cleaning Checklist
                 </h2>
                 <Button size="sm" onClick={() => navigate('/checklist-templates')}>
@@ -936,25 +976,151 @@ export default function CleaningJobDetails() {
               </div>
 
               {job.checklist_total_items > 0 ? (
-                <Card className="p-6 mb-6">
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold">Progress</h3>
-                      <span className="text-sm text-gray-500">
-                        {job.checklist_completed_items} / {job.checklist_total_items} completed
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-green-600 h-3 rounded-full"
-                        style={{
-                          width: `${(job.checklist_completed_items / job.checklist_total_items) * 100}%`,
-                        }}
-                      />
+                <div style={{
+                  background: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.75rem',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  overflow: 'hidden',
+                  marginBottom: '1.5rem'
+                }}>
+                  {/* Checklist Header */}
+                  <div
+                    style={{
+                      padding: '1rem',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s'
+                    }}
+                    onClick={() => setIsChecklistExpanded(!isChecklistExpanded)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827' }}>Cleaning Checklist</h3>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            backgroundColor: '#d1fae5',
+                            color: '#065f46',
+                            borderRadius: '0.25rem'
+                          }}>
+                            {job.checklist_completed_items} / {job.checklist_total_items} completed
+                          </span>
+                        </div>
+                        <div style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: '9999px', height: '0.5rem', marginBottom: '0.5rem' }}>
+                          <div
+                            style={{
+                              backgroundColor: '#059669',
+                              height: '0.5rem',
+                              borderRadius: '9999px',
+                              transition: 'width 0.3s',
+                              width: `${(job.checklist_completed_items / job.checklist_total_items) * 100}%`
+                            }}
+                          />
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                          {job.checklist_total_items} {job.checklist_total_items === 1 ? 'item' : 'items'}
+                        </p>
+                      </div>
+                      <div style={{ marginLeft: '1rem' }}>
+                        {isChecklistExpanded ? (
+                          <ExpandLessIcon sx={{ fontSize: 20, color: 'gray' }} />
+                        ) : (
+                          <ExpandMoreIcon sx={{ fontSize: 20, color: 'gray' }} />
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500">Checklist details available in job data</p>
-                </Card>
+
+                  {/* Checklist Items */}
+                  {isChecklistExpanded && (
+                    <div style={{
+                      borderTop: '1px solid #e5e7eb',
+                      backgroundColor: '#f9fafb',
+                      padding: '1rem'
+                    }}>
+                      {job.checklist_items && Array.isArray(job.checklist_items) && job.checklist_items.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                          {(() => {
+                            // Group items by section
+                            const sections: { [key: string]: any[] } = {}
+                            let itemIndex = 0
+
+                            job.checklist_items.forEach((item: any) => {
+                              const sectionName = item.section || 'General'
+                              if (!sections[sectionName]) {
+                                sections[sectionName] = []
+                              }
+                              sections[sectionName].push({ ...item, globalIndex: itemIndex++ })
+                            })
+
+                            return Object.entries(sections).map(([sectionName, items]) => (
+                              <div key={sectionName}>
+                                {/* Section Header */}
+                                <h4 style={{
+                                  fontSize: '0.875rem',
+                                  fontWeight: '700',
+                                  color: '#111827',
+                                  marginBottom: '0.5rem',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em'
+                                }}>
+                                  {sectionName}
+                                </h4>
+
+                                {/* Section Items */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  {items.map((item: any) => (
+                                    <div
+                                      key={item.id}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: '0.75rem',
+                                        backgroundColor: 'white',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid #e5e7eb'
+                                      }}
+                                    >
+                                      <div style={{
+                                        width: '1.5rem',
+                                        height: '1.5rem',
+                                        borderRadius: '0.25rem',
+                                        border: '2px solid #d1d5db',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                        marginTop: '0.125rem'
+                                      }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6b7280' }}>
+                                          {item.globalIndex + 1}
+                                        </span>
+                                      </div>
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+                                          {item.label}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))
+                          })()}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: '0.875rem', color: '#4b5563', textAlign: 'center', padding: '1rem 0' }}>
+                          No checklist items available
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <Card className="p-12 text-center">
                   <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Checklist</h3>

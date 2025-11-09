@@ -86,7 +86,9 @@ export default function ChecklistTemplates() {
       const templateSections = Array.isArray(template.sections) ? template.sections : []
       setSections(templateSections.length > 0 ? templateSections.map(s => ({
         title: s.title,
-        items: s.items && s.items.length > 0 ? s.items : [''],
+        items: s.items && s.items.length > 0
+          ? s.items.map((item: any) => typeof item === 'string' ? item : (item.label || item.text || ''))
+          : [''],
         images: s.images || []
       })) : [{ title: '', items: [''], images: [] }])
     } else {
@@ -128,7 +130,10 @@ export default function ChecklistTemplates() {
     try {
       const sectionsData: ChecklistSection[] = validSections.map(s => ({
         title: s.title,
-        items: s.items.filter(item => item.trim() !== ''),
+        items: s.items.filter(item => item.trim() !== '').map(label => ({
+          id: crypto.randomUUID(),
+          label: label
+        })),
         images: s.images || []
       }))
 
