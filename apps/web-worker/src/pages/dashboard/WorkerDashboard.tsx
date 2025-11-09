@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { format } from 'date-fns'
-import { Calendar, Clock, CheckCircle, Briefcase, MapPin, ChevronRight, Wrench, ClipboardList, ChevronDown, ChevronUp, BookOpen, ListChecks } from 'lucide-react'
+import { Calendar, Clock, CheckCircle, Briefcase, MapPin, ChevronRight, Wrench, ClipboardList, ChevronDown, ChevronUp, BookOpen, ListChecks, Navigation } from 'lucide-react'
 import { CleaningJob } from '../../types'
+import WeatherWidget from '../../components/dashboard/WeatherWidget'
+import NextJobWidget from '../../components/dashboard/NextJobWidget'
 
 export default function WorkerDashboard() {
   const { worker } = useAuth()
@@ -308,6 +310,15 @@ export default function WorkerDashboard() {
         </div>
       )}
 
+      {/* Navigation Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Weather Widget */}
+        <WeatherWidget />
+
+        {/* Next Job Widget */}
+        <NextJobWidget />
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
         {isCleaningWorker && (
@@ -366,6 +377,15 @@ export default function WorkerDashboard() {
           <BookOpen className="w-6 h-6 text-indigo-600 mb-2" />
           <p className="font-semibold text-gray-900">Useful Info</p>
           <p className="text-sm text-gray-600">Safety & guidelines</p>
+        </button>
+
+        <button
+          onClick={() => window.location.href = '/navigation/my-locations'}
+          className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-left"
+        >
+          <Navigation className="w-6 h-6 text-cyan-600 mb-2" />
+          <p className="font-semibold text-gray-900">My Locations</p>
+          <p className="text-sm text-gray-600">Navigate to jobs</p>
         </button>
       </div>
     </div>

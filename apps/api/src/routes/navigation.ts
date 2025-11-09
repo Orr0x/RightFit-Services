@@ -7,6 +7,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { NavigationService } from '../services/NavigationService';
 import { WeatherService } from '../services/WeatherService';
+import { trafficService } from '../services/TrafficService';
 import { authMiddleware } from '../middleware/auth';
 import { prisma } from '@rightfit/database';
 
@@ -329,6 +330,68 @@ router.get('/weather', async (req: Request, res: Response, next: NextFunction) =
       data: {
         weather,
         recommendations,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/navigation/traffic
+ * Get traffic data for a route
+ *
+ * Body:
+ * {
+ *   "coordinates": [
+ *     { "latitude": number, "longitude": number },
+ *     ...
+ *   ]
+ * }
+ */
+router.post('/traffic', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { coordinates } = req.body;
+
+    if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
+      return res.status(400).json({
+        error: 'Missing or invalid coordinates array: must have at least 2 points',
+      });
+    }
+
+    // Validate coordinates format
+    for (const coord of coordinates) {
+      if (!coord.latitude || !coord.longitude) {
+        return res.status(400).json({
+          error: 'Invalid coordinate format: each coordinate must have latitude and longitude',
+        });
+      }
+    }
+
+    // Check if TomTom API is configured
+    if (!trafficService.isConfigured()) {
+      return res.json({
+        data: {
+          incidents: [],
+          flow: {
+            overall_congestion: 'NONE',
+            average_speed_kmh: 0,
+            average_delay_minutes: 0,
+            total_incidents: 0,
+          },
+          last_updated: new Date(),
+          configured: false,
+        },
+        message: 'Traffic API not configured - please add TOMTOM_API_KEY to environment',
+      });
+    }
+
+    const trafficData = await trafficService.getRouteTrafficData(coordinates);
+
+    res.json({
+      data: {
+        ...trafficData,
+        configured: true,
       },
     });
   } catch (error) {

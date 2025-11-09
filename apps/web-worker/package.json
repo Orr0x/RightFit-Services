@@ -17,12 +17,15 @@
     "date-fns": "^2.30.0",
     "react-calendar": "^4.6.1",
     "lucide-react": "^0.294.0",
-    "browser-image-compression": "^2.0.2"
+    "browser-image-compression": "^2.0.2",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^4.2.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/react-calendar": "^4.1.0",
+    "@types/leaflet": "^1.9.8",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",

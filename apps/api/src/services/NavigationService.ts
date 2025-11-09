@@ -368,11 +368,10 @@ export class NavigationService {
         cleaning_jobs: {
           where: {
             assigned_worker_id: workerId,
-            status: { in: ['SCHEDULED', 'IN_PROGRESS'] },
           },
-          orderBy: { scheduled_date: 'asc' },
-          take: 1,
           select: {
+            id: true,
+            status: true,
             scheduled_date: true,
           },
         },
@@ -403,10 +402,20 @@ export class NavigationService {
         eta = Math.round((distance.distance_km / 50) * 60); // minutes
       }
 
+      // Get active jobs (SCHEDULED or IN_PROGRESS)
+      const activeJobs = property.cleaning_jobs.filter(
+        job => job.status === 'SCHEDULED' || job.status === 'IN_PROGRESS'
+      );
+
+      // Sort jobs by date to get next job
+      const sortedJobs = activeJobs.sort(
+        (a, b) => new Date(a.scheduled_date || 0).getTime() - new Date(b.scheduled_date || 0).getTime()
+      );
+
       return {
-        id: property.id,
-        name: property.property_name,
-        address: property.address,
+        property_id: property.id,
+        property_name: property.property_name,
+        property_address: property.address,
         postcode: property.postcode,
         latitude: property.latitude ? Number(property.latitude) : null,
         longitude: property.longitude ? Number(property.longitude) : null,
@@ -415,7 +424,8 @@ export class NavigationService {
         location_type: property.location_type || 'ADDRESS',
         geocoded_at: property.geocoded_at,
         customer_name: property.customer.business_name,
-        next_job_date: property.cleaning_jobs[0]?.scheduled_date || null,
+        job_count: property.cleaning_jobs.length,
+        next_job_date: sortedJobs[0]?.scheduled_date || null,
         distance_meters: distance?.distance_meters,
         distance_km: distance?.distance_km,
         distance_miles: distance?.distance_miles,

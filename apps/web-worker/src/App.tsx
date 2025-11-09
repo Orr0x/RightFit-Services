@@ -14,6 +14,8 @@ import WorkHistory from './pages/history/WorkHistory'
 import MyReportedIssues from './pages/issues/MyReportedIssues'
 import MyChecklists from './pages/checklists/MyChecklists'
 import UsefulInfo from './pages/info/UsefulInfo'
+import MyLocations from './pages/navigation/MyLocations'
+import NavigationView from './pages/navigation/NavigationView'
 
 function App() {
   return (
@@ -136,6 +138,26 @@ function App() {
                 <WorkerLayout>
                   <UsefulInfo />
                 </WorkerLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Navigation - My Locations */}
+          <Route
+            path="/navigation/my-locations"
+            element={
+              <ProtectedRoute>
+                <MyLocations />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Navigation - Property Navigation View */}
+          <Route
+            path="/navigation/:propertyId"
+            element={
+              <ProtectedRoute>
+                <NavigationView />
               </ProtectedRoute>
             }
           />
