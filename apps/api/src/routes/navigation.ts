@@ -6,11 +6,13 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { NavigationService } from '../services/NavigationService';
+import { WeatherService } from '../services/WeatherService';
 import { authMiddleware } from '../middleware/auth';
 import { prisma } from '@rightfit/database';
 
 const router: Router = Router();
 const navigationService = new NavigationService();
+const weatherService = new WeatherService();
 
 router.use(authMiddleware);
 
@@ -289,6 +291,46 @@ router.get('/property/:propertyId', async (req: Request, res: Response, next: Ne
     );
 
     res.json({ data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/navigation/weather
+ * Get current weather for coordinates
+ *
+ * Query params:
+ * - lat: number (required) - Latitude
+ * - lon: number (required) - Longitude
+ */
+router.get('/weather', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const lat = parseFloat(req.query.lat as string);
+    const lon = parseFloat(req.query.lon as string);
+
+    if (isNaN(lat) || isNaN(lon)) {
+      return res.status(400).json({
+        error: 'Missing or invalid query parameters: lat and lon are required',
+      });
+    }
+
+    // Validate coordinate ranges
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({
+        error: 'Invalid coordinates: latitude must be [-90, 90], longitude must be [-180, 180]',
+      });
+    }
+
+    const weather = await weatherService.getCurrentWeather(lat, lon);
+    const recommendations = weatherService.generateRecommendations(weather);
+
+    res.json({
+      data: {
+        weather,
+        recommendations,
+      },
+    });
   } catch (error) {
     next(error);
   }
