@@ -33,6 +33,13 @@ export interface Property {
   bathrooms: number
   access_instructions?: string | null
   status: 'ACTIVE' | 'INACTIVE'
+  // Location fields for GPS navigation (Sprint 8)
+  latitude?: number | null
+  longitude?: number | null
+  what3words?: string | null
+  plus_code?: string | null
+  location_type?: string
+  geocoded_at?: Date | null
   created_at: Date
   updated_at: Date
 }
@@ -67,3 +74,6 @@ export interface AuthResponse {
   access_token: string
   refresh_token: string
 }
+
+// Navigation types (GPS Navigation Feature - Sprint 8)
+export * from './navigation'
