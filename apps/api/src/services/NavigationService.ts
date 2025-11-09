@@ -456,4 +456,165 @@ export class NavigationService {
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
+
+  /**
+   * Get route between two points using OSRM
+   *
+   * @param originLat - Origin latitude
+   * @param originLon - Origin longitude
+   * @param destLat - Destination latitude
+   * @param destLon - Destination longitude
+   * @returns Route with turn-by-turn directions
+   */
+  async getRoute(
+    originLat: number,
+    originLon: number,
+    destLat: number,
+    destLon: number
+  ): Promise<{
+    distance_meters: number;
+    duration_seconds: number;
+    steps: Array<{
+      instruction: string;
+      distance_meters: number;
+      duration_seconds: number;
+      maneuver?: string;
+    }>;
+    polyline?: string;
+  }> {
+    try {
+      const response = await axios.get(
+        `${this.config.routing.osrmBaseUrl}/route/v1/driving/${originLon},${originLat};${destLon},${destLat}`,
+        {
+          params: {
+            steps: true, // Get turn-by-turn instructions
+            overview: 'full', // Get full route polyline
+            geometries: 'polyline', // Polyline format for mapping
+          },
+          timeout: this.config.routing.timeout,
+        }
+      );
+
+      if (response.data.code !== 'Ok' || !response.data.routes || response.data.routes.length === 0) {
+        throw new Error('No route found between these locations');
+      }
+
+      const route = response.data.routes[0];
+      const leg = route.legs[0]; // Single leg for direct route
+
+      // Parse steps into simpler format
+      const steps = leg.steps.map((step: any) => {
+        return {
+          instruction: step.name || 'Continue',
+          distance_meters: Math.round(step.distance),
+          duration_seconds: Math.round(step.duration),
+          maneuver: step.maneuver?.type,
+        };
+      });
+
+      return {
+        distance_meters: Math.round(route.distance),
+        duration_seconds: Math.round(route.duration),
+        steps,
+        polyline: route.geometry, // Encoded polyline for map display
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNREFUSED') {
+          throw new Error('Routing service temporarily unavailable. Please try again.');
+        }
+        throw new Error(`Routing failed: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get complete navigation data for a property
+   * Includes route, weather, and traffic (if available)
+   */
+  async getNavigationData(
+    propertyId: string,
+    userLat: number,
+    userLon: number,
+    serviceProviderId: string
+  ): Promise<{
+    property: {
+      id: string;
+      name: string;
+      address: string;
+      latitude: number;
+      longitude: number;
+      what3words: string | null;
+      plus_code: string | null;
+    };
+    route: {
+      distance_meters: number;
+      duration_seconds: number;
+      steps: any[];
+      polyline?: string;
+    } | null;
+    distance: {
+      distance_meters: number;
+      distance_km: number;
+      distance_miles: number;
+    };
+  }> {
+    // 1. Get property and verify access
+    const property = await prisma.customerProperty.findFirst({
+      where: {
+        id: propertyId,
+        customer: {
+          service_provider_id: serviceProviderId,
+        },
+      },
+      select: {
+        id: true,
+        property_name: true,
+        address: true,
+        latitude: true,
+        longitude: true,
+        what3words: true,
+        plus_code: true,
+      },
+    });
+
+    if (!property) {
+      throw new Error('Property not found or access denied');
+    }
+
+    // 2. Ensure property has coordinates
+    if (!property.latitude || !property.longitude) {
+      throw new Error('Property has not been geocoded yet');
+    }
+
+    const propLat = Number(property.latitude);
+    const propLon = Number(property.longitude);
+
+    // 3. Calculate straight-line distance
+    const distance = this.calculateDistance(userLat, userLon, propLat, propLon);
+
+    // 4. Get route
+    let route: any = null;
+    try {
+      route = await this.getRoute(userLat, userLon, propLat, propLon);
+    } catch (error) {
+      console.error('Route calculation failed:', error);
+      // Continue without route - user can still see property location
+    }
+
+    return {
+      property: {
+        id: property.id,
+        name: property.property_name,
+        address: property.address,
+        latitude: propLat,
+        longitude: propLon,
+        what3words: property.what3words,
+        plus_code: property.plus_code,
+      },
+      route,
+      distance,
+    };
+  }
 }

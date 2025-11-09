@@ -210,4 +210,88 @@ router.get('/my-locations', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
+/**
+ * POST /api/navigation/route
+ * Get route with turn-by-turn directions
+ *
+ * Body:
+ * {
+ *   "origin": { "latitude": number, "longitude": number },
+ *   "destination": { "latitude": number, "longitude": number }
+ * }
+ */
+router.post('/route', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { origin, destination } = req.body;
+
+    if (!origin || !destination) {
+      return res.status(400).json({
+        error: 'Missing required fields: origin and destination',
+      });
+    }
+
+    if (!origin.latitude || !origin.longitude || !destination.latitude || !destination.longitude) {
+      return res.status(400).json({
+        error: 'Invalid coordinates format',
+      });
+    }
+
+    const route = await navigationService.getRoute(
+      origin.latitude,
+      origin.longitude,
+      destination.latitude,
+      destination.longitude
+    );
+
+    res.json({ data: route });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/navigation/property/:propertyId
+ * Get complete navigation data for a property
+ * Includes property details, route, and distance
+ *
+ * Query params:
+ * - user_lat: number (required) - User's current latitude
+ * - user_lon: number (required) - User's current longitude
+ */
+router.get('/property/:propertyId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { propertyId } = req.params;
+    const tenantId = req.user!.tenant_id;
+    const userLat = parseFloat(req.query.user_lat as string);
+    const userLon = parseFloat(req.query.user_lon as string);
+
+    if (isNaN(userLat) || isNaN(userLon)) {
+      return res.status(400).json({
+        error: 'Missing or invalid query parameters: user_lat and user_lon are required',
+      });
+    }
+
+    // Get service provider ID
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true },
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found' });
+    }
+
+    const data = await navigationService.getNavigationData(
+      propertyId,
+      userLat,
+      userLon,
+      serviceProvider.id
+    );
+
+    res.json({ data });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
