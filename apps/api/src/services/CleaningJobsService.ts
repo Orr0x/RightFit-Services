@@ -59,7 +59,7 @@ export class CleaningJobsService {
     page: number = 1,
     limit: number = 20,
     filters?: {
-      status?: string;
+      status?: string | string[];
       worker_id?: string;
       property_id?: string;
       customer_id?: string;
@@ -88,7 +88,12 @@ export class CleaningJobsService {
     };
 
     if (filters?.status) {
-      where.status = filters.status;
+      // Handle both single status value and array of status values
+      if (Array.isArray(filters.status)) {
+        where.status = { in: filters.status };
+      } else {
+        where.status = filters.status;
+      }
     }
     if (filters?.worker_id) {
       where.assigned_worker_id = filters.worker_id;

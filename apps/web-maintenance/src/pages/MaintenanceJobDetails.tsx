@@ -6,11 +6,11 @@ import { useLoading } from '../hooks/useLoading'
 import { maintenanceJobsAPI, type MaintenanceJob, api } from '../lib/api'
 import ContractorSchedulingModal from '../components/ContractorSchedulingModal'
 import MaintenanceJobCompletionModal from '../components/MaintenanceJobCompletionModal'
-
-// HARDCODED for demo
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function MaintenanceJobDetails() {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [job, setJob] = useState<MaintenanceJob | null>(null)

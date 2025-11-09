@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Calendar, ClipboardList, User, Clock, Wrench } from 'lucide-react'
+import { Home, Calendar, ClipboardList, User, Clock, Wrench, FileText } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
 interface NavItem {
@@ -31,6 +31,11 @@ export default function BottomNav() {
   } else {
     // CLEANER workers (default) only see cleaning jobs
     navItems.push({ path: '/jobs', icon: ClipboardList, label: 'Jobs' })
+  }
+
+  // Add My Issues for cleaners and general workers
+  if (worker?.worker_type === 'CLEANER' || worker?.worker_type === 'GENERAL') {
+    navItems.push({ path: '/my-issues', icon: FileText, label: 'Reports' })
   }
 
   // Add common navigation items

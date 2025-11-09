@@ -619,6 +619,8 @@ model CleaningJob {
   checklist_total_items        Int                    @default(0)
   status                       JobStatus              @default(PENDING)
   completion_notes             String?
+  worker_notes                 String? // Worker notes for pre-job documentation and observations
+  job_note_photos              String[]               @default([]) @db.VarChar(500) // Photos for pre-job documentation
   before_photos                String[]               @db.VarChar(500)
   after_photos                 String[]               @db.VarChar(500)
   issue_photos                 String[]               @db.VarChar(500)

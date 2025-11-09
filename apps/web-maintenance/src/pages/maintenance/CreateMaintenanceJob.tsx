@@ -5,10 +5,11 @@ import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type CreateMaintenanceJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_PRIORITIES, MAINTENANCE_SOURCES } from '@rightfit/shared'
-
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function CreateMaintenanceJob() {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const [formData, setFormData] = useState<CreateMaintenanceJobData>({
     service_id: '',
     property_id: '',

@@ -10,6 +10,8 @@ import JobChecklist, { ChecklistItem } from '../../components/jobs/JobChecklist'
 import StartJobModal from '../../components/jobs/StartJobModal'
 import CompleteJobModal from '../../components/jobs/CompleteJobModal'
 import CreateMaintenanceIssueModal from '../../components/jobs/CreateMaintenanceIssueModal'
+import IssueDetailsModal from '../../components/jobs/IssueDetailsModal'
+import JobNotesSection from '../../components/jobs/JobNotesSection'
 
 interface PropertyDetails {
   id: string
@@ -38,21 +40,30 @@ interface JobDetails {
   customer_id: string
   property: PropertyDetails
   scheduled_date: string
-  scheduled_time_start: string
-  scheduled_time_end: string
+  scheduled_start_time: string | null
+  scheduled_end_time: string | null
   status: string
   special_requirements: string | null
   quoted_price: number | null
   pricing_type: string | null
-  customer_name: string | null
-  customer_phone: string | null
-  customer_email: string | null
-  worker_first_name: string
-  worker_last_name: string
+  worker_notes?: string | null
+  job_note_photos?: string[]
+  customer?: {
+    contact_name: string | null
+    organization_name: string | null
+    email: string | null
+    phone: string | null
+  } | null
+  assigned_worker?: {
+    first_name: string
+    last_name: string
+    email: string
+    phone: string
+  } | null
   checklist: ChecklistItem[]
 }
 
-interface MaintenanceIssue {
+interface WorkerReportedIssue {
   id: string
   title: string
   issue_description: string
@@ -60,7 +71,15 @@ interface MaintenanceIssue {
   priority: string
   status: string
   reported_at: string
-  resolved_at: string | null
+  customer_approved_at?: string | null
+  customer_rejected_at?: string | null
+  rejection_reason?: string | null
+  photos?: string[]
+  created_maintenance_job?: {
+    id: string
+    title: string
+    status: string
+  } | null
 }
 
 export default function JobDetails() {
@@ -74,8 +93,10 @@ export default function JobDetails() {
   const [showCompleteModal, setShowCompleteModal] = useState(false)
   const [showMaintenanceIssueModal, setShowMaintenanceIssueModal] = useState(false)
   const [propertyDetailsExpanded, setPropertyDetailsExpanded] = useState(false)
-  const [maintenanceIssues, setMaintenanceIssues] = useState<MaintenanceIssue[]>([])
-  const [loadingMaintenanceIssues, setLoadingMaintenanceIssues] = useState(false)
+  const [reportedIssues, setReportedIssues] = useState<WorkerReportedIssue[]>([])
+  const [loadingReportedIssues, setLoadingReportedIssues] = useState(false)
+  const [issuesExpanded, setIssuesExpanded] = useState(false)
+  const [selectedIssue, setSelectedIssue] = useState<WorkerReportedIssue | null>(null)
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -100,9 +121,9 @@ export default function JobDetails() {
         const data = await response.json()
         setJob(data.data)
 
-        // Fetch maintenance issues for this property
+        // Fetch worker-reported issues for this property
         if (data.data?.property_id) {
-          fetchMaintenanceIssues(data.data.property_id, token, worker.service_provider_id)
+          fetchReportedIssues(data.data.property_id, token)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
@@ -114,11 +135,11 @@ export default function JobDetails() {
     fetchJobDetails()
   }, [id, worker])
 
-  const fetchMaintenanceIssues = async (propertyId: string, token: string, serviceProviderId: string) => {
+  const fetchReportedIssues = async (propertyId: string, token: string) => {
     try {
-      setLoadingMaintenanceIssues(true)
+      setLoadingReportedIssues(true)
       const response = await fetch(
-        `/api/maintenance-jobs?property_id=${propertyId}&service_provider_id=${serviceProviderId}`,
+        `/api/worker-issues?property_id=${propertyId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -128,12 +149,12 @@ export default function JobDetails() {
 
       if (response.ok) {
         const data = await response.json()
-        setMaintenanceIssues(data.data || [])
+        setReportedIssues(data.data || [])
       }
     } catch (err) {
-      console.error('Error fetching maintenance issues:', err)
+      console.error('Error fetching worker-reported issues:', err)
     } finally {
-      setLoadingMaintenanceIssues(false)
+      setLoadingReportedIssues(false)
     }
   }
 
@@ -156,9 +177,9 @@ export default function JobDetails() {
         const data = await response.json()
         setJob(data.data)
 
-        // Also refresh maintenance issues
+        // Also refresh worker-reported issues
         if (data.data?.property_id) {
-          fetchMaintenanceIssues(data.data.property_id, token, worker.service_provider_id)
+          fetchReportedIssues(data.data.property_id, token)
         }
       }
     } catch (err) {
@@ -212,12 +233,12 @@ export default function JobDetails() {
     }
   }
 
-  const getMaintenanceStatusColor = (status: string) => {
+  const getIssueStatusColor = (status: string) => {
     switch (status) {
-      case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-300'
-      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800 border-blue-300'
-      case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-300'
-      case 'QUOTE_REQUESTED': return 'bg-purple-100 text-purple-800 border-purple-300'
+      case 'APPROVED': return 'bg-green-100 text-green-800 border-green-300'
+      case 'REJECTED': return 'bg-red-100 text-red-800 border-red-300'
+      case 'CUSTOMER_REVIEWING': return 'bg-blue-100 text-blue-800 border-blue-300'
+      case 'SUBMITTED': return 'bg-amber-100 text-amber-800 border-amber-300'
       default: return 'bg-gray-100 text-gray-800 border-gray-300'
     }
   }
@@ -312,13 +333,15 @@ export default function JobDetails() {
           <div className="flex justify-between">
             <span className="text-gray-600">Time:</span>
             <span className="font-medium text-gray-900">
-              {job.scheduled_time_start} - {job.scheduled_time_end}
+              {job.scheduled_start_time && job.scheduled_end_time
+                ? `${job.scheduled_start_time} - ${job.scheduled_end_time}`
+                : '-'}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Assigned to:</span>
             <span className="font-medium text-gray-900">
-              {job.worker_first_name} {job.worker_last_name}
+              {job.assigned_worker ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}` : 'Not assigned'}
             </span>
           </div>
         </div>
@@ -513,38 +536,40 @@ export default function JobDetails() {
       </div>
 
       {/* Customer Information */}
-      {(job.customer_name || job.customer_phone || job.customer_email) && (
+      {job.customer && (job.customer.contact_name || job.customer.organization_name || job.customer.phone || job.customer.email) && (
         <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
           <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
             <User className="w-5 h-5" />
             Customer Information
           </h2>
           <div className="space-y-2 text-sm">
-            {job.customer_name && (
+            {(job.customer.organization_name || job.customer.contact_name) && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Name:</span>
-                <span className="font-medium text-gray-900">{job.customer_name}</span>
+                <span className="font-medium text-gray-900">
+                  {job.customer.organization_name || job.customer.contact_name}
+                </span>
               </div>
             )}
-            {job.customer_phone && (
+            {job.customer.phone && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Phone:</span>
                 <a
-                  href={`tel:${job.customer_phone}`}
+                  href={`tel:${job.customer.phone}`}
                   className="font-medium text-blue-600 hover:text-blue-700"
                 >
-                  {job.customer_phone}
+                  {job.customer.phone}
                 </a>
               </div>
             )}
-            {job.customer_email && (
+            {job.customer.email && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Email:</span>
                 <a
-                  href={`mailto:${job.customer_email}`}
+                  href={`mailto:${job.customer.email}`}
                   className="font-medium text-blue-600 hover:text-blue-700"
                 >
-                  {job.customer_email}
+                  {job.customer.email}
                 </a>
               </div>
             )}
@@ -554,66 +579,92 @@ export default function JobDetails() {
 
       {/* Property Maintenance Issues */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Wrench className="w-5 h-5" />
-          Property Maintenance Issues
-          {maintenanceIssues.length > 0 && (
-            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
-              {maintenanceIssues.length}
-            </span>
+        <button
+          onClick={() => setIssuesExpanded(!issuesExpanded)}
+          className="w-full flex items-center justify-between gap-2 mb-3"
+        >
+          <div className="flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-gray-900" />
+            <h2 className="font-semibold text-gray-900">Property Maintenance Issues</h2>
+            {reportedIssues.length > 0 && (
+              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                {reportedIssues.length}
+              </span>
+            )}
+          </div>
+          {issuesExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
           )}
-        </h2>
-        {loadingMaintenanceIssues ? (
-          <div className="flex items-center justify-center py-4">
-            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <p className="ml-2 text-gray-600">Loading maintenance issues...</p>
-          </div>
-        ) : maintenanceIssues.length === 0 ? (
-          <div className="text-center py-4">
-            <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No maintenance issues reported for this property</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {maintenanceIssues.map((issue) => (
-              <div
-                key={issue.id}
-                className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-medium text-gray-900 text-sm">{issue.title}</h3>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getPriorityColor(issue.priority)}`}>
-                      {issue.priority}
-                    </span>
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getMaintenanceStatusColor(issue.status)}`}>
-                      {issue.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm mb-2">{issue.issue_description}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
-                  <span>
-                    Reported: {new Date(issue.reported_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </span>
-                </div>
-                {issue.resolved_at && (
-                  <div className="mt-2 text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
-                    Resolved: {new Date(issue.resolved_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </div>
-                )}
+        </button>
+
+        {issuesExpanded && (
+          <>
+            {loadingReportedIssues ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <p className="ml-2 text-gray-600">Loading reported issues...</p>
               </div>
-            ))}
-          </div>
+            ) : reportedIssues.length === 0 ? (
+              <div className="text-center py-4">
+                <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">No maintenance issues reported for this property</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {reportedIssues.map((issue) => (
+                  <div
+                    key={issue.id}
+                    onClick={() => setSelectedIssue(issue)}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-medium text-gray-900 text-sm">{issue.title}</h3>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getPriorityColor(issue.priority)}`}>
+                          {issue.priority}
+                        </span>
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getIssueStatusColor(issue.status)}`}>
+                          {issue.status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 text-sm mb-2 line-clamp-2">{issue.issue_description}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
+                      <span>
+                        Reported: {new Date(issue.reported_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    {issue.status === 'APPROVED' && issue.customer_approved_at && (
+                      <div className="mt-2 text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
+                        Approved: {new Date(issue.customer_approved_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    )}
+                    {issue.status === 'REJECTED' && issue.rejection_reason && (
+                      <div className="mt-2 text-xs text-red-700 bg-red-50 px-2 py-1 rounded">
+                        Rejected: {issue.rejection_reason}
+                      </div>
+                    )}
+                    {issue.created_maintenance_job && (
+                      <div className="mt-2 text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">
+                        Maintenance Job Created: {issue.created_maintenance_job.title} ({issue.created_maintenance_job.status.replace(/_/g, ' ')})
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -630,6 +681,15 @@ export default function JobDetails() {
           />
         </div>
       )}
+
+      {/* Job Notes & Photos */}
+      <JobNotesSection
+        jobId={job.id}
+        initialNotes={job.worker_notes || ''}
+        initialPhotos={job.job_note_photos || []}
+        isCompleted={job.status === 'COMPLETED'}
+        onUpdate={refetchJob}
+      />
 
       {/* Report Maintenance Issue Button */}
       <div className="mb-4">
@@ -679,6 +739,8 @@ export default function JobDetails() {
         <StartJobModal
           jobId={job.id}
           propertyName={job.property.name}
+          workerNotes={job.worker_notes || undefined}
+          photos={job.job_note_photos || []}
           onClose={() => setShowStartModal(false)}
           onSuccess={handleStartJobSuccess}
         />
@@ -704,6 +766,18 @@ export default function JobDetails() {
           customerId={job.customer_id}
           onClose={() => setShowMaintenanceIssueModal(false)}
           onSuccess={handleMaintenanceIssueSuccess}
+        />
+      )}
+
+      {/* Issue Details Modal */}
+      {selectedIssue && (
+        <IssueDetailsModal
+          issue={selectedIssue}
+          onClose={() => setSelectedIssue(null)}
+          onUpdate={() => {
+            setSelectedIssue(null)
+            refetchJob()
+          }}
         />
       )}
     </div>

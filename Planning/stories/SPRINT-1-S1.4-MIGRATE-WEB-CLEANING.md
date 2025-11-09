@@ -850,3 +850,105 @@ User confirmed:
 
 Full detailed test results documented in:
 - `TEST-RESULTS-S1.4-MIGRATION.md` - Comprehensive testing findings and verification
+
+---
+
+## Additional Work: Job Notes Feature & Property Test Data (November 9, 2025)
+
+After the main migration was completed and tested, additional feature work and bug fixes were implemented:
+
+### Feature: Job Notes & Photos for Workers (November 9)
+
+**Problem**: Workers needed a way to document pre-job observations, take photos before starting work, and add notes throughout the job lifecycle.
+
+**Solution Implemented**:
+
+1. **Database Schema Updates**:
+   - Added `worker_notes` (String?) field to CleaningJob model
+   - Added `job_note_photos` (String[]) field to CleaningJob model
+   - Migrated schema with `npx prisma db push`
+
+2. **API Endpoints Created**:
+   - `PATCH /api/cleaning-jobs/:id/notes` - Update worker notes
+   - `POST /api/cleaning-jobs/:id/photos` - Upload job note photos
+   - Both endpoints include proper service provider authorization
+
+3. **Worker App Components**:
+   - Created `JobNotesSection` component with:
+     - Notes textarea with auto-save on change
+     - Photo upload functionality (multiple photos)
+     - Photo removal with restrictions (can't remove from completed jobs)
+     - Visual indicators for original vs newly added content
+   - Updated `StartJobModal` to display pre-job notes and photos
+   - Updated `JobDetails` page to use new fields
+
+4. **Bugs Fixed**:
+   - Fixed invalid Prisma `photos` relation include (CleaningJob has photo arrays, not a relation)
+   - Fixed PATCH endpoint using `service_provider_id` in where clause (not allowed by Prisma)
+   - Updated to access service_provider_id through customer relation
+
+**Files Created/Modified**:
+- `packages/database/prisma/schema.prisma` - Added worker_notes and job_note_photos fields
+- `apps/api/src/routes/cleaning-jobs.ts` - Added notes and photos endpoints
+- `apps/web-worker/src/components/jobs/JobNotesSection.tsx` - New component
+- `apps/web-worker/src/components/jobs/StartJobModal.tsx` - Display pre-job docs
+- `apps/web-worker/src/pages/jobs/JobDetails.tsx` - Integrated JobNotesSection
+
+**Commits**:
+- Added worker_notes and job_note_photos fields to schema
+- Implemented job notes API endpoints with proper authorization
+- Created JobNotesSection component for worker app
+- Fixed Prisma query errors in notes endpoint
+
+### Feature: Comprehensive Property Test Data (November 9)
+
+**Problem**: Property records had minimal data, making it difficult to test the full property information display in worker and cleaning apps.
+
+**Solution**:
+- Created `scripts/populate-property-test-data.ts`
+- Populated "Luxury Apartment 12A" with comprehensive data:
+  - 2 bedrooms, 2 bathrooms
+  - Access code: 5789#
+  - 1,500+ words of detailed cleaner notes (instructions, pre-existing conditions, special requirements, products to use/avoid, waste disposal, time estimates)
+  - WiFi credentials (SSID: DeansgateLuxury_12A)
+  - Detailed parking information
+  - Pet information (no pets - allergies)
+  - Special requirements (unscented products, alarm code, balcony protocols)
+  - 4 property photos with captions
+  - 10 utility locations (water shutoff, electrical panel, HVAC, etc.)
+  - 3 emergency contacts (owner, building concierge, emergency manager)
+
+**Verification**:
+- Created `scripts/check-property-data.ts` to verify populated data
+- User confirmed property information displays correctly in worker app
+- Cleaner notes section showing detailed instructions properly formatted
+
+### Bug Fix: Create Job Dropdown Regression (November 9)
+
+**Problem**: Contract and property dropdowns failing to populate when creating a new cleaning job (404 errors).
+
+**Root Cause**: CreateCleaningJob.tsx was incorrectly using `user.tenant_id` instead of `SERVICE_PROVIDER_ID` constant.
+- `tenant_id`: "tenant-cleaning-test" (incorrect)
+- `service_provider_id`: "sp-cleaning-test" (correct)
+
+**Fix**: Updated line 106 in CreateCleaningJob.tsx to use `SERVICE_PROVIDER_ID` constant for all API calls.
+
+**Files Modified**:
+- `apps/web-cleaning/src/pages/cleaning/CreateCleaningJob.tsx`
+
+**User Feedback**: "this used to work assess the changes we have made before fixing" - Confirmed this was a regression from previous session.
+
+### Current Status (November 9)
+
+**All Systems Operational**:
+- ✅ Web-cleaning app fully migrated and tested
+- ✅ Worker job details page working correctly
+- ✅ Job notes & photos feature implemented
+- ✅ Property test data populated and displaying
+- ✅ Create job form dropdowns working
+- ✅ All API endpoints functioning correctly
+- ✅ No cross-tenant data leaks
+- ✅ Worker availability validation active
+- ✅ No console errors or React warnings
+
+**Ready for Next Story**: S1.5 - Migrate Remaining Apps

@@ -36,6 +36,7 @@ import CreateContract from './pages/CreateContract'
 import PropertyCalendar from './pages/PropertyCalendar'
 import ChecklistTemplates from './pages/ChecklistTemplates'
 import WorkerAccessDenied from './pages/WorkerAccessDenied'
+import WorkerReports from './pages/WorkerReports'
 
 function App() {
   return (
@@ -93,6 +94,16 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <CreateCleaningJob />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker-reports"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <WorkerReports />
                   </AppLayout>
                 </ProtectedRoute>
               }

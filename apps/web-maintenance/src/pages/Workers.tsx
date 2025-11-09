@@ -3,14 +3,16 @@ import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-co
 import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { workersAPI, type Worker } from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
 import '../pages/Properties.css'
 
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
-
 export default function Workers() {
+  const { user } = useAuth()
   const [workers, setWorkers] = useState<Worker[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
+
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const [openDialog, setOpenDialog] = useState(false)
   const [editingWorker, setEditingWorker] = useState<Worker | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')

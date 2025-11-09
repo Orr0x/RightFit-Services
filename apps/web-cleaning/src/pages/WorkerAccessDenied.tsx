@@ -1,5 +1,5 @@
 import { Box, Container, Typography, Button } from '@mui/material'
-import { Block, ExternalLink } from 'lucide-react'
+import { ShieldX, ExternalLink } from 'lucide-react'
 
 export default function WorkerAccessDenied() {
   const handleRedirect = () => {
@@ -46,7 +46,7 @@ export default function WorkerAccessDenied() {
               margin: '0 auto 24px',
             }}
           >
-            <Block size={40} color="#dc2626" />
+            <ShieldX size={40} color="#dc2626" />
           </Box>
 
           <Typography variant="h4" gutterBottom fontWeight="bold" color="text.primary">

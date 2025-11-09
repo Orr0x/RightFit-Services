@@ -14,6 +14,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       customerId: req.query.customer_id as string,
       propertyId: req.query.property_id as string,
       workerId: req.query.worker_id as string,
+      serviceProviderId: req.query.service_provider_id as string,
       status: req.query.status as string,
     };
 
@@ -129,6 +130,25 @@ router.put('/:id/status', async (req: Request, res: Response, next: NextFunction
 
     const issue = await workerIssuesService.updateStatus(req.params.id, status);
     res.json({ data: issue });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/worker-issues/:id/photos - Add photos to an existing issue
+router.post('/:id/photos', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { photos } = req.body;
+
+    if (!photos || !Array.isArray(photos)) {
+      return res.status(400).json({ error: 'photos array is required' });
+    }
+
+    const issue = await workerIssuesService.addPhotos(req.params.id, photos);
+    res.json({
+      data: issue,
+      message: 'Photos added successfully'
+    });
   } catch (error) {
     next(error);
   }

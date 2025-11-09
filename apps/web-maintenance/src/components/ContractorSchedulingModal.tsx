@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { Modal, Button, Badge, Spinner } from '@rightfit/ui-core'
 import { useToast } from './ui'
 import { api } from '../lib/api'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+import { useAuth } from '../contexts/AuthContext'
 
 interface ContractorSchedulingModalProps {
   jobId: string
@@ -54,6 +53,8 @@ export default function ContractorSchedulingModal({
   onScheduled,
   onCancel,
 }: ContractorSchedulingModalProps) {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const toast = useToast()
 
   // Form state

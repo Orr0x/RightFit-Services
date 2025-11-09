@@ -137,10 +137,9 @@ class PhotosService {
         fs.writeFileSync(localPhotoPath, optimizedImage)
         fs.writeFileSync(localThumbnailPath, thumbnail)
 
-        // Use absolute URLs pointing to API server for local storage
-        const apiBaseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3001}`
-        s3Url = `${apiBaseUrl}/uploads/${s3Key}`
-        thumbnailUrl = `${apiBaseUrl}/uploads/${thumbnailS3Key}`
+        // Store only relative paths - clients will construct full URLs
+        s3Url = `/uploads/${s3Key}`
+        thumbnailUrl = `/uploads/${thumbnailS3Key}`
 
         logger.info('Photo saved to local storage', { s3_key: s3Key })
       } else {

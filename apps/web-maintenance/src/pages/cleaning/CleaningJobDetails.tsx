@@ -4,10 +4,11 @@ import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, maintenanceJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate, useParams } from 'react-router-dom'
-
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function CleaningJobDetails() {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const { id } = useParams<{ id: string }>()
   const [job, setJob] = useState<CleaningJob | null>(null)
   const [showIssueForm, setShowIssueForm] = useState(false)

@@ -4,8 +4,7 @@ import { Modal, Button } from '@rightfit/ui-core'
 import { useToast } from './ui'
 import PhotoUpload from './PhotoUpload'
 import { api } from '../lib/api'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+import { useAuth } from '../contexts/AuthContext'
 
 interface MaintenanceJob {
   id: string
@@ -39,6 +38,8 @@ export default function MaintenanceJobCompletionModal({
   onClose,
   onComplete,
 }: MaintenanceJobCompletionModalProps) {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const toast = useToast()
   const navigate = useNavigate()
 

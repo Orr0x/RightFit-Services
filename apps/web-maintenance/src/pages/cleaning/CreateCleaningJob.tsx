@@ -4,10 +4,11 @@ import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, type CreateCleaningJobData } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
-
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function CreateCleaningJob() {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const [formData, setFormData] = useState<CreateCleaningJobData>({
     service_id: '',
     property_id: '',

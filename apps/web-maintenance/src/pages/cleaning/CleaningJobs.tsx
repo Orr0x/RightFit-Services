@@ -4,10 +4,11 @@ import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
-
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function CleaningJobs() {
+  const { user } = useAuth()
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const [jobs, setJobs] = useState<CleaningJob[]>([])
   const [filteredJobs, setFilteredJobs] = useState<CleaningJob[]>([])
   const [searchQuery, setSearchQuery] = useState('')

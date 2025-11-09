@@ -7,6 +7,7 @@ export interface User {
   email: string
   tenant_id: string
   tenant_name: string
+  service_provider_id: string | null
   role: 'ADMIN' | 'MEMBER' | 'CONTRACTOR'
 }
 
@@ -27,6 +28,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  isWorker: boolean // Track if user is a maintenance worker
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
   logout: () => void
@@ -41,20 +43,55 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isWorker, setIsWorker] = useState(false)
+
+  // Check if user is a maintenance worker (has worker profile)
+  const checkIfWorker = async (token: string) => {
+    try {
+      const response = await fetch('/api/maintenance-workers/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // If we get worker data, user is a worker
+        setIsWorker(!!data.data)
+        localStorage.setItem('maintenance_is_worker', 'true')
+        return true
+      } else {
+        setIsWorker(false)
+        localStorage.removeItem('maintenance_is_worker')
+        return false
+      }
+    } catch (error) {
+      // If endpoint fails or worker not found, user is not a worker
+      setIsWorker(false)
+      localStorage.removeItem('maintenance_is_worker')
+      return false
+    }
+  }
 
   useEffect(() => {
     // Check if user is already logged in
     const token = localStorage.getItem('maintenance_access_token')
     const storedUser = localStorage.getItem('maintenance_user')
+    const storedIsWorker = localStorage.getItem('maintenance_is_worker')
 
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser))
+        setIsWorker(storedIsWorker === 'true')
+
+        // Re-check worker status on mount to ensure it's current
+        checkIfWorker(token)
       } catch (error) {
         console.error('Failed to parse stored user:', error)
         localStorage.removeItem('maintenance_user')
         localStorage.removeItem('maintenance_access_token')
         localStorage.removeItem('maintenance_refresh_token')
+        localStorage.removeItem('maintenance_is_worker')
       }
     }
 
@@ -65,13 +102,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authAPI.login(credentials)
 
-      // API wraps response in { data: { user, tenant, access_token, refresh_token } }
-      const { access_token, refresh_token, user: userData, tenant } = response.data
+      // API wraps response in { data: { user, tenant, service_provider_id, access_token, refresh_token } }
+      const { access_token, refresh_token, user: userData, tenant, service_provider_id } = response.data
 
-      // Add tenant_name to user object for display
+      // Add tenant_name and service_provider_id to user object
       const userWithTenant = {
         ...userData,
         tenant_name: tenant.tenant_name,
+        service_provider_id: service_provider_id || null,
       }
 
       // Store tokens with maintenance_ prefix
@@ -80,6 +118,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('maintenance_user', JSON.stringify(userWithTenant))
 
       setUser(userWithTenant)
+
+      // Check if user is a maintenance worker
+      await checkIfWorker(access_token)
     } catch (error) {
       console.error('Login failed:', error)
       throw error
@@ -90,13 +131,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await authAPI.register(data)
 
-      // API wraps response in { data: { user, tenant, access_token, refresh_token } }
-      const { access_token, refresh_token, user: userData, tenant } = response.data
+      // API wraps response in { data: { user, tenant, service_provider_id, access_token, refresh_token } }
+      const { access_token, refresh_token, user: userData, tenant, service_provider_id } = response.data
 
-      // Add tenant_name to user object for display
+      // Add tenant_name and service_provider_id to user object
       const userWithTenant = {
         ...userData,
         tenant_name: tenant.tenant_name,
+        service_provider_id: service_provider_id || null,
       }
 
       // Store tokens with maintenance_ prefix
@@ -115,7 +157,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('maintenance_access_token')
     localStorage.removeItem('maintenance_refresh_token')
     localStorage.removeItem('maintenance_user')
+    localStorage.removeItem('maintenance_is_worker')
     setUser(null)
+    setIsWorker(false)
   }
 
   return (
@@ -124,6 +168,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        isWorker,
         login,
         register,
         logout,

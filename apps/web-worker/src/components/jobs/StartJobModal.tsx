@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { X, Play, Clock, AlertCircle } from 'lucide-react'
+import { X, Play, Clock, AlertCircle, FileText, Image as ImageIcon } from 'lucide-react'
 import { format } from 'date-fns'
+import { getPhotoUrl } from '../../config/api'
 
 interface StartJobModalProps {
   jobId: string
   propertyName: string
+  workerNotes?: string
+  photos?: string[]
   onClose: () => void
   onSuccess: () => void
 }
@@ -12,6 +15,8 @@ interface StartJobModalProps {
 export default function StartJobModal({
   jobId,
   propertyName,
+  workerNotes,
+  photos = [],
   onClose,
   onSuccess
 }: StartJobModalProps) {
@@ -94,6 +99,55 @@ export default function StartJobModal({
               </div>
             </div>
           </div>
+
+          {/* Pre-Job Notes and Photos */}
+          {(workerNotes || photos.length > 0) && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">Pre-Job Documentation</h4>
+
+              {/* Notes */}
+              {workerNotes && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-4 h-4 text-gray-600" />
+                    <span className="text-xs font-medium text-gray-600">Notes:</span>
+                  </div>
+                  <p className="text-sm text-gray-700 bg-white border border-gray-200 rounded p-2 whitespace-pre-wrap">
+                    {workerNotes}
+                  </p>
+                </div>
+              )}
+
+              {/* Photos */}
+              {photos.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <ImageIcon className="w-4 h-4 text-gray-600" />
+                    <span className="text-xs font-medium text-gray-600">
+                      Photos ({photos.length})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {photos.slice(0, 4).map((photo, index) => (
+                      <img
+                        key={index}
+                        src={getPhotoUrl(photo)}
+                        alt={`Pre-job photo ${index + 1}`}
+                        className="w-full h-16 object-cover rounded border border-gray-200"
+                      />
+                    ))}
+                    {photos.length > 4 && (
+                      <div className="w-full h-16 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
+                        <span className="text-xs text-gray-600 font-medium">
+                          +{photos.length - 4} more
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-start gap-3">

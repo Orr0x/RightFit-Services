@@ -25,7 +25,7 @@ router.get('/', requireServiceProvider, async (req: Request, res: Response, next
     const toDateParam = req.query.to_date || req.query.end_date || scheduledDate;
 
     const filters = {
-      status: req.query.status as string,
+      status: req.query.status as string | string[] | undefined,
       worker_id: (req.query.worker_id || req.query.assigned_worker_id) as string,
       property_id: req.query.property_id as string,
       customer_id: req.query.customer_id as string,
@@ -198,6 +198,143 @@ router.post('/:id/complete', async (req: Request, res: Response, next: NextFunct
       work_performed: req.body.work_performed,
     });
     res.json({ data: job });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PATCH /api/cleaning-jobs/:id/notes - Update job notes
+router.patch('/:id/notes', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+
+    // Look up service provider from user's tenant
+    const { prisma } = require('@rightfit/database');
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    const { notes } = req.body;
+
+    // First verify the job belongs to this service provider
+    const existingJob = await prisma.cleaningJob.findUnique({
+      where: { id: req.params.id },
+      select: {
+        customer: {
+          select: { service_provider_id: true }
+        }
+      }
+    });
+
+    if (!existingJob) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    if (existingJob.customer.service_provider_id !== serviceProvider.id) {
+      return res.status(403).json({ error: 'Not authorized to update this job' });
+    }
+
+    // Now update the job
+    const job = await prisma.cleaningJob.update({
+      where: { id: req.params.id },
+      data: {
+        worker_notes: notes
+      }
+    });
+
+    res.json({ data: job });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/cleaning-jobs/:id/photos - Upload job note photos
+router.post('/:id/photos', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.user!.tenant_id;
+    const { upload } = require('../middleware/upload');
+    const { PhotosService } = require('../services/PhotosService');
+    const photosService = new PhotosService();
+
+    // Look up service provider from user's tenant
+    const { prisma } = require('@rightfit/database');
+    const serviceProvider = await prisma.serviceProvider.findUnique({
+      where: { tenant_id: tenantId },
+      select: { id: true }
+    });
+
+    if (!serviceProvider) {
+      return res.status(404).json({ error: 'Service provider not found for this tenant' });
+    }
+
+    // Verify job belongs to this provider
+    const job = await prisma.cleaningJob.findFirst({
+      where: {
+        id: req.params.id
+      },
+      include: {
+        service: true,
+        customer: true
+      }
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Verify ownership
+    if (job.service) {
+      if (job.service.service_provider_id !== serviceProvider.id) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+    } else if (job.customer) {
+      if (job.customer.service_provider_id !== serviceProvider.id) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+    } else {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Use multer middleware to handle file upload
+    upload.single('photo')(req, res, async (err: any) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      try {
+        const photoData = await photosService.uploadPhoto(
+          req.file,
+          {
+            tenant_id: tenantId,
+            uploaded_by_user_id: req.user!.id,
+            label: req.body.label || 'JOB_NOTE'
+          }
+        );
+
+        // Add the photo URL to the job_note_photos array
+        const updatedJob = await prisma.cleaningJob.update({
+          where: { id: req.params.id },
+          data: {
+            job_note_photos: {
+              push: photoData.s3_url
+            }
+          }
+        });
+
+        res.json({ data: { ...photoData, photo_url: photoData.s3_url } });
+      } catch (error) {
+        next(error);
+      }
+    });
   } catch (error) {
     next(error);
   }

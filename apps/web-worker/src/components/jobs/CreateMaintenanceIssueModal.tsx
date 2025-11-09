@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
-import { X, AlertTriangle, Wrench } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, AlertTriangle, Wrench, Camera, Upload, Trash2 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { MAINTENANCE_CATEGORIES, MAINTENANCE_PRIORITIES } from '@rightfit/shared'
+import imageCompression from 'browser-image-compression'
 
 interface CreateMaintenanceIssueModalProps {
   jobId: string
@@ -29,8 +30,11 @@ export default function CreateMaintenanceIssueModal({
 }: CreateMaintenanceIssueModalProps) {
   const { worker } = useAuth()
   const [submitting, setSubmitting] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [issuePhotos, setIssuePhotos] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -39,59 +43,78 @@ export default function CreateMaintenanceIssueModal({
     priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   })
 
-  useEffect(() => {
-    // Fetch ISSUE photos from the job's timesheet
-    const fetchIssuePhotos = async () => {
-      try {
-        const token = localStorage.getItem('worker_token')
-        const workerId = localStorage.getItem('worker_id')
-
-        if (!workerId) {
-          console.error('No worker ID found in localStorage')
-          return
-        }
-
-        // Get active timesheet using the dedicated endpoint
-        const timesheetResponse = await fetch(
-          `/api/cleaning-timesheets/job/${jobId}/active?worker_id=${workerId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        )
-
-        if (timesheetResponse.ok) {
-          const timesheetData = await timesheetResponse.json()
-          const activeTimesheet = timesheetData.data
-
-          // Get photos for this timesheet
-          const photosResponse = await fetch(
-            `/api/cleaning-timesheets/${activeTimesheet.id}/photos`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            }
-          )
-
-          if (photosResponse.ok) {
-            const photosData = await photosResponse.json()
-            const issuePhotoUrls = photosData.data
-              .filter((photo: any) => photo.category === 'ISSUE')
-              .map((photo: any) => photo.photo_url)
-            setIssuePhotos(issuePhotoUrls)
-          }
-        } else if (timesheetResponse.status === 404) {
-          console.warn('No active timesheet found. Job may not have been started yet.')
-        }
-      } catch (err) {
-        console.error('Error fetching issue photos:', err)
-      }
+  const compressImage = async (file: File): Promise<File> => {
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
     }
 
-    fetchIssuePhotos()
-  }, [jobId])
+    try {
+      const compressedBlob = await imageCompression(file, options)
+      const fileName = file.name.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif)$/)
+        ? file.name
+        : file.name + '.jpg'
+
+      return new File([compressedBlob], fileName, {
+        type: compressedBlob.type || file.type,
+        lastModified: Date.now(),
+      })
+    } catch (error) {
+      console.error('Error compressing image:', error)
+      return file
+    }
+  }
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setUploading(true)
+    setError(null)
+
+    try {
+      for (const file of Array.from(files)) {
+        const compressedFile = await compressImage(file)
+        await uploadPhoto(compressedFile)
+      }
+    } catch (err) {
+      console.error('Error uploading photos:', err)
+      setError(err instanceof Error ? err.message : 'Failed to upload photos')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      if (cameraInputRef.current) cameraInputRef.current.value = ''
+    }
+  }
+
+  const uploadPhoto = async (file: File) => {
+    const token = localStorage.getItem('worker_token')
+
+    const formData = new FormData()
+    formData.append('photo', file)
+    formData.append('category', 'ISSUE')
+
+    const response = await fetch(`/api/worker-issue-photos/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to upload photo')
+    }
+
+    const data = await response.json()
+    setIssuePhotos(prev => [...prev, data.data.photo_url])
+  }
+
+  const handleDeletePhoto = (photoUrl: string) => {
+    setIssuePhotos(prev => prev.filter(url => url !== photoUrl))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -149,8 +172,13 @@ export default function CreateMaintenanceIssueModal({
         throw new Error(errorData.error || 'Failed to create maintenance issue report')
       }
 
+      const result = await response.json()
+      console.log('Maintenance issue created successfully:', result)
+
+      setSubmitting(false)
       onSuccess()
     } catch (err) {
+      console.error('Error creating maintenance issue:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
       setSubmitting(false)
     }
@@ -255,37 +283,97 @@ export default function CreateMaintenanceIssueModal({
             />
           </div>
 
-          {/* Issue Photos Preview */}
-          {issuePhotos.length > 0 && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Attached Photos ({issuePhotos.length})
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {issuePhotos.map((photoUrl, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
-                    <img
-                      src={photoUrl}
-                      alt={`Issue photo ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                These photos will be attached to the maintenance issue.
-              </p>
-            </div>
-          )}
+          {/* Photo Upload Section */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Issue Photos (Optional)
+            </label>
 
-          {issuePhotos.length === 0 && (
-            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-amber-800">
-                No issue photos found. You can still submit this report, but it's recommended to take photos
-                to document the maintenance issue during your job.
-              </p>
+            {/* Upload Buttons */}
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={uploading || submitting}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Camera className="w-5 h-5" />
+                Take Photo
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || submitting}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Upload className="w-5 h-5" />
+                Upload Photo
+              </button>
             </div>
-          )}
+
+            {/* Hidden File Inputs */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              className="hidden"
+              multiple
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              multiple
+            />
+
+            {/* Uploading Indicator */}
+            {uploading && (
+              <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-blue-900">Uploading and compressing photos...</span>
+                </div>
+              </div>
+            )}
+
+            {/* Photos Preview */}
+            {issuePhotos.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs text-gray-600 mb-2">
+                  {issuePhotos.length} photo{issuePhotos.length !== 1 ? 's' : ''} attached
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {issuePhotos.map((photoUrl, idx) => (
+                    <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
+                      <img
+                        src={photoUrl}
+                        alt={`Issue photo ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePhoto(photoUrl)}
+                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                        disabled={submitting}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {issuePhotos.length === 0 && (
+              <p className="text-xs text-gray-500">
+                Add photos to document the maintenance issue. This helps maintenance staff understand the problem.
+              </p>
+            )}
+          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-gray-200">

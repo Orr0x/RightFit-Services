@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { format } from 'date-fns'
-import { Calendar, Clock, CheckCircle, Briefcase, MapPin, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, CheckCircle, Briefcase, MapPin, ChevronRight, Wrench, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react'
 import { CleaningJob } from '../../types'
 
 export default function WorkerDashboard() {
@@ -14,6 +14,7 @@ export default function WorkerDashboard() {
   const [todaysJobs, setTodaysJobs] = useState<CleaningJob[]>([])
   const [todaysMaintenanceJobs, setTodaysMaintenanceJobs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showMaintenanceJobs, setShowMaintenanceJobs] = useState(false)
 
   const isCleaningWorker = worker?.worker_type === 'CLEANER' || worker?.worker_type === 'GENERAL'
   const isMaintenanceWorker = worker?.worker_type === 'MAINTENANCE' || worker?.worker_type === 'GENERAL'
@@ -235,71 +236,107 @@ export default function WorkerDashboard() {
       {/* Maintenance Jobs Section */}
       {isMaintenanceWorker && (
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">
-              {worker?.worker_type === 'GENERAL' ? "Today's Maintenance Jobs" : "Today's Jobs"}
-            </h2>
-            {todaysMaintenanceJobs.length > 0 && (
-              <span className="text-sm text-gray-500">
-                {todaysMaintenanceJobs.length} {todaysMaintenanceJobs.length === 1 ? 'job' : 'jobs'}
-              </span>
+          <div
+            className="flex items-center justify-between mb-4 cursor-pointer"
+            onClick={() => setShowMaintenanceJobs(!showMaintenanceJobs)}
+          >
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-900">
+                {worker?.worker_type === 'GENERAL' ? "Today's Maintenance Jobs" : "Today's Jobs"}
+              </h2>
+              {todaysMaintenanceJobs.length > 0 && (
+                <span className="text-sm text-gray-500">
+                  ({todaysMaintenanceJobs.length})
+                </span>
+              )}
+            </div>
+            {showMaintenanceJobs ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
             )}
           </div>
 
-          {todaysMaintenanceJobs.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-10 h-10 text-gray-400" />
-              </div>
-              <p className="text-gray-600 font-medium mb-1">No maintenance jobs scheduled today</p>
-              <p className="text-sm text-gray-500">
-                {isCleaningWorker ? 'Check cleaning jobs above' : 'Enjoy your day off!'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {todaysMaintenanceJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="border border-orange-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-orange-50"
-                  onClick={() => window.location.href = `/maintenance-jobs/${job.id}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-semibold text-gray-700">
-                          {job.scheduled_time_start || 'TBD'} - {job.scheduled_time_end || 'TBD'}
-                        </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full border bg-orange-100 text-orange-800 border-orange-300`}>
-                          {job.status}
-                        </span>
-                      </div>
+          {showMaintenanceJobs && (
+            <>
+              {todaysMaintenanceJobs.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 font-medium mb-1">No maintenance jobs scheduled today</p>
+                  <p className="text-sm text-gray-500">
+                    {isCleaningWorker ? 'Check cleaning jobs above' : 'Enjoy your day off!'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {todaysMaintenanceJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="border border-orange-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-orange-50"
+                      onClick={() => window.location.href = `/maintenance-jobs/${job.id}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-semibold text-gray-700">
+                              {job.scheduled_time_start || 'TBD'} - {job.scheduled_time_end || 'TBD'}
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full border bg-orange-100 text-orange-800 border-orange-300`}>
+                              {job.status}
+                            </span>
+                          </div>
 
-                      <h3 className="font-bold text-gray-900 mb-1">{job.title || 'Maintenance Job'}</h3>
+                          <h3 className="font-bold text-gray-900 mb-1">{job.title || 'Maintenance Job'}</h3>
 
-                      <div className="flex items-start gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>{job.property_address || job.property_name}</span>
+                          <div className="flex items-start gap-2 text-sm text-gray-600">
+                            <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span>{job.property_address || job.property_name}</span>
+                          </div>
+                        </div>
+
+                        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
                       </div>
                     </div>
-
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* Quick Actions (Optional) */}
+      {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4 mt-6">
+        {isCleaningWorker && (
+          <button
+            onClick={() => window.location.href = '/jobs'}
+            className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-left"
+          >
+            <ClipboardList className="w-6 h-6 text-blue-600 mb-2" />
+            <p className="font-semibold text-gray-900">My Jobs</p>
+            <p className="text-sm text-gray-600">View cleaning jobs</p>
+          </button>
+        )}
+
+        {(isCleaningWorker || worker?.worker_type === 'GENERAL') && (
+          <button
+            onClick={() => window.location.href = '/my-issues'}
+            className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-left"
+          >
+            <Wrench className="w-6 h-6 text-orange-600 mb-2" />
+            <p className="font-semibold text-gray-900">My Reports</p>
+            <p className="text-sm text-gray-600">Maintenance issues</p>
+          </button>
+        )}
+
         <button
           onClick={() => window.location.href = '/schedule'}
           className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow text-left"
         >
-          <Calendar className="w-6 h-6 text-blue-600 mb-2" />
+          <Calendar className="w-6 h-6 text-green-600 mb-2" />
           <p className="font-semibold text-gray-900">My Schedule</p>
           <p className="text-sm text-gray-600">View all jobs</p>
         </button>

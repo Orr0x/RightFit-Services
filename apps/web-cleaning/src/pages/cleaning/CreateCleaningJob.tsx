@@ -103,7 +103,7 @@ export default function CreateCleaningJob() {
     try {
       const [contractsData, propsData, servicesData, workersData, templatesData] = await Promise.all([
         cleaningContractsAPI.list({
-          service_provider_id: user.tenant_id,  // Use tenant_id, not ServiceProvider.id
+          service_provider_id: SERVICE_PROVIDER_ID,
           status: 'ACTIVE',
         }),
         customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID }),

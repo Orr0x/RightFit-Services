@@ -7,6 +7,7 @@ export class WorkerIssuesService {
     customerId?: string;
     propertyId?: string;
     workerId?: string;
+    serviceProviderId?: string;
     status?: string;
   }) {
     const issues = await prisma.workerIssueReport.findMany({
@@ -15,6 +16,11 @@ export class WorkerIssuesService {
         ...(filters?.propertyId && { property_id: filters.propertyId }),
         ...(filters?.workerId && { worker_id: filters.workerId }),
         ...(filters?.status && { status: filters.status as any }),
+        ...(filters?.serviceProviderId && {
+          worker: {
+            service_provider_id: filters.serviceProviderId,
+          },
+        }),
       },
       include: {
         property: {
@@ -34,6 +40,13 @@ export class WorkerIssuesService {
           select: {
             id: true,
             scheduled_date: true,
+          },
+        },
+        created_maintenance_job: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
           },
         },
       },
@@ -246,5 +259,56 @@ export class WorkerIssuesService {
     });
 
     return issue;
+  }
+
+  async addPhotos(id: string, newPhotos: string[]) {
+    // Get the existing issue
+    const issue = await this.getById(id);
+
+    // Only allow adding photos to SUBMITTED or CUSTOMER_REVIEWING issues
+    if (issue.status !== 'SUBMITTED' && issue.status !== 'CUSTOMER_REVIEWING') {
+      throw new ValidationError('Cannot add photos to issues that have been approved or rejected');
+    }
+
+    // Combine existing photos with new photos
+    const updatedPhotos = [...(issue.photos || []), ...newPhotos];
+
+    // Update the issue with the new photos
+    const updatedIssue = await prisma.workerIssueReport.update({
+      where: { id },
+      data: {
+        photos: updatedPhotos,
+      },
+      include: {
+        property: {
+          select: {
+            property_name: true,
+            address: true,
+          },
+        },
+        worker: {
+          select: {
+            first_name: true,
+            last_name: true,
+            phone: true,
+          },
+        },
+        cleaning_job: {
+          select: {
+            id: true,
+            scheduled_date: true,
+          },
+        },
+        created_maintenance_job: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return updatedIssue;
   }
 }

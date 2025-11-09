@@ -6,10 +6,12 @@ import Login from './pages/auth/Login'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import WorkerDashboard from './pages/dashboard/WorkerDashboard'
 import JobDetails from './pages/jobs/JobDetails'
+import MyJobs from './pages/jobs/MyJobs'
 import MySchedule from './pages/schedule/MySchedule'
 import ManageAvailability from './pages/availability/ManageAvailability'
 import WorkerProfile from './pages/profile/WorkerProfile'
 import WorkHistory from './pages/history/WorkHistory'
+import MyReportedIssues from './pages/issues/MyReportedIssues'
 
 function App() {
   return (
@@ -44,16 +46,25 @@ function App() {
             }
           />
 
-          {/* Placeholder routes for navigation */}
+          {/* My Jobs */}
           <Route
             path="/jobs"
             element={
               <ProtectedRoute>
                 <WorkerLayout>
-                  <div className="max-w-7xl mx-auto px-4 py-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Today's Jobs</h1>
-                    <p className="mt-2 text-gray-600">Job list coming soon!</p>
-                  </div>
+                  <MyJobs />
+                </WorkerLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* My Reported Issues */}
+          <Route
+            path="/my-issues"
+            element={
+              <ProtectedRoute>
+                <WorkerLayout>
+                  <MyReportedIssues />
                 </WorkerLayout>
               </ProtectedRoute>
             }

@@ -40,6 +40,7 @@ import checklistTemplatesRoutes from './routes/checklist-templates'
 import globalActivityRoutes from './routes/global-activity'
 import workerAvailabilityRoutes from './routes/worker-availability'
 import workerIssuesRoutes from './routes/worker-issues'
+import workerIssuePhotosRoutes from './routes/worker-issue-photos'
 import uploadsRoutes from './routes/uploads'
 import { errorHandler } from './middleware/errorHandler'
 import { generalApiRateLimiter } from './middleware/rateLimiter'
@@ -160,6 +161,7 @@ app.use('/api/checklist-templates', checklistTemplatesRoutes)
 app.use('/api/global-activity', globalActivityRoutes)
 app.use('/api/worker-availability', workerAvailabilityRoutes)
 app.use('/api/worker-issues', workerIssuesRoutes)
+app.use('/api/worker-issue-photos', workerIssuePhotosRoutes)
 app.use('/api/uploads', uploadsRoutes)
 // Property sharing routes
 app.use('/api/property-shares', propertySharesRoutes)

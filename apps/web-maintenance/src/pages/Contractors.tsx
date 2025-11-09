@@ -3,9 +3,8 @@ import { Button, Card, Spinner, EmptyState, Badge, Modal, Input } from '@rightfi
 import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
 import { api } from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
 import '../pages/Properties.css'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
 
 interface InternalContractor {
   id: string
@@ -35,10 +34,13 @@ interface ExternalContractor {
 }
 
 export default function Contractors() {
+  const { user } = useAuth()
   const [internalContractors, setInternalContractors] = useState<InternalContractor[]>([])
   const [externalContractors, setExternalContractors] = useState<ExternalContractor[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
+
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [activeTab, setActiveTab] = useState<'internal' | 'external'>('internal')
   const [showAddExternalModal, setShowAddExternalModal] = useState(false)

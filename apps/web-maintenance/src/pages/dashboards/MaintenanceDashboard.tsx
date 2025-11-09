@@ -6,13 +6,12 @@ import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { CalendarView } from '../../components/CalendarView'
 import { KanbanView } from '../../components/KanbanView'
-
-// HARDCODED for demo - In production, get from auth context
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+import { useAuth } from '../../contexts/AuthContext'
 
 type ViewMode = 'list' | 'calendar' | 'kanban'
 
 export default function MaintenanceDashboard() {
+  const { user } = useAuth()
   const [activeJobs, setActiveJobs] = useState<MaintenanceJob[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [stats, setStats] = useState({
@@ -24,6 +23,8 @@ export default function MaintenanceDashboard() {
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
+
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
 
   useEffect(() => {
     loadActiveJobs()
@@ -94,6 +95,19 @@ export default function MaintenanceDashboard() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  if (!SERVICE_PROVIDER_ID) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="p-6">
+          <EmptyState
+            title="Service provider not found"
+            description="Unable to load dashboard. Please try logging out and logging back in."
+          />
+        </Card>
       </div>
     )
   }

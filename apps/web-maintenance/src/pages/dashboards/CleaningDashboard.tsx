@@ -4,11 +4,10 @@ import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { cleaningJobsAPI, type CleaningJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
-
-// HARDCODED for demo - In production, get from auth context
-const SERVICE_PROVIDER_ID = 'demo-provider-id'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function CleaningDashboard() {
+  const { user } = useAuth()
   const [todaysJobs, setTodaysJobs] = useState<CleaningJob[]>([])
   const [stats, setStats] = useState({
     total: 0,
@@ -19,6 +18,8 @@ export default function CleaningDashboard() {
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
+
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
 
   useEffect(() => {
     loadTodaysJobs()
@@ -63,6 +64,19 @@ export default function CleaningDashboard() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  if (!SERVICE_PROVIDER_ID) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="p-6">
+          <EmptyState
+            title="Service provider not found"
+            description="Unable to load dashboard. Please try logging out and logging back in."
+          />
+        </Card>
       </div>
     )
   }

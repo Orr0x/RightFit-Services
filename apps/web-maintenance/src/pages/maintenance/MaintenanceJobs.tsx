@@ -4,12 +4,12 @@ import { useToast } from '../../components/ui'
 import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
-
-const SERVICE_PROVIDER_ID = '8aeb5932-907c-41b3-a2bc-05b27ed0dc87'
+import { useAuth } from '../../contexts/AuthContext'
 
 type TabType = 'new-issues' | 'submitted-quotes' | 'accepted-quotes' | 'all'
 
 export default function MaintenanceJobs() {
+  const { user } = useAuth()
   const [jobs, setJobs] = useState<MaintenanceJob[]>([])
   const [filteredJobs, setFilteredJobs] = useState<MaintenanceJob[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,6 +18,8 @@ export default function MaintenanceJobs() {
   const { isLoading, withLoading} = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
+
+  const SERVICE_PROVIDER_ID = user?.service_provider_id
 
   useEffect(() => {
     loadJobs()
