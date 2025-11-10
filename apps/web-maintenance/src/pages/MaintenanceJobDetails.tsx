@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
-import { useToast, Tabs, TabPanel } from '../../components/ui';
-import { useLoading } from '../../hooks/useLoading'
+import { useToast, Tabs, TabPanel } from '../components/ui';
+import { useLoading } from '../hooks/useLoading'
 import {
   maintenanceJobsAPI,
   cleaningContractsAPI,
