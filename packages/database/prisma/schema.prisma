@@ -437,6 +437,7 @@ model Customer {
   customer_properties         CustomerProperty[]
   service_provider            ServiceProvider      @relation(fields: [service_provider_id], references: [id])
   maintenance_jobs            MaintenanceJob[]
+  maintenance_contracts       MaintenanceContract[]
   quotes                      Quote[]
   invoices                    Invoice[]
   portal_user                 CustomerPortalUser?
@@ -485,6 +486,7 @@ model CustomerProperty {
   cleaning_jobs                  CleaningJob[]
   cleaning_quotes                CleaningQuote[]
   contract_properties            ContractProperty[]
+  maintenance_contract_links     MaintenanceContractProperty[]
   property_checklists            PropertyChecklistTemplate[]
   customer                       Customer                    @relation(fields: [customer_id], references: [id])
   guest_issue_reports            GuestIssueReport[]
@@ -675,55 +677,58 @@ model CleaningJob {
 }
 
 model MaintenanceJob {
-  id                           String              @id @default(uuid())
+  id                           String                @id @default(uuid())
   service_id                   String
   property_id                  String
   customer_id                  String
+  maintenance_contract_id      String?
   assigned_worker_id           String?
   assigned_contractor_id       String?
   source                       MaintenanceSource
   source_cleaning_job_id       String?
   source_guest_report_id       String?
-  category                     String              @db.VarChar(50)
+  category                     String                @db.VarChar(50)
   priority                     MaintenancePriority
-  title                        String              @db.VarChar(255)
+  title                        String                @db.VarChar(255)
   description                  String?
-  requested_date               DateTime?           @db.Date
-  scheduled_date               DateTime?           @db.Date
-  scheduled_start_time         String?             @db.VarChar(5)
-  scheduled_end_time           String?             @db.VarChar(5)
-  completed_date               DateTime?           @db.Date
-  status                       MaintenanceStatus   @default(QUOTE_PENDING)
+  requested_date               DateTime?             @db.Date
+  scheduled_date               DateTime?             @db.Date
+  scheduled_start_time         String?               @db.VarChar(5)
+  scheduled_end_time           String?               @db.VarChar(5)
+  completed_date               DateTime?             @db.Date
+  status                       MaintenanceStatus     @default(QUOTE_PENDING)
   quote_id                     String?
-  estimated_hours              Decimal?            @db.Decimal(10, 2)
-  estimated_parts_cost         Decimal?            @db.Decimal(10, 2)
-  estimated_labor_cost         Decimal?            @db.Decimal(10, 2)
-  estimated_total              Decimal?            @db.Decimal(10, 2)
-  actual_total                 Decimal?            @db.Decimal(10, 2)
-  issue_photos                 String[]            @db.VarChar(500)
-  work_in_progress_photos      String[]            @db.VarChar(500)
-  completion_photos            String[]            @db.VarChar(500)
+  estimated_hours              Decimal?              @db.Decimal(10, 2)
+  estimated_parts_cost         Decimal?              @db.Decimal(10, 2)
+  estimated_labor_cost         Decimal?              @db.Decimal(10, 2)
+  estimated_total              Decimal?              @db.Decimal(10, 2)
+  actual_total                 Decimal?              @db.Decimal(10, 2)
+  issue_photos                 String[]              @db.VarChar(500)
+  work_in_progress_photos      String[]              @db.VarChar(500)
+  completion_photos            String[]              @db.VarChar(500)
   ai_severity_score            Int?
-  ai_category_confidence       Decimal?            @db.Decimal(3, 2)
+  ai_category_confidence       Decimal?              @db.Decimal(3, 2)
   completion_notes             String?
   customer_satisfaction_rating Int?
-  created_at                   DateTime            @default(now())
-  updated_at                   DateTime            @updatedAt
-  assigned_contractor          ExternalContractor? @relation(fields: [assigned_contractor_id], references: [id])
-  assigned_worker              Worker?             @relation(fields: [assigned_worker_id], references: [id])
-  customer                     Customer            @relation(fields: [customer_id], references: [id])
-  property                     CustomerProperty    @relation(fields: [property_id], references: [id])
-  quote                        Quote?              @relation(fields: [quote_id], references: [id])
-  service                      Service             @relation(fields: [service_id], references: [id])
-  source_cleaning_job          CleaningJob?        @relation(fields: [source_cleaning_job_id], references: [id])
-  source_guest_report          GuestIssueReport?   @relation(fields: [source_guest_report_id], references: [id])
-  worker_issue_reports         WorkerIssueReport[] @relation("WorkerIssueMaintenanceJob")
+  created_at                   DateTime              @default(now())
+  updated_at                   DateTime              @updatedAt
+  assigned_contractor          ExternalContractor?   @relation(fields: [assigned_contractor_id], references: [id])
+  assigned_worker              Worker?               @relation(fields: [assigned_worker_id], references: [id])
+  customer                     Customer              @relation(fields: [customer_id], references: [id])
+  maintenance_contract         MaintenanceContract?  @relation(fields: [maintenance_contract_id], references: [id])
+  property                     CustomerProperty      @relation(fields: [property_id], references: [id])
+  quote                        Quote?                @relation(fields: [quote_id], references: [id])
+  service                      Service               @relation(fields: [service_id], references: [id])
+  source_cleaning_job          CleaningJob?          @relation(fields: [source_cleaning_job_id], references: [id])
+  source_guest_report          GuestIssueReport?     @relation(fields: [source_guest_report_id], references: [id])
+  worker_issue_reports         WorkerIssueReport[]   @relation("WorkerIssueMaintenanceJob")
   guest_issues                 GuestIssue[]
   invoice                      Invoice?
 
   @@index([service_id])
   @@index([property_id])
   @@index([customer_id])
+  @@index([maintenance_contract_id])
   @@index([assigned_worker_id])
   @@index([assigned_contractor_id])
   @@index([status])
@@ -762,27 +767,29 @@ model Quote {
 }
 
 model Invoice {
-  id                 String          @id @default(uuid())
-  customer_id        String
-  maintenance_job_id String?         @unique
-  cleaning_job_id    String?         @unique
-  invoice_number     String          @unique @db.VarChar(50)
-  invoice_date       DateTime        @db.Date
-  due_date           DateTime        @db.Date
-  line_items         Json
-  subtotal           Decimal         @db.Decimal(10, 2)
-  tax_percentage     Decimal         @default(20) @db.Decimal(5, 2)
-  tax_amount         Decimal         @db.Decimal(10, 2)
-  total              Decimal         @db.Decimal(10, 2)
-  status             InvoiceStatus   @default(PENDING)
-  payment_method     String?         @db.VarChar(50)
-  paid_at            DateTime?
-  payment_reference  String?         @db.VarChar(100)
-  notes              String?
-  created_at         DateTime        @default(now())
-  updated_at         DateTime        @updatedAt
-  customer           Customer        @relation(fields: [customer_id], references: [id])
-  maintenance_job    MaintenanceJob? @relation(fields: [maintenance_job_id], references: [id])
+  id                      String               @id @default(uuid())
+  customer_id             String
+  maintenance_job_id      String?              @unique
+  maintenance_contract_id String?
+  cleaning_job_id         String?              @unique
+  invoice_number          String               @unique @db.VarChar(50)
+  invoice_date            DateTime             @db.Date
+  due_date                DateTime             @db.Date
+  line_items              Json
+  subtotal                Decimal              @db.Decimal(10, 2)
+  tax_percentage          Decimal              @default(20) @db.Decimal(5, 2)
+  tax_amount              Decimal              @db.Decimal(10, 2)
+  total                   Decimal              @db.Decimal(10, 2)
+  status                  InvoiceStatus        @default(PENDING)
+  payment_method          String?              @db.VarChar(50)
+  paid_at                 DateTime?
+  payment_reference       String?              @db.VarChar(100)
+  notes                   String?
+  created_at              DateTime             @default(now())
+  updated_at              DateTime             @updatedAt
+  customer                Customer             @relation(fields: [customer_id], references: [id])
+  maintenance_job         MaintenanceJob?      @relation(fields: [maintenance_job_id], references: [id])
+  maintenance_contract    MaintenanceContract? @relation(fields: [maintenance_contract_id], references: [id])
 
   @@index([customer_id])
   @@index([status])
@@ -1451,6 +1458,76 @@ model ContractFile {
 
   @@index([contract_id])
   @@map("contract_files")
+}
+
+// ============================================================================
+// MAINTENANCE CONTRACTS
+// ============================================================================
+
+model MaintenanceContract {
+  id                     String         @id @default(uuid())
+  contract_number        String?        @unique @db.VarChar(50)
+  customer_id            String
+  service_provider_id    String
+  contract_type          ContractType   @default(FLAT_MONTHLY)
+  contract_start_date    DateTime       @db.Date
+  contract_end_date      DateTime?      @db.Date
+  monthly_fee            Decimal        @db.Decimal(10, 2)
+  billing_day            Int // 1-31, day of month to invoice
+  status                 ContractStatus @default(ACTIVE)
+  notes                  String?
+  customer_address_line1 String?        @db.VarChar(255)
+  customer_address_line2 String?        @db.VarChar(255)
+  customer_city          String?        @db.VarChar(100)
+  customer_postcode      String?        @db.VarChar(20)
+  customer_country       String?        @db.VarChar(100)
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @updatedAt
+
+  customer                    Customer                      @relation(fields: [customer_id], references: [id])
+  maintenance_jobs            MaintenanceJob[]
+  maintenance_invoices        Invoice[]
+  maintenance_property_links  MaintenanceContractProperty[]
+  maintenance_files           MaintenanceContractFile[]
+
+  @@index([customer_id])
+  @@index([service_provider_id])
+  @@index([status])
+  @@map("maintenance_contracts")
+}
+
+model MaintenanceContractProperty {
+  id                   String   @id @default(uuid())
+  contract_id          String
+  property_id          String
+  property_monthly_fee Decimal? @db.Decimal(10, 2) // For PER_PROPERTY pricing
+  is_active            Boolean  @default(true)
+  created_at           DateTime @default(now())
+
+  contract MaintenanceContract @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  property CustomerProperty    @relation(fields: [property_id], references: [id])
+
+  @@unique([contract_id, property_id])
+  @@index([contract_id])
+  @@index([property_id])
+  @@map("maintenance_contract_properties")
+}
+
+model MaintenanceContractFile {
+  id          String   @id @default(uuid())
+  contract_id String
+  file_name   String
+  file_path   String
+  file_type   String // MIME type (image/png, application/pdf, etc.)
+  file_size   Int // Size in bytes
+  description String? // Optional description of the file
+  uploaded_by String? // User ID who uploaded
+  created_at  DateTime @default(now())
+
+  contract MaintenanceContract @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+
+  @@index([contract_id])
+  @@map("maintenance_contract_files")
 }
 
 model CleaningJobTimesheet {
