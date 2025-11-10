@@ -1491,3 +1491,104 @@ export const maintenanceInvoicesAPI = {
     return response.data.data
   },
 }
+
+export interface ChecklistSection {
+  title: string
+  items: ChecklistItem[]
+  images?: string[] // URLs to uploaded images
+}
+
+export interface ChecklistTemplate {
+  id: string
+  service_provider_id: string
+  customer_id?: string
+  template_name: string
+  property_type: string
+  sections: ChecklistSection[]
+  estimated_duration_minutes: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateChecklistTemplateData {
+  service_provider_id: string
+  customer_id?: string
+  template_name: string
+  property_type: string
+  sections: ChecklistSection[]
+  estimated_duration_minutes: number
+  is_active?: boolean
+}
+
+export interface UpdateChecklistTemplateData {
+  template_name?: string
+  property_type?: string
+  sections?: ChecklistSection[]
+  estimated_duration_minutes?: number
+  is_active?: boolean
+  customer_id?: string
+}
+
+// Checklist Template API
+export const checklistTemplatesAPI = {
+  list: async (serviceProviderId: string, filters?: {
+    property_type?: string
+    customer_id?: string
+    is_active?: boolean
+  }) => {
+    const response = await api.get<{ data: ChecklistTemplate[] }>('/api/checklist-templates', {
+      params: {
+        service_provider_id: serviceProviderId,
+        ...filters,
+      },
+    })
+    return response.data.data
+  },
+
+  get: async (id: string, serviceProviderId: string) => {
+    const response = await api.get<{ data: ChecklistTemplate }>(`/api/checklist-templates/${id}`, {
+      params: {
+        service_provider_id: serviceProviderId,
+      },
+    })
+    return response.data.data
+  },
+
+  create: async (data: CreateChecklistTemplateData) => {
+    const response = await api.post<{ data: ChecklistTemplate }>('/api/checklist-templates', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: UpdateChecklistTemplateData & { service_provider_id: string }) => {
+    const response = await api.put<{ data: ChecklistTemplate }>(`/api/checklist-templates/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string, serviceProviderId: string) => {
+    await api.delete(`/api/checklist-templates/${id}`, {
+      params: {
+        service_provider_id: serviceProviderId,
+      },
+    })
+  },
+
+  uploadImage: async (file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    const response = await api.post<{ data: { filename: string; url: string } }>(
+      '/api/uploads/checklist-template-image',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return response.data.data
+  },
+
+  deleteImage: async (filename: string) => {
+    await api.delete(`/api/uploads/checklist-template-image/${filename}`)
+  },
+}
