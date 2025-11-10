@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core'
-import { useToast } from '../components/ui'
+import { useNavigate } from 'react-router-dom'
+import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core';
+import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { workersAPI, type Worker } from '../lib/api'
-import { useAuth } from '../contexts/AuthContext'
 import '../pages/Properties.css'
 
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 export default function Workers() {
-  const { user } = useAuth()
+  const navigate = useNavigate()
   const [workers, setWorkers] = useState<Worker[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
-
-  const SERVICE_PROVIDER_ID = user?.service_provider_id
   const [openDialog, setOpenDialog] = useState(false)
   const [editingWorker, setEditingWorker] = useState<Worker | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -189,8 +189,8 @@ export default function Workers() {
                   </div>
                 </div>
                 <div className="property-actions">
-                  <Button variant="secondary" size="sm" onClick={() => handleOpenDialog(worker)}>
-                    Edit
+                  <Button variant="secondary" size="sm" onClick={() => navigate(`/workers/${worker.id}`)}>
+                    View Details
                   </Button>
                   <Button variant="danger" size="sm" onClick={() => handleDelete(worker.id, `${worker.first_name} ${worker.last_name}`)}>
                     Delete
