@@ -3,13 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Spinner, Badge, Select } from '@rightfit/ui-core';
 import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import {
   customerPropertiesAPI,
   checklistTemplatesAPI,
   maintenanceJobsAPI,
+  maintenanceContractsAPI,
   type CustomerProperty,
   type ChecklistTemplate,
-  type MaintenanceJob
+  type MaintenanceJob,
+  type MaintenanceContract,
 } from '../lib/api'
 import { PropertyHistoryTimeline } from '../components/PropertyHistoryTimeline'
 import { PropertyGuestCalendar } from '../components/PropertyGuestCalendar'
@@ -59,6 +62,7 @@ export default function PropertyDetails() {
 
   // Tab data state
   const [checklists, setChecklists] = useState<ChecklistTemplate[]>([])
+  const [contracts, setContracts] = useState<MaintenanceContract[]>([])
   const [maintenanceJobs, setMaintenanceJobs] = useState<MaintenanceJob[]>([])
   const [loadingTabData, setLoadingTabData] = useState(false)
 
@@ -110,6 +114,20 @@ export default function PropertyDetails() {
         const linkedChecklists = await customerPropertiesAPI.getChecklistTemplates(id)
         setChecklists(linkedChecklists || [])
         setLinkedTemplateIds(linkedChecklists.map(c => c.id))
+      }
+
+      if (activeTab === 'contracts') {
+        // Load contracts that include this property
+        if (property.customer?.id) {
+          const contractsData = await maintenanceContractsAPI.list({
+            customer_id: property.customer.id,
+          })
+          // Filter to only show contracts that include this specific property
+          const filteredContracts = contractsData.filter(contract =>
+            contract.maintenance_property_links?.some(pc => pc.property_id === id)
+          )
+          setContracts(filteredContracts || [])
+        }
       }
 
       if (activeTab === 'maintenance') {
@@ -654,6 +672,91 @@ export default function PropertyDetails() {
                   </div>
                 </Card>
               )}
+            </>
+          )}
+        </TabPanel>
+
+        <TabPanel tabId="contracts" label="Contracts" activeTab={activeTab}>
+          {loadingTabData ? (
+            <Card className="p-12 text-center">
+              <Spinner size="lg" />
+              <p className="text-gray-600 mt-3">Loading contracts...</p>
+            </Card>
+          ) : contracts.length === 0 ? (
+            <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50">
+              <span className="text-6xl mb-4 block">📄</span>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">No contracts found for this property</p>
+              <Button onClick={() => navigate('/contracts')}>
+                View All Contracts
+              </Button>
+            </Card>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <span className="text-2xl">📄</span>
+                  Contracts ({contracts.length})
+                </h2>
+              </div>
+              <div className="customer-info-grid">
+                {contracts.map((contract) => {
+                  const isActive = contract.status === 'ACTIVE'
+                  const gradient = isActive
+                    ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+                    : 'from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-700'
+
+                  const iconBg = isActive
+                    ? 'bg-green-200 dark:bg-green-800'
+                    : 'bg-gray-300 dark:bg-gray-700'
+
+                  const icon = isActive ? '✅' : '📄'
+
+                  return (
+                    <Card
+                      key={contract.id}
+                      className={`p-5 cursor-pointer hover:shadow-xl transition-all bg-gradient-to-br ${gradient}`}
+                      onClick={() => navigate(`/contracts/${contract.id}`)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                          <span className="text-xl">{icon}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                                {contract.contract_number || 'No Number'}
+                              </p>
+                              <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
+                              </p>
+                            </div>
+                            <Badge color={isActive ? 'success' : 'secondary'}>
+                              {contract.status}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                            📅 Start: {new Date(contract.contract_start_date).toLocaleDateString('en-GB')}
+                            {contract.contract_end_date && (
+                              <> • End: {new Date(contract.contract_end_date).toLocaleDateString('en-GB')}</>
+                            )}
+                          </div>
+                          <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <div className={`text-2xl font-extrabold ${
+                              isActive ? 'text-green-900 dark:text-green-100' : 'text-gray-900 dark:text-gray-100'
+                            }`}>
+                              £{Number(contract.monthly_fee).toFixed(2)}/mo
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                              Billing Day: {contract.billing_day}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
             </>
           )}
         </TabPanel>
