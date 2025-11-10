@@ -1719,3 +1719,101 @@ export const cleaningContractsAPI = {
     return response.data.data.monthly_fee
   },
 }
+
+export interface PropertyCalendar {
+  id: string
+  property_id: string
+  guest_checkout_datetime: string
+  next_guest_checkin_datetime: string
+  clean_window_start: string
+  clean_window_end: string
+  cleaning_job_id?: string | null
+  notes?: string | null
+  created_at: string
+  updated_at: string
+  property?: {
+    id: string
+    property_name: string
+    address: string
+    customer?: {
+      id: string
+      business_name: string
+    }
+  }
+}
+
+export interface CreatePropertyCalendarData {
+  property_id: string
+  guest_checkout_datetime: string
+  next_guest_checkin_datetime: string
+  notes?: string
+}
+
+export interface UpdatePropertyCalendarData {
+  guest_checkout_datetime?: string
+  next_guest_checkin_datetime?: string
+  cleaning_job_id?: string | null
+  notes?: string
+}
+
+export interface PropertyCalendarStats {
+  total: number
+  upcoming: number
+  past: number
+  needs_cleaning: number
+  has_cleaning_job: number
+}
+
+export const propertyCalendarsAPI = {
+  list: async (filters?: {
+    property_id?: string
+    include_completed?: boolean
+    days_ahead?: number
+    start_date?: string
+    end_date?: string
+  }) => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendar[] }>('/api/property-calendars', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendar }>(`/api/property-calendars/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreatePropertyCalendarData) => {
+    const response = await api.post<{ success: boolean; data: PropertyCalendar }>('/api/property-calendars', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: UpdatePropertyCalendarData) => {
+    const response = await api.put<{ success: boolean; data: PropertyCalendar }>(`/api/property-calendars/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/property-calendars/${id}`)
+  },
+
+  needsCleaning: async () => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendar[] }>('/api/property-calendars/needs-cleaning')
+    return response.data.data
+  },
+
+  getPropertyStats: async (propertyId: string) => {
+    const response = await api.get<{ success: boolean; data: PropertyCalendarStats }>(
+      `/api/property-calendars/property/${propertyId}/stats`
+    )
+    return response.data.data
+  },
+
+  linkJob: async (id: string, cleaningJobId: string) => {
+    const response = await api.put<{ success: boolean; data: PropertyCalendar }>(
+      `/api/property-calendars/${id}/link-job`,
+      { cleaning_job_id: cleaningJobId }
+    )
+    return response.data.data
+  },
+}
