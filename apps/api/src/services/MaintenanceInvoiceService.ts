@@ -3,46 +3,43 @@ import { NotFoundError, ValidationError } from '../utils/errors';
 
 export class MaintenanceInvoiceService {
   /**
-   * Generate a cleaning invoice from a contract for a billing period
+   * Create invoice from a maintenance job
    */
-  async generateFromContract(
-    contractId: string,
-    billingPeriodStart: Date,
-    billingPeriodEnd: Date,
-    serviceProviderId: string
+  async createFromJob(
+    maintenanceJobId: string,
+    serviceProviderId: string,
+    additionalData?: {
+      invoice_date?: Date
+      due_date?: Date
+      notes?: string
+    }
   ) {
-    // Get the contract with all details
-    const contract = await prisma.cleaningContract.findFirst({
+    // Get the job with all details
+    const job = await prisma.maintenanceJob.findFirst({
       where: {
-        id: contractId,
+        id: maintenanceJobId,
         customer: {
           service_provider_id: serviceProviderId,
         },
       },
       include: {
         customer: true,
-        contract_properties: {
-          include: {
-            property: true,
-          },
-        },
+        property: true,
       },
     });
 
-    if (!contract) {
-      throw new NotFoundError('Cleaning contract not found');
+    if (!job) {
+      throw new NotFoundError('Maintenance job not found');
     }
 
-    if (contract.status !== 'ACTIVE') {
-      throw new ValidationError('Contract must be active to generate invoice');
+    if (job.status !== 'COMPLETED') {
+      throw new ValidationError('Job must be completed to generate invoice');
     }
 
-    // Check if invoice already exists for this period
+    // Check if invoice already exists for this job
     const existingInvoice = await prisma.invoice.findFirst({
       where: {
-        contract_id: contractId,
-        billing_period_start: billingPeriodStart,
-        billing_period_end: billingPeriodEnd,
+        maintenance_job_id: maintenanceJobId,
       },
     });
 
@@ -53,54 +50,127 @@ export class MaintenanceInvoiceService {
     // Generate invoice number
     const invoiceNumber = await this.generateInvoiceNumber();
 
-    // Count cleaning jobs completed in this period
-    const totalCleansCompleted = await prisma.cleaningJob.count({
-      where: {
-        contract_id: contractId,
-        status: 'COMPLETED',
-        completed_at: {
-          gte: billingPeriodStart,
-          lte: billingPeriodEnd,
-        },
-      },
-    });
+    // Build line items from job details
+    const lineItems: any[] = [];
 
-    // Calculate invoice totals
-    const contractMonthlyFee = Number(contract.contract_value || 0);
-    const additionalCharges = 0; // Could be calculated from extra services
-    const subtotal = contractMonthlyFee + additionalCharges;
+    // Add labor line item
+    if (job.actual_hours || job.estimated_hours) {
+      const hours = Number(job.actual_hours || job.estimated_hours);
+      const laborRate = 50; // Default rate, should come from worker/contractor
+      lineItems.push({
+        description: `Labor: ${job.title}`,
+        quantity: hours,
+        unit_price: laborRate,
+        total: hours * laborRate,
+      });
+    }
 
-    // Calculate tax (20% VAT)
-    const taxPercentage = 20;
+    // Add parts line items
+    if (job.parts_used && Array.isArray(job.parts_used) && job.parts_used.length > 0) {
+      job.parts_used.forEach((part: any) => {
+        lineItems.push({
+          description: `Parts: ${part.name || part}`,
+          quantity: part.quantity || 1,
+          unit_price: part.cost || 0,
+          total: (part.quantity || 1) * (part.cost || 0),
+        });
+      });
+    }
+
+    // Calculate totals
+    const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
+    const taxPercentage = 20; // 20% VAT
     const taxAmount = (subtotal * taxPercentage) / 100;
-    const totalAmount = subtotal + taxAmount;
+    const total = subtotal + taxAmount;
 
-    // Set due date based on contract payment terms
-    const dueDate = new Date(billingPeriodEnd);
-    const paymentTermsDays = this.getPaymentTermsDays(contract.customer.payment_terms);
-    dueDate.setDate(dueDate.getDate() + paymentTermsDays);
+    // Set dates
+    const invoiceDate = additionalData?.invoice_date || new Date();
+    const dueDate = additionalData?.due_date || (() => {
+      const date = new Date(invoiceDate);
+      const paymentTermsDays = this.getPaymentTermsDays(job.customer.payment_terms);
+      date.setDate(date.getDate() + paymentTermsDays);
+      return date;
+    })();
 
     // Create invoice
     const invoice = await prisma.invoice.create({
       data: {
-        contract_id: contractId,
-        customer_id: contract.customer_id,
+        customer_id: job.customer_id,
+        maintenance_job_id: maintenanceJobId,
         invoice_number: invoiceNumber,
-        billing_period_start: billingPeriodStart,
-        billing_period_end: billingPeriodEnd,
-        total_cleans_completed: totalCleansCompleted,
-        contract_monthly_fee: contractMonthlyFee,
-        additional_charges: additionalCharges,
+        invoice_date: invoiceDate,
+        due_date: dueDate,
+        line_items: lineItems,
         subtotal,
         tax_percentage: taxPercentage,
         tax_amount: taxAmount,
-        total_amount: totalAmount,
+        total,
         status: 'PENDING',
-        due_date: dueDate,
+        notes: additionalData?.notes,
       },
       include: {
-        contract: true,
         customer: true,
+        maintenance_job: true,
+      },
+    });
+
+    return invoice;
+  }
+
+  /**
+   * Create invoice manually (not from job)
+   */
+  async create(
+    data: {
+      customer_id: string
+      maintenance_job_id?: string
+      invoice_date: Date
+      due_date: Date
+      line_items: any[]
+      subtotal: number
+      tax_percentage?: number
+      notes?: string
+    },
+    serviceProviderId: string
+  ) {
+    // Verify customer belongs to service provider
+    const customer = await prisma.customer.findFirst({
+      where: {
+        id: data.customer_id,
+        service_provider_id: serviceProviderId,
+      },
+    });
+
+    if (!customer) {
+      throw new NotFoundError('Customer not found');
+    }
+
+    // Generate invoice number
+    const invoiceNumber = await this.generateInvoiceNumber();
+
+    // Calculate totals
+    const taxPercentage = data.tax_percentage || 20;
+    const taxAmount = (data.subtotal * taxPercentage) / 100;
+    const total = data.subtotal + taxAmount;
+
+    const invoice = await prisma.invoice.create({
+      data: {
+        customer_id: data.customer_id,
+        maintenance_job_id: data.maintenance_job_id,
+        invoice_number: invoiceNumber,
+        invoice_date: data.invoice_date,
+        due_date: data.due_date,
+        line_items: data.line_items,
+        subtotal: data.subtotal,
+        tax_percentage: taxPercentage,
+        tax_amount: taxAmount,
+        total,
+        status: 'PENDING',
+        notes: data.notes,
+      },
+      include: {
+        customer: true,
+        maintenance_job: true,
       },
     });
 
@@ -115,12 +185,13 @@ export class MaintenanceInvoiceService {
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
 
-    // Get count of cleaning invoices this month
+    // Get count of maintenance invoices this month
     const startOfMonth = new Date(year, now.getMonth(), 1);
     const endOfMonth = new Date(year, now.getMonth() + 1, 0);
 
     const count = await prisma.invoice.count({
       where: {
+        maintenance_job_id: { not: null },
         created_at: {
           gte: startOfMonth,
           lte: endOfMonth,
@@ -128,8 +199,8 @@ export class MaintenanceInvoiceService {
       },
     });
 
-    // Format: CINV-YYYYMM-XXXX (C for Cleaning)
-    const invoiceNumber = `CINV-${year}${month}-${String(count + 1).padStart(4, '0')}`;
+    // Format: MINV-YYYYMM-XXXX (M for Maintenance)
+    const invoiceNumber = `MINV-${year}${month}-${String(count + 1).padStart(4, '0')}`;
     return invoiceNumber;
   }
 
@@ -145,21 +216,17 @@ export class MaintenanceInvoiceService {
         },
       },
       include: {
-        contract: {
+        customer: true,
+        maintenance_job: {
           include: {
-            contract_properties: {
-              include: {
-                property: true,
-              },
-            },
+            property: true,
           },
         },
-        customer: true,
       },
     });
 
     if (!invoice) {
-      throw new NotFoundError('Cleaning invoice not found');
+      throw new NotFoundError('Maintenance invoice not found');
     }
 
     return invoice;
@@ -175,7 +242,7 @@ export class MaintenanceInvoiceService {
     filters?: {
       status?: string
       customer_id?: string
-      contract_id?: string
+      maintenance_job_id?: string
       from_date?: Date
       to_date?: Date
     }
@@ -183,6 +250,7 @@ export class MaintenanceInvoiceService {
     const skip = (page - 1) * limit;
 
     const where: any = {
+      maintenance_job_id: { not: null }, // Only maintenance invoices
       customer: {
         service_provider_id: serviceProviderId,
       },
@@ -194,16 +262,16 @@ export class MaintenanceInvoiceService {
     if (filters?.customer_id) {
       where.customer_id = filters.customer_id;
     }
-    if (filters?.contract_id) {
-      where.contract_id = filters.contract_id;
+    if (filters?.maintenance_job_id) {
+      where.maintenance_job_id = filters.maintenance_job_id;
     }
     if (filters?.from_date || filters?.to_date) {
-      where.billing_period_start = {};
+      where.invoice_date = {};
       if (filters.from_date) {
-        where.billing_period_start.gte = filters.from_date;
+        where.invoice_date.gte = filters.from_date;
       }
       if (filters.to_date) {
-        where.billing_period_start.lte = filters.to_date;
+        where.invoice_date.lte = filters.to_date;
       }
     }
 
@@ -213,11 +281,15 @@ export class MaintenanceInvoiceService {
         skip,
         take: limit,
         orderBy: [
-          { billing_period_start: 'desc' },
+          { invoice_date: 'desc' },
         ],
         include: {
-          contract: true,
           customer: true,
+          maintenance_job: {
+            include: {
+              property: true,
+            },
+          },
         },
       }),
       prisma.invoice.count({ where }),
@@ -256,8 +328,8 @@ export class MaintenanceInvoiceService {
         payment_reference: paymentData.payment_reference,
       },
       include: {
-        contract: true,
         customer: true,
+        maintenance_job: true,
       },
     });
 
@@ -271,30 +343,38 @@ export class MaintenanceInvoiceService {
     id: string,
     serviceProviderId: string,
     data: {
-      additional_charges?: number
+      line_items?: any[]
+      subtotal?: number
+      tax_percentage?: number
       notes?: string
       status?: string
     }
   ) {
     await this.getById(id, serviceProviderId);
 
-    // Recalculate totals if additional_charges changed
+    // Recalculate totals if line items or subtotal changed
     let updateData: any = { ...data };
 
-    if (data.additional_charges !== undefined) {
+    if (data.line_items || data.subtotal !== undefined || data.tax_percentage !== undefined) {
       const invoice = await this.getById(id, serviceProviderId);
-      const contractMonthlyFee = Number(invoice.contract_monthly_fee);
-      const additionalCharges = Number(data.additional_charges);
-      const subtotal = contractMonthlyFee + additionalCharges;
-      const taxPercentage = Number(invoice.tax_percentage);
+
+      // Calculate new subtotal from line items if provided
+      let subtotal = data.subtotal;
+      if (data.line_items) {
+        subtotal = data.line_items.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
+        updateData.subtotal = subtotal;
+      } else if (subtotal === undefined) {
+        subtotal = Number(invoice.subtotal);
+      }
+
+      const taxPercentage = data.tax_percentage !== undefined ? data.tax_percentage : Number(invoice.tax_percentage);
       const taxAmount = (subtotal * taxPercentage) / 100;
-      const totalAmount = subtotal + taxAmount;
+      const total = subtotal + taxAmount;
 
       updateData = {
         ...updateData,
-        subtotal,
         tax_amount: taxAmount,
-        total_amount: totalAmount,
+        total,
       };
     }
 
@@ -302,8 +382,8 @@ export class MaintenanceInvoiceService {
       where: { id },
       data: updateData,
       include: {
-        contract: true,
         customer: true,
+        maintenance_job: true,
       },
     });
 
@@ -350,12 +430,13 @@ export class MaintenanceInvoiceService {
     const stats = await prisma.invoice.aggregate({
       where: {
         customer_id: customerId,
+        maintenance_job_id: { not: null }, // Only maintenance invoices
         customer: {
           service_provider_id: serviceProviderId,
         },
       },
       _sum: {
-        total_amount: true,
+        total: true,
       },
       _count: {
         id: true,
@@ -365,6 +446,7 @@ export class MaintenanceInvoiceService {
     const paidCount = await prisma.invoice.count({
       where: {
         customer_id: customerId,
+        maintenance_job_id: { not: null },
         status: 'PAID',
         customer: {
           service_provider_id: serviceProviderId,
@@ -375,6 +457,7 @@ export class MaintenanceInvoiceService {
     const overduCount = await prisma.invoice.count({
       where: {
         customer_id: customerId,
+        maintenance_job_id: { not: null },
         status: 'PENDING',
         due_date: {
           lt: new Date(),
@@ -387,7 +470,7 @@ export class MaintenanceInvoiceService {
 
     return {
       total_invoices: stats._count.id,
-      total_amount: stats._sum.total_amount || 0,
+      total_amount: stats._sum.total || 0,
       paid_invoices: paidCount,
       overdue_invoices: overduCount,
     };
