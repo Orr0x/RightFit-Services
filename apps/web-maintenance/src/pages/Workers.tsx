@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core';
 import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import { workersAPI, type Worker } from '../lib/api'
 import '../pages/Properties.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
-
 export default function Workers() {
+  const serviceProviderId = useServiceProvider()
   const navigate = useNavigate()
   const [workers, setWorkers] = useState<Worker[]>([])
   const { isLoading, withLoading } = useLoading()
@@ -28,12 +28,14 @@ export default function Workers() {
     max_weekly_hours: '',
   })
 
+  if (!serviceProviderId) return null
+
   useEffect(() => { loadWorkers() }, [])
 
   const loadWorkers = () => {
     withLoading(async () => {
       try {
-        const data = await workersAPI.list(SERVICE_PROVIDER_ID)
+        const data = await workersAPI.list(serviceProviderId)
         setWorkers(data)
       } catch (err: any) {
         toast.error('Failed to load workers')
@@ -79,7 +81,7 @@ export default function Workers() {
         ...formData,
         hourly_rate: parseFloat(formData.hourly_rate),
         max_weekly_hours: formData.max_weekly_hours ? parseInt(formData.max_weekly_hours) : undefined,
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: serviceProviderId,
       }
 
       if (editingWorker) {
@@ -100,7 +102,7 @@ export default function Workers() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete worker "${name}"?`)) return
     try {
-      await workersAPI.delete(id, SERVICE_PROVIDER_ID)
+      await workersAPI.delete(id, serviceProviderId)
       toast.success('Worker deleted')
       loadWorkers()
     } catch (err: any) {

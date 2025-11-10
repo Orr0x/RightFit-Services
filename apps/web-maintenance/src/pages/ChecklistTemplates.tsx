@@ -5,7 +5,8 @@ import { useLoading } from '../hooks/useLoading'
 import { checklistTemplatesAPI, customersAPI, type ChecklistTemplate, type ChecklistSection, type CreateChecklistTemplateData } from '../lib/api'
 import './Quotes.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+const serviceProviderId = useServiceProvider()
+  if (!serviceProviderId) return null
 
 interface FormSection {
   title: string
@@ -46,7 +47,7 @@ export default function ChecklistTemplates() {
   const loadTemplates = () => {
     withLoading(async () => {
       try {
-        const data = await checklistTemplatesAPI.list(SERVICE_PROVIDER_ID)
+        const data = await checklistTemplatesAPI.list(serviceProviderId)
         setTemplates(data)
       } catch (err: any) {
         toast.error('Failed to load checklist templates')
@@ -145,12 +146,12 @@ export default function ChecklistTemplates() {
           is_active: formData.is_active,
           customer_id: formData.customer_id || undefined,
           sections: sectionsData,
-          service_provider_id: SERVICE_PROVIDER_ID,
+          service_provider_id: serviceProviderId,
         })
         toast.success('Template updated')
       } else {
         const createData: CreateChecklistTemplateData = {
-          service_provider_id: SERVICE_PROVIDER_ID,
+          service_provider_id: serviceProviderId,
           template_name: formData.template_name,
           property_type: formData.property_type,
           estimated_duration_minutes: parseInt(formData.estimated_duration_minutes),
@@ -172,7 +173,7 @@ export default function ChecklistTemplates() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete template "${name}"? This will set it as inactive.`)) return
     try {
-      await checklistTemplatesAPI.delete(id, SERVICE_PROVIDER_ID)
+      await checklistTemplatesAPI.delete(id, serviceProviderId)
       toast.success('Template deleted')
       loadTemplates()
     } catch (err: any) {

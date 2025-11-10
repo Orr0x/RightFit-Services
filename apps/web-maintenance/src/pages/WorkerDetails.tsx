@@ -15,7 +15,8 @@ import HistoryIcon from '@mui/icons-material/History'
 import '../pages/ContractDetails.css'
 import './Quotes.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+const serviceProviderId = useServiceProvider()
+  if (!serviceProviderId) return null
 
 export default function WorkerDetails() {
   const { id } = useParams<{ id: string }>()
@@ -95,7 +96,7 @@ export default function WorkerDetails() {
       setLoading(true)
 
       // Load worker details
-      const workerData = await workersAPI.get(id!, SERVICE_PROVIDER_ID)
+      const workerData = await workersAPI.get(id!, serviceProviderId)
       setWorker(workerData)
 
       setFormData({
@@ -137,7 +138,7 @@ export default function WorkerDetails() {
       }
 
       // Load worker's jobs
-      const jobsData = await cleaningJobsAPI.list(SERVICE_PROVIDER_ID, {
+      const jobsData = await cleaningJobsAPI.list(serviceProviderId, {
         assigned_worker_id: id,
       })
       setJobs(jobsData.data || [])
@@ -217,7 +218,7 @@ export default function WorkerDetails() {
         emergency_contact_name: formData.emergency_contact_name || null,
         emergency_contact_phone: formData.emergency_contact_phone || null,
         emergency_contact_relation: formData.emergency_contact_relation || null,
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: serviceProviderId,
       }
 
       await workersAPI.update(id!, payload)

@@ -4,6 +4,7 @@ import { Button, Card, Input, Select, Spinner, Textarea, type SelectOption } fro
 import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import { useAuth } from '../contexts/AuthContext'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import {
   maintenanceQuotesAPI,
   customersAPI,
@@ -15,9 +16,8 @@ interface LineItem extends CreateQuoteLineItemData {
   id: string
 }
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
-
 export default function EditQuote() {
+  const serviceProviderId = useServiceProvider()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const toast = useToast()
@@ -44,6 +44,8 @@ export default function EditQuote() {
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  if (!serviceProviderId) return null
 
   // Load customers
   useEffect(() => {
@@ -120,7 +122,7 @@ export default function EditQuote() {
 
       try {
         setLoadingProperties(true)
-        const result = await customerPropertiesAPI.list({ customer_id: customerId, service_provider_id: SERVICE_PROVIDER_ID })
+        const result = await customerPropertiesAPI.list({ customer_id: customerId, service_provider_id: serviceProviderId })
         const options = (result.data || []).map((property) => ({
           value: property.id,
           label: property.property_name,

@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react'
 import CloseIcon from '@mui/icons-material/Close'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
-import { Button } from '@rightfit/ui-core'
-import { Input } from '@rightfit/ui-core'
-import { Select } from '@rightfit/ui-core'
-import { Textarea } from '@rightfit/ui-core'
+import { Button, Input, Select, Textarea, Spinner, Card } from '@rightfit/ui-core'
 import { useToast } from '../ui'
-import { Spinner } from '@rightfit/ui-core'
-import { Card } from '@rightfit/ui-core'
+import { useServiceProvider } from '../../hooks/useServiceProvider'
 
 interface CreateJobFromCalendarModalProps {
   calendarEntry: {
@@ -54,6 +50,7 @@ export function CreateJobFromCalendarModal({
   onClose,
   onSuccess,
 }: CreateJobFromCalendarModalProps) {
+  const serviceProviderId = useServiceProvider()
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [workers, setWorkers] = useState<Worker[]>([])
@@ -61,6 +58,8 @@ export function CreateJobFromCalendarModal({
   const [contract, setContract] = useState<Contract | null>(null)
   const [loadingData, setLoadingData] = useState(true)
   const toast = useToast()
+
+  if (!serviceProviderId) return null
 
   // Calculate default schedule based on calendar entry
   const checkoutDate = new Date(calendarEntry.guest_checkout_datetime)
@@ -93,11 +92,11 @@ export function CreateJobFromCalendarModal({
     try {
       setLoadingData(true)
 
-      const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+      
 
       // Fetch workers and contract in parallel
       const [workersRes, contractsRes] = await Promise.all([
-        api.get('/api/workers', { params: { service_provider_id: SERVICE_PROVIDER_ID } }),
+        api.get('/api/workers', { params: { service_provider_id: serviceProviderId } }),
         api.get('/api/cleaning-contracts', {
           params: { customer_id: calendarEntry.property.customer.id, status: 'ACTIVE' },
         }),
@@ -152,11 +151,11 @@ export function CreateJobFromCalendarModal({
     try {
       setLoading(true)
 
-      const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+      
 
       // Create cleaning job
       const jobPayload = {
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: serviceProviderId,
         service_id: formData.service_id || undefined, // Optional since services not implemented yet
         property_id: calendarEntry.property_id,
         customer_id: calendarEntry.property.customer.id,

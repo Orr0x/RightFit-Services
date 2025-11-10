@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { Modal, Button, Select } from '@rightfit/ui-core'
 import { useToast } from '../ui'
 import { maintenanceJobsAPI, workersAPI, type MaintenanceJob, type Worker } from '../../lib/api'
+import { useServiceProvider } from '../../hooks/useServiceProvider'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
 
 interface QuickEditJobModalProps {
   job: MaintenanceJob
@@ -28,10 +29,13 @@ const generateTimeOptions = () => {
 }
 
 export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEditJobModalProps) {
+  const serviceProviderId = useServiceProvider()
   const [workers, setWorkers] = useState<Worker[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingWorkers, setLoadingWorkers] = useState(true)
   const toast = useToast()
+
+  if (!serviceProviderId) return null
 
   const [startTime, setStartTime] = useState(job.scheduled_start_time)
   const [endTime, setEndTime] = useState(job.scheduled_end_time)
@@ -61,7 +65,7 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
   const fetchWorkers = async () => {
     try {
       setLoadingWorkers(true)
-      const workersList = await workersAPI.list(SERVICE_PROVIDER_ID)
+      const workersList = await workersAPI.list(serviceProviderId)
       // Only show active cleaners
       const activeWorkers = workersList.filter(w =>
         w.is_active && (w.worker_type === 'CLEANER' || w.worker_type === 'BOTH')
@@ -90,7 +94,7 @@ export function QuickEditJobModal({ job, isOpen, onClose, onSuccess }: QuickEdit
         scheduled_end_time: endTime,
         assigned_worker_id: workerId || null,
         status: status as 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED',
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: serviceProviderId,
       })
 
       toast.success('Job updated successfully')

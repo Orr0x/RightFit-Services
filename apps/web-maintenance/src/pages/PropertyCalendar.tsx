@@ -8,7 +8,8 @@ import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
 import './PropertyCalendar.css'
 import './ContractDetails.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+const serviceProviderId = useServiceProvider()
+  if (!serviceProviderId) return null
 
 export default function PropertyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -28,7 +29,7 @@ export default function PropertyCalendar() {
     try {
       setLoading(true)
       // Load all jobs to show past, present, and future
-      const result = await maintenanceJobsAPI.list(SERVICE_PROVIDER_ID)
+      const result = await maintenanceJobsAPI.list(serviceProviderId)
       setJobs(result.data)
     } catch (error: any) {
       console.error('Error loading jobs:', error)
@@ -266,7 +267,7 @@ export default function PropertyCalendar() {
       // Update via API
       await maintenanceJobsAPI.update(jobId, {
         scheduled_date: newDateStr,
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: serviceProviderId,
       })
 
       // Refresh jobs to show updated state

@@ -3,6 +3,7 @@ import { Button, Input, Card, Spinner, Select, Badge, type SelectOption } from '
 import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
 import { useAuth } from '../../contexts/AuthContext'
+import { useServiceProvider } from '../../hooks/useServiceProvider'
 import {
   maintenanceJobsAPI,
   cleaningContractsAPI,
@@ -22,11 +23,10 @@ import {
 } from '../../lib/api'
 import { useNavigate, useParams } from 'react-router-dom'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
-
 type JobTab = 'contract' | 'oneoff'
 
 export default function CreateMaintenanceJob() {
+  const serviceProviderId = useServiceProvider()
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const isEditMode = Boolean(id)
@@ -46,7 +46,7 @@ export default function CreateMaintenanceJob() {
     scheduled_end_time: undefined,
     pricing_type: 'PER_TURNOVER',
     quoted_price: 45,
-    service_provider_id: SERVICE_PROVIDER_ID,
+    service_provider_id: serviceProviderId,
     status: 'PENDING',  // Default to PENDING
   })
 
@@ -69,6 +69,8 @@ export default function CreateMaintenanceJob() {
   const [isLoadingData, setIsLoadingData] = useState(true)
   const toast = useToast()
   const navigate = useNavigate()
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     if (user?.tenant_id) {
@@ -103,13 +105,13 @@ export default function CreateMaintenanceJob() {
     try {
       const [contractsData, propsData, servicesData, workersData, templatesData] = await Promise.all([
         cleaningContractsAPI.list({
-          service_provider_id: SERVICE_PROVIDER_ID,
+          service_provider_id: serviceProviderId,
           status: 'ACTIVE',
         }),
-        customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID }),
-        servicesAPI.list(SERVICE_PROVIDER_ID),
-        workersAPI.list(SERVICE_PROVIDER_ID),
-        checklistTemplatesAPI.list(SERVICE_PROVIDER_ID),
+        customerPropertiesAPI.list({ service_provider_id: serviceProviderId }),
+        servicesAPI.list(serviceProviderId),
+        workersAPI.list(serviceProviderId),
+        checklistTemplatesAPI.list(serviceProviderId),
       ])
 
       setContracts(contractsData || [])
@@ -169,7 +171,7 @@ export default function CreateMaintenanceJob() {
         quoted_price: job.quoted_price,
         checklist_template_id: job.checklist_template_id || '',
         checklist_total_items: job.checklist_total_items || 0,
-        service_provider_id: SERVICE_PROVIDER_ID,
+        service_provider_id: serviceProviderId,
         status: job.status,
       })
 

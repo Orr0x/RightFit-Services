@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
 import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import {
   maintenanceJobsAPI,
   cleaningContractsAPI,
@@ -27,8 +28,6 @@ import './ContractDetails.css'
 import './PropertyDetails.css'
 import './Quotes.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
-
 interface Timesheet {
   id: string
   worker_id: string
@@ -48,6 +47,7 @@ interface Timesheet {
 }
 
 export default function MaintenanceJobDetails() {
+  const serviceProviderId = useServiceProvider()
   const { id } = useParams<{ id: string }>()
   const [job, setJob] = useState<MaintenanceJob | null>(null)
   const [timesheets, setTimesheets] = useState<Timesheet[]>([])
@@ -71,6 +71,8 @@ export default function MaintenanceJobDetails() {
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     if (id) {
@@ -167,7 +169,7 @@ export default function MaintenanceJobDetails() {
 
       if (activeTab === 'maintenance') {
         // Load maintenance jobs that were created FROM this cleaning job
-        const maintenanceData = await maintenanceJobsAPI.list(SERVICE_PROVIDER_ID, {
+        const maintenanceData = await maintenanceJobsAPI.list(serviceProviderId, {
           property_id: job.property?.id,
         })
         // Filter to only show maintenance jobs created from this cleaning job
@@ -180,7 +182,7 @@ export default function MaintenanceJobDetails() {
       if (activeTab === 'checklists') {
         // Load the checklist template used for this job
         if (job.checklist_template_id) {
-          const checklistData = await checklistTemplatesAPI.get(job.checklist_template_id, SERVICE_PROVIDER_ID)
+          const checklistData = await checklistTemplatesAPI.get(job.checklist_template_id, serviceProviderId)
           setChecklists(checklistData ? [checklistData] : [])
         } else {
           setChecklists([])
@@ -190,7 +192,7 @@ export default function MaintenanceJobDetails() {
       if (activeTab === 'workers') {
         // Load the worker assigned to this job
         if (job.assigned_worker_id) {
-          const workerData = await workersAPI.get(job.assigned_worker_id, SERVICE_PROVIDER_ID)
+          const workerData = await workersAPI.get(job.assigned_worker_id, serviceProviderId)
           setWorkers(workerData ? [workerData] : [])
         } else {
           setWorkers([])
@@ -228,7 +230,7 @@ export default function MaintenanceJobDetails() {
           description: issueDescription,
           category: issueCategory,
           priority: issuePriority,
-          service_provider_id: SERVICE_PROVIDER_ID,
+          service_provider_id: serviceProviderId,
         })
 
         toast.success('Maintenance issue created successfully')

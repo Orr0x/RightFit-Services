@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { workersAPI, type WorkerHistoryEntry } from '../lib/api'
 import { Card } from '@rightfit/ui-core'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+const serviceProviderId = useServiceProvider()
+  if (!serviceProviderId) return null
 
 interface WorkerHistoryTimelineProps {
   workerId: string
@@ -22,7 +23,7 @@ export function WorkerHistoryTimeline({ workerId }: WorkerHistoryTimelineProps) 
     try {
       setLoading(true)
       setError(null)
-      const data = await workersAPI.getHistory(workerId, SERVICE_PROVIDER_ID)
+      const data = await workersAPI.getHistory(workerId, serviceProviderId)
       setHistory(data)
     } catch (err: any) {
       console.error('Error loading worker history:', err)

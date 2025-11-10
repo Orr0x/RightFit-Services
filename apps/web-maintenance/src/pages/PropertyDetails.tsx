@@ -75,7 +75,8 @@ export default function PropertyDetails() {
   const [addingTemplate, setAddingTemplate] = useState(false)
   const [linkedTemplateIds, setLinkedTemplateIds] = useState<string[]>([])
 
-  const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+  const serviceProviderId = useServiceProvider()
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     if (id) {
@@ -109,7 +110,7 @@ export default function PropertyDetails() {
     if (!id) return
 
     try {
-      const result = await cleaningJobsAPI.list('sp-cleaning-test', {
+      const result = await cleaningJobsAPI.list(serviceProviderId, {
         property_id: id,
         page: 1,
         limit: 5
@@ -149,7 +150,7 @@ export default function PropertyDetails() {
 
       if (activeTab === 'maintenance') {
         // Load maintenance jobs for this property
-        const maintenanceData = await maintenanceJobsAPI.list(SERVICE_PROVIDER_ID, {
+        const maintenanceData = await maintenanceJobsAPI.list(serviceProviderId, {
           property_id: id,
         })
         setMaintenanceJobs(maintenanceData.data || [])
@@ -164,7 +165,7 @@ export default function PropertyDetails() {
 
   const loadAllTemplates = async () => {
     try {
-      const templatesData = await checklistTemplatesAPI.list(SERVICE_PROVIDER_ID)
+      const templatesData = await checklistTemplatesAPI.list(serviceProviderId)
       setAllTemplates(templatesData || [])
     } catch (error) {
       console.error('Failed to load templates:', error)

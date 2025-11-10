@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react'
 import { Button, Input, Card, Spinner, EmptyState, Select, type SelectOption } from '@rightfit/ui-core';
 import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
+import { useServiceProvider } from '../../hooks/useServiceProvider'
 import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
 import ViewListIcon from '@mui/icons-material/ViewList'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
 import './MaintenanceJobs.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
-
 type ViewMode = 'list' | 'grid'
 
 export default function MaintenanceJobs() {
+  const serviceProviderId = useServiceProvider()
   const [jobs, setJobs] = useState<MaintenanceJob[]>([])
   const [filteredJobs, setFilteredJobs] = useState<MaintenanceJob[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -21,6 +21,8 @@ export default function MaintenanceJobs() {
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     loadJobs()
@@ -33,7 +35,7 @@ export default function MaintenanceJobs() {
   const loadJobs = () => {
     withLoading(async () => {
       try {
-        const result = await maintenanceJobsAPI.list(SERVICE_PROVIDER_ID)
+        const result = await maintenanceJobsAPI.list(serviceProviderId)
         setJobs(result.data)
       } catch (err: any) {
         toast.error('Failed to load cleaning jobs')
@@ -70,7 +72,7 @@ export default function MaintenanceJobs() {
 
     withLoading(async () => {
       try {
-        await maintenanceJobsAPI.delete(id, SERVICE_PROVIDER_ID)
+        await maintenanceJobsAPI.delete(id, serviceProviderId)
         toast.success('Cleaning job deleted')
         loadJobs()
       } catch (err: any) {

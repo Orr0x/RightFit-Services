@@ -25,18 +25,19 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import WorkIcon from '@mui/icons-material/Work'
 import './ContractDetails.css'
 
-const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
-
 export default function CustomerDetails() {
+  const serviceProviderId = useServiceProvider()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [properties, setProperties] = useState<CustomerProperty[]>([])
   const [contracts, setContracts] = useState<CleaningContract[]>([])
   const [recentJobs, setRecentJobs] = useState<CleaningJob[]>([])
+  const [activeTab, setActiveTab] = useState('info')
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
-  const [activeTab, setActiveTab] = useState('info')
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     if (id) {
@@ -65,7 +66,7 @@ export default function CustomerDetails() {
     if (!id) return
 
     try {
-      const result = await customerPropertiesAPI.list({ customer_id: id, service_provider_id: SERVICE_PROVIDER_ID })
+      const result = await customerPropertiesAPI.list({ customer_id: id, service_provider_id: serviceProviderId })
       setProperties(result.data)
     } catch (err) {
       console.log('No properties found for customer')
@@ -77,7 +78,7 @@ export default function CustomerDetails() {
 
     try {
       const result = await cleaningContractsAPI.list({
-        service_provider_id: 'sp-cleaning-test',
+        service_provider_id: serviceProviderId,
         customer_id: id,
       })
       setContracts(result || [])
@@ -90,7 +91,7 @@ export default function CustomerDetails() {
     if (!id) return
 
     try {
-      const result = await cleaningJobsAPI.list('sp-cleaning-test', {
+      const result = await cleaningJobsAPI.list(serviceProviderId, {
         customer_id: id,
         page: 1,
         limit: 10,
