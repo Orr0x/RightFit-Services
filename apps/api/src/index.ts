@@ -35,6 +35,7 @@ import customerPropertiesRoutes from './routes/customer-properties'
 import customerPortalRoutes from './routes/customer-portal'
 import guestRoutes from './routes/guest'
 import cleaningContractsRoutes from './routes/cleaning-contracts'
+import maintenanceContractsRoutes from './routes/maintenance-contracts'
 import propertyCalendarsRoutes from './routes/property-calendars'
 import cleaningTimesheetsRoutes from './routes/cleaning-timesheets'
 import servicesRoutes from './routes/services'
@@ -159,6 +160,7 @@ app.use('/api/customer-properties', customerPropertiesRoutes)
 app.use('/api/customer-portal', customerPortalRoutes)
 app.use('/api/guest', guestRoutes)
 app.use('/api/cleaning-contracts', cleaningContractsRoutes)
+app.use('/api/maintenance-contracts', maintenanceContractsRoutes)
 app.use('/api/property-calendars', propertyCalendarsRoutes)
 app.use('/api/cleaning-timesheets', cleaningTimesheetsRoutes)
 app.use('/api/services', servicesRoutes)

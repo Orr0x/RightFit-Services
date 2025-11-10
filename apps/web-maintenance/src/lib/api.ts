@@ -1894,3 +1894,143 @@ export const servicesAPI = {
     return response.data.data
   },
 }
+
+// Maintenance Contracts
+export interface MaintenanceContract {
+  id: string
+  customer_id: string
+  service_provider_id: string
+  contract_type: 'FLAT_MONTHLY' | 'PER_PROPERTY'
+  contract_start_date: string
+  contract_end_date?: string | null
+  monthly_fee: number
+  billing_day: number
+  status: 'ACTIVE' | 'PAUSED' | 'CANCELLED'
+  notes?: string | null
+  contract_number?: string | null
+  customer_address_line1?: string | null
+  customer_address_line2?: string | null
+  customer_city?: string | null
+  customer_postcode?: string | null
+  customer_country?: string | null
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+  }
+  maintenance_property_links?: MaintenanceContractProperty[]
+}
+
+export interface MaintenanceContractProperty {
+  id: string
+  contract_id: string
+  property_id: string
+  property_monthly_fee?: number | null
+  is_active: boolean
+  property?: {
+    id: string
+    property_name: string
+    address: string
+    postcode: string
+  }
+}
+
+export interface CreateMaintenanceContractData {
+  customer_id: string
+  service_provider_id: string
+  contract_type: 'FLAT_MONTHLY' | 'PER_PROPERTY'
+  contract_start_date: string
+  contract_end_date?: string
+  monthly_fee: number
+  billing_day: number
+  contract_number?: string
+  property_ids?: string[]
+  property_fees?: Record<string, number>
+  notes?: string
+  customer_address_line1?: string
+  customer_address_line2?: string
+  customer_city?: string
+  customer_postcode?: string
+  customer_country?: string
+}
+
+export const maintenanceContractsAPI = {
+  list: async (filters: {
+    customer_id?: string
+    service_provider_id?: string
+    status?: 'ACTIVE' | 'PAUSED' | 'CANCELLED'
+  }): Promise<MaintenanceContract[]> => {
+    const params = new URLSearchParams()
+    if (filters.customer_id) params.append('customer_id', filters.customer_id)
+    if (filters.service_provider_id) params.append('service_provider_id', filters.service_provider_id)
+    if (filters.status) params.append('status', filters.status)
+
+    const response = await api.get<{ data: MaintenanceContract[] }>(`/api/maintenance-contracts?${params.toString()}`)
+    return response.data.data
+  },
+
+  get: async (id: string): Promise<MaintenanceContract> => {
+    const response = await api.get<MaintenanceContract>(`/api/maintenance-contracts/${id}`)
+    return response.data
+  },
+
+  create: async (data: CreateMaintenanceContractData): Promise<MaintenanceContract> => {
+    const response = await api.post<MaintenanceContract>('/api/maintenance-contracts', data)
+    return response.data
+  },
+
+  update: async (id: string, data: Partial<CreateMaintenanceContractData>): Promise<MaintenanceContract> => {
+    const response = await api.put<MaintenanceContract>(`/api/maintenance-contracts/${id}`, data)
+    return response.data
+  },
+
+  pause: async (id: string): Promise<MaintenanceContract> => {
+    const response = await api.put<MaintenanceContract>(`/api/maintenance-contracts/${id}/pause`)
+    return response.data
+  },
+
+  resume: async (id: string): Promise<MaintenanceContract> => {
+    const response = await api.put<MaintenanceContract>(`/api/maintenance-contracts/${id}/resume`)
+    return response.data
+  },
+
+  cancel: async (id: string): Promise<MaintenanceContract> => {
+    const response = await api.put<MaintenanceContract>(`/api/maintenance-contracts/${id}/cancel`)
+    return response.data
+  },
+
+  getProperties: async (id: string): Promise<MaintenanceContractProperty[]> => {
+    const response = await api.get<MaintenanceContractProperty[]>(`/api/maintenance-contracts/${id}/properties`)
+    return response.data
+  },
+
+  linkProperty: async (
+    id: string,
+    data: { property_id: string; property_monthly_fee?: number }
+  ): Promise<MaintenanceContractProperty> => {
+    const response = await api.post<MaintenanceContractProperty>(`/api/maintenance-contracts/${id}/properties`, data)
+    return response.data
+  },
+
+  unlinkProperty: async (id: string, propertyId: string): Promise<void> => {
+    await api.delete(`/api/maintenance-contracts/${id}/properties/${propertyId}`)
+  },
+
+  updatePropertyFee: async (
+    id: string,
+    propertyId: string,
+    fee: number
+  ): Promise<MaintenanceContractProperty> => {
+    const response = await api.put<MaintenanceContractProperty>(`/api/maintenance-contracts/${id}/properties/${propertyId}/fee`, {
+      property_monthly_fee: fee,
+    })
+    return response.data
+  },
+
+  calculateMonthlyFee: async (id: string): Promise<number> => {
+    const response = await api.get<{ data: { contract_id: string; monthly_fee: number } }>(`/api/maintenance-contracts/${id}/monthly-fee`)
+    return response.data.data.monthly_fee
+  },
+}
