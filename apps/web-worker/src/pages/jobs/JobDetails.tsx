@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MapPin, Clock, User, Home, Bed, Bath,
   Key, Wifi, Car, PawPrint, AlertCircle,
-  Play, CheckCircle, Wrench, ChevronDown, ChevronUp
+  Play, CheckCircle, Wrench, ChevronDown, ChevronUp, Navigation2
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import JobChecklist, { ChecklistItem } from '../../components/jobs/JobChecklist'

@@ -224,7 +224,6 @@ export function useGeolocation(
       const useMockLocation = localStorage.getItem('mock_location') === 'true'
 
       if (useMockLocation) {
-        console.info('📍 Using mock location for testing:', MOCK_LOCATION)
         // Simulate async delay like real geolocation
         setTimeout(() => resolve(MOCK_LOCATION), 100)
         return

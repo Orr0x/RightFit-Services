@@ -10,6 +10,7 @@ import {
   MapPin,
   TrendingUp,
   X,
+  RefreshCw,
 } from 'lucide-react'
 import type { Coordinates } from '@rightfit/shared/types/navigation'
 
@@ -164,22 +165,13 @@ export default function TrafficAlert({
   }
 
   /**
-   * Fetch traffic on mount and set up refresh interval
+   * Fetch traffic on mount only (no auto-refresh)
    */
   useEffect(() => {
     if (routeCoordinates.length < 2) return
 
     fetchTraffic()
-
-    // Set up auto-refresh if enabled
-    if (refreshInterval > 0) {
-      const intervalId = setInterval(() => {
-        fetchTraffic()
-      }, refreshInterval * 60 * 1000)
-
-      return () => clearInterval(intervalId)
-    }
-  }, [routeCoordinates, refreshInterval])
+  }, [routeCoordinates])
 
   /**
    * Get congestion color classes
@@ -316,6 +308,15 @@ export default function TrafficAlert({
             {flow.average_delay_minutes > 0 && ` · +${flow.average_delay_minutes} min delay`}
           </p>
         </div>
+        <button
+          onClick={fetchTraffic}
+          disabled={loading}
+          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          title="Refresh traffic data"
+          aria-label="Refresh traffic data"
+        >
+          <RefreshCw className={`w-4 h-4 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
+        </button>
         {flow.overall_congestion !== 'NONE' && (
           <AlertTriangle className="w-5 h-5 text-orange-600" title="Traffic issues" />
         )}
@@ -414,11 +415,20 @@ export default function TrafficAlert({
         </div>
       )}
 
-      {/* Last updated */}
-      <div className="px-4 py-2 bg-gray-50 border-t text-center">
+      {/* Last updated with refresh button */}
+      <div className="px-4 py-2 bg-gray-50 border-t flex items-center justify-between">
         <p className="text-xs text-gray-500">
           Last updated: {traffic.last_updated.toLocaleTimeString()}
         </p>
+        <button
+          onClick={fetchTraffic}
+          disabled={loading}
+          className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+          title="Refresh traffic data"
+          aria-label="Refresh traffic data"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
     </div>
   )

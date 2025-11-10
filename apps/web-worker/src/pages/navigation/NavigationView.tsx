@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -13,14 +13,24 @@ import {
   RefreshCw,
   Cloud,
   Car,
+  Layers,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useGeolocation } from '../../hooks/useGeolocation'
-import MapView, { RouteData } from '../../components/navigation/MapView'
+import MapboxNavigationView from '../../components/navigation/MapboxNavigationView'
 import WeatherAlert from '../../components/navigation/WeatherAlert'
 import TrafficAlert from '../../components/navigation/TrafficAlert'
 import type { Coordinates } from '@rightfit/shared/types/navigation'
 import { decodePolyline } from '../../utils/polyline'
+
+/**
+ * Route data for MapboxNavigationView
+ */
+export interface RouteData {
+  coordinates: Coordinates[]
+  distance_meters: number
+  duration_seconds: number
+}
 
 /**
  * Property details from navigation API
@@ -104,6 +114,7 @@ export default function NavigationView() {
   const [showTraffic, setShowTraffic] = useState(false)
   const [followMode, setFollowMode] = useState(false)
   const [mapZoomTarget, setMapZoomTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null)
+  const [useMapbox, setUseMapbox] = useState(true) // Default to 3D Mapbox satnav view
 
   /**
    * Fetch navigation data from API
@@ -259,6 +270,22 @@ export default function NavigationView() {
     }
   }
 
+  /**
+   * Memoized route data to prevent unnecessary re-renders
+   * Only recalculates when route or user location changes
+   */
+  const memoizedRouteData = useMemo(() => {
+    return getMapRouteData()
+  }, [navData?.route, userLocation])
+
+  /**
+   * Memoized route coordinates to prevent infinite re-renders in TrafficAlert
+   * Only recalculates when route data changes
+   */
+  const memoizedRouteCoordinates = useMemo(() => {
+    return memoizedRouteData?.coordinates || []
+  }, [memoizedRouteData])
+
   // Loading state
   if (loading) {
     return (
@@ -377,18 +404,33 @@ export default function NavigationView() {
       </div>
 
       {/* Map */}
-      <div className="p-4">
-        <MapView
+      <div className="p-4 relative">
+        {/* Map View Toggle Button */}
+        <button
+          onClick={() => setUseMapbox(!useMapbox)}
+          className="absolute bottom-6 left-6 z-10 bg-white rounded-lg shadow-lg px-3 py-2 flex items-center gap-2 hover:bg-gray-50 transition-colors border border-gray-200"
+          title={useMapbox ? 'Switch to Overview' : 'Switch to Driver View'}
+        >
+          {useMapbox ? (
+            <Layers className="w-4 h-4 text-gray-700" />
+          ) : (
+            <Car className="w-4 h-4 text-gray-700" />
+          )}
+          <span className="text-xs font-semibold text-gray-700">
+            {useMapbox ? 'Overview' : 'Drive'}
+          </span>
+        </button>
+
+        {/* Conditional Map Rendering - Both use Mapbox now */}
+        <MapboxNavigationView
           userLocation={userLocation}
           destination={destination}
-          destinationAddress={property.property_address}
-          route={getMapRouteData()}
+          route={memoizedRouteData}
           height="300px"
-          showRoute={!!route}
-          followMode={followMode}
-          followZoom={16}
-          zoomTarget={mapZoomTarget}
-          onZoomComplete={() => setMapZoomTarget(null)}
+          followMode={useMapbox ? followMode : false}
+          navigationMode={useMapbox ? "satnav" : "overview"}
+          pitch={useMapbox ? 60 : 0}
+          bearing={0}
           className="shadow-lg"
         />
       </div>
@@ -526,8 +568,8 @@ export default function NavigationView() {
             {!showTraffic && (
               <div className="px-4 pb-3">
                 <TrafficAlert
-                  routeCoordinates={getMapRouteData()!.coordinates}
-                  refreshInterval={5}
+                  routeCoordinates={memoizedRouteCoordinates}
+                  refreshInterval={0}
                   compact
                 />
               </div>
@@ -536,8 +578,8 @@ export default function NavigationView() {
             {showTraffic && (
               <div className="p-4">
                 <TrafficAlert
-                  routeCoordinates={getMapRouteData()!.coordinates}
-                  refreshInterval={5}
+                  routeCoordinates={memoizedRouteCoordinates}
+                  refreshInterval={0}
                 />
               </div>
             )}
