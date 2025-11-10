@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Input, Spinner, Badge, Modal } from '@rightfit/ui-core';
 import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useServiceProvider } from '../hooks/useServiceProvider'
-import { workersAPI, cleaningJobsAPI, workerAvailabilityAPI, type Worker, type CleaningJob, type WorkerCertificate, type WorkerAvailability } from '../lib/api'
+import { workersAPI, maintenanceJobsAPI, workerAvailabilityAPI, type Worker, type MaintenanceJob, type WorkerCertificate, type WorkerAvailability } from '../lib/api'
 import { WorkerHistoryTimeline } from '../components/WorkerHistoryTimeline'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
@@ -25,7 +25,7 @@ export default function WorkerDetails() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [worker, setWorker] = useState<Worker | null>(null)
-  const [jobs, setJobs] = useState<CleaningJob[]>([])
+  const [jobs, setJobs] = useState<MaintenanceJob[]>([])
   const [activeTab, setActiveTab] = useState('overview')
 
   // Form state
@@ -138,8 +138,8 @@ export default function WorkerDetails() {
         setPhotoPreview(workerData.photo_url)
       }
 
-      // Load worker's jobs
-      const jobsData = await cleaningJobsAPI.list(serviceProviderId, {
+      // Load worker's maintenance jobs
+      const jobsData = await maintenanceJobsAPI.list(serviceProviderId, {
         assigned_worker_id: id,
       })
       setJobs(jobsData.data || [])

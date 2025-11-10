@@ -949,6 +949,63 @@ export const workersAPI = {
   },
 }
 
+// Worker Availability types and API
+export interface WorkerAvailability {
+  id: string
+  worker_id: string
+  start_date: string
+  end_date: string
+  status: 'BLOCKED' | 'AVAILABLE'
+  reason?: string
+  created_at: string
+  updated_at: string
+}
+
+export const workerAvailabilityAPI = {
+  list: async (workerId: string, filters?: {
+    status?: 'BLOCKED' | 'AVAILABLE'
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: WorkerAvailability[] }>('/api/worker-availability', {
+      params: {
+        worker_id: workerId,
+        ...filters,
+      },
+    })
+    return response.data.data
+  },
+
+  getBlockedDates: async (workerId: string, startDate: string, endDate: string) => {
+    const response = await api.get<{ data: WorkerAvailability[] }>('/api/worker-availability/blocked-dates', {
+      params: {
+        worker_id: workerId,
+        start_date: startDate,
+        end_date: endDate,
+      },
+    })
+    return response.data.data
+  },
+
+  create: async (data: {
+    worker_id: string
+    start_date: string
+    end_date: string
+    status: 'BLOCKED' | 'AVAILABLE'
+    reason?: string
+  }) => {
+    const response = await api.post<{ data: WorkerAvailability }>('/api/worker-availability', data)
+    return response.data.data
+  },
+
+  delete: async (id: string, workerId: string) => {
+    const response = await api.delete<{ message: string }>('/api/worker-availability/' + id, {
+      params: { worker_id: workerId },
+    })
+    return response.data
+  },
+}
+
 // Customers API - Service provider customers
 export interface Customer {
   id: string
