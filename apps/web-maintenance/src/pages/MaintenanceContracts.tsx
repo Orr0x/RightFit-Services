@@ -256,7 +256,7 @@ export default function MaintenanceContracts() {
       {/* Contracts List */}
       {contracts.length === 0 ? (
         <EmptyState
-          icon={DescriptionIcon}
+          icon={<DescriptionIcon sx={{ fontSize: 64, opacity: 0.3 }} />}
           title="No contracts found"
           description={
             statusFilter === 'ALL'
