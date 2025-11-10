@@ -11,10 +11,29 @@ import MaintenanceJobs from './pages/maintenance/MaintenanceJobs'
 import CreateMaintenanceJob from './pages/maintenance/CreateMaintenanceJob'
 import MaintenanceJobDetails from './pages/MaintenanceJobDetails'
 import Properties from './pages/Properties'
+import PropertyDetails from './pages/PropertyDetails'
+import AddProperty from './pages/AddProperty'
+import EditProperty from './pages/EditProperty'
+import Customers from './pages/Customers'
+import CustomerDetails from './pages/CustomerDetails'
+import AddCustomer from './pages/AddCustomer'
+import EditCustomer from './pages/EditCustomer'
+import Invoices from './pages/Invoices'
+import InvoiceDetails from './pages/InvoiceDetails'
+import CreateInvoice from './pages/CreateInvoice'
+import EditInvoice from './pages/EditInvoice'
+import Quotes from './pages/Quotes'
+import QuoteDetails from './pages/QuoteDetails'
+import CreateQuote from './pages/CreateQuote'
+import EditQuote from './pages/EditQuote'
 import Workers from './pages/Workers'
+import WorkerDetails from './pages/WorkerDetails'
 import Contractors from './pages/Contractors'
 import Financial from './pages/Financial'
 import Certificates from './pages/Certificates'
+import PropertyCalendar from './pages/PropertyCalendar'
+import ChecklistTemplates from './pages/ChecklistTemplates'
+import WorkerReports from './pages/WorkerReports'
 
 function App() {
   return (
@@ -66,6 +85,26 @@ function App() {
               }
             />
             <Route
+              path="/jobs/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CreateMaintenanceJob />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker-reports"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <WorkerReports />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/properties"
               element={
                 <ProtectedRoute>
@@ -76,11 +115,171 @@ function App() {
               }
             />
             <Route
+              path="/properties/new"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AddProperty />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/properties/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <EditProperty />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/properties/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PropertyDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Customers />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers/new"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AddCustomer />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <EditCustomer />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CustomerDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Invoices />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices/new"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CreateInvoice />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <EditInvoice />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <InvoiceDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quotes"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Quotes />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quotes/new"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CreateQuote />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quotes/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <EditQuote />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quotes/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <QuoteDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/workers"
               element={
                 <ProtectedRoute>
                   <AppLayout>
                     <Workers />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workers/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <WorkerDetails />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -111,6 +310,26 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Certificates />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PropertyCalendar />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checklist-templates"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ChecklistTemplates />
                   </AppLayout>
                 </ProtectedRoute>
               }
