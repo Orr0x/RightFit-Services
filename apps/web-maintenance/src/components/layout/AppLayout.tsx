@@ -87,6 +87,37 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       ),
     },
     {
+      id: 'contracts',
+      label: 'Contracts',
+      path: '/contracts',
+      onClick: handleNavigation,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-label="Contracts">
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M8 7h4M8 11h4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7 15l1.5 1.5L11 14"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       id: 'checklist-templates',
       label: 'Checklists',
       path: '/checklist-templates',
@@ -444,69 +475,76 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         },
         {
           id: '4',
+          title: 'Contracts',
+          subtitle: 'Manage monthly maintenance contracts',
+          category: 'Page',
+          path: '/contracts',
+        },
+        {
+          id: '5',
           title: 'Checklists',
           subtitle: 'Manage checklist templates for maintenance jobs',
           category: 'Page',
           path: '/checklist-templates',
         },
         {
-          id: '5',
+          id: '6',
           title: 'Jobs',
           subtitle: 'View and manage maintenance jobs',
           category: 'Page',
           path: '/jobs',
         },
         {
-          id: '6',
+          id: '7',
           title: 'Worker Reports',
           subtitle: 'Track worker performance and completed jobs',
           category: 'Page',
           path: '/worker-reports',
         },
         {
-          id: '7',
+          id: '8',
           title: 'Team Members',
           subtitle: 'Manage your maintenance team',
           category: 'Page',
           path: '/workers',
         },
         {
-          id: '8',
+          id: '9',
           title: 'Contractors',
           subtitle: 'Manage external contractors and vendors',
           category: 'Page',
           path: '/contractors',
         },
         {
-          id: '9',
+          id: '10',
           title: 'Calendar',
           subtitle: 'Schedule and view maintenance appointments',
           category: 'Page',
           path: '/calendar',
         },
         {
-          id: '10',
+          id: '11',
           title: 'Financial',
           subtitle: 'Job history and earnings',
           category: 'Page',
           path: '/financial',
         },
         {
-          id: '11',
+          id: '12',
           title: 'Quotes',
           subtitle: 'Create and manage customer quotes',
           category: 'Page',
           path: '/quotes',
         },
         {
-          id: '12',
+          id: '13',
           title: 'Invoices',
           subtitle: 'Manage customer invoices and payments',
           category: 'Page',
           path: '/invoices',
         },
         {
-          id: '13',
+          id: '14',
           title: 'Documentation',
           subtitle: 'Certifications and compliance',
           category: 'Page',
