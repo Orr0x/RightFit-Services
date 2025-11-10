@@ -1817,3 +1817,23 @@ export const propertyCalendarsAPI = {
     return response.data.data
   },
 }
+
+export interface Service {
+  id: string
+  service_provider_id: string
+  service_type: string
+  name: string
+  description?: string
+  pricing_model: string
+  default_rate: number
+  is_active: boolean
+}
+
+export const servicesAPI = {
+  list: async (serviceProviderId: string) => {
+    const response = await api.get<{ data: Service[] }>('/api/services', {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
+  },
+}
