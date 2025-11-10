@@ -3,13 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
 import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import {
   customersAPI,
   customerPropertiesAPI,
   maintenanceJobsAPI,
+  maintenanceContractsAPI,
   type Customer,
   type CustomerProperty,
   type MaintenanceJob,
+  type MaintenanceContract,
 } from '../lib/api'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EditIcon from '@mui/icons-material/Edit'
@@ -29,6 +32,7 @@ export default function CustomerDetails() {
   const navigate = useNavigate()
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [properties, setProperties] = useState<CustomerProperty[]>([])
+  const [contracts, setContracts] = useState<MaintenanceContract[]>([])
   const [recentJobs, setRecentJobs] = useState<MaintenanceJob[]>([])
   const [activeTab, setActiveTab] = useState('info')
   const { isLoading, withLoading } = useLoading()
@@ -40,6 +44,7 @@ export default function CustomerDetails() {
     if (id) {
       loadCustomer()
       loadProperties()
+      loadContracts()
       loadRecentJobs()
     }
   }, [id])
@@ -66,6 +71,17 @@ export default function CustomerDetails() {
       setProperties(result.data)
     } catch (err) {
       console.log('No properties found for customer')
+    }
+  }
+
+  const loadContracts = async () => {
+    if (!id) return
+
+    try {
+      const result = await maintenanceContractsAPI.list({ customer_id: id })
+      setContracts(result)
+    } catch (err) {
+      console.log('No contracts found for customer')
     }
   }
 
@@ -136,6 +152,7 @@ export default function CustomerDetails() {
   const tabs = [
     { id: 'info', label: 'Customer Info', icon: <BusinessIcon sx={{ fontSize: 18 }} /> },
     { id: 'properties', label: `Properties (${properties.length})`, icon: <HomeIcon sx={{ fontSize: 18 }} /> },
+    { id: 'contracts', label: `Contracts (${contracts.length})`, icon: <DescriptionIcon sx={{ fontSize: 18 }} /> },
     { id: 'jobs', label: `Jobs (${recentJobs.length})`, icon: <WorkIcon sx={{ fontSize: 18 }} /> },
     { id: 'billing', label: 'Invoices & Quotes', icon: <DescriptionIcon sx={{ fontSize: 18 }} /> },
   ]
@@ -577,6 +594,84 @@ export default function CustomerDetails() {
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                             Quoted Price
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </TabPanel>
+
+      <TabPanel tabId="contracts" activeTab={activeTab}>
+        {contracts.length === 0 ? (
+          <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50">
+            <DescriptionIcon sx={{ fontSize: 64, opacity: 0.3, mb: 2 }} />
+            <p className="text-gray-600 dark:text-gray-400 mb-4">No contracts found for this customer</p>
+            <Button onClick={() => navigate('/contracts')}>
+              View All Contracts
+            </Button>
+          </Card>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <span className="text-2xl">📄</span>
+              Contracts ({contracts.length})
+            </h2>
+            <div className="customer-info-grid">
+              {contracts.map((contract) => {
+                const isActive = contract.status === 'ACTIVE'
+                const gradient = isActive
+                  ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+                  : 'from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-700'
+
+                const iconBg = isActive
+                  ? 'bg-green-200 dark:bg-green-800'
+                  : 'bg-gray-300 dark:bg-gray-700'
+
+                const icon = isActive ? '✅' : '📄'
+
+                return (
+                  <Card
+                    key={contract.id}
+                    className={`p-5 cursor-pointer hover:shadow-xl transition-all bg-gradient-to-br ${gradient}`}
+                    onClick={() => navigate(`/contracts/${contract.id}`)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <span className="text-xl">{icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
+                              {contract.contract_number || 'No Number'}
+                            </p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                              {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
+                            </p>
+                          </div>
+                          <Badge color={isActive ? 'success' : 'secondary'}>
+                            {contract.status}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                          📅 Start: {new Date(contract.contract_start_date).toLocaleDateString('en-GB')}
+                          {contract.contract_end_date && (
+                            <> • End: {new Date(contract.contract_end_date).toLocaleDateString('en-GB')}</>
+                          )}
+                        </div>
+                        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <div className={`text-2xl font-extrabold ${
+                            isActive ? 'text-green-900 dark:text-green-100' : 'text-gray-900 dark:text-gray-100'
+                          }`}>
+                            £{Number(contract.monthly_fee).toFixed(2)}/mo
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Billing Day: {contract.billing_day}
                           </div>
                         </div>
                       </div>
