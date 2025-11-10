@@ -11,12 +11,12 @@ import {
   type CleaningContract,
   type ChecklistTemplate,
   type Worker
-} from '../../lib/api'
+} from '../lib/api'
 import { useNavigate, useParams } from 'react-router-dom'
-import { StartJobModal } from '../../components/timesheet/StartJobModal'
-import { CompleteJobModal } from '../../components/timesheet/CompleteJobModal'
-import { JobHistoryTimeline } from '../../components/JobHistoryTimeline'
-import { api } from '../../lib/api'
+import { StartJobModal } from '../components/timesheet/StartJobModal'
+import { CompleteJobModal } from '../components/timesheet/CompleteJobModal'
+import { JobHistoryTimeline } from '../components/JobHistoryTimeline'
+import { api } from '../lib/api'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
