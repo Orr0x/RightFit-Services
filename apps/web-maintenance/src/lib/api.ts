@@ -705,6 +705,33 @@ export const cleaningJobsAPI = {
   },
 }
 
+// Maintenance Service Types
+export type MaintenanceServiceType =
+  | 'PLUMBING'
+  | 'ELECTRICAL'
+  | 'HVAC'
+  | 'CARPENTRY'
+  | 'PAINTING'
+  | 'ROOFING'
+  | 'APPLIANCE_REPAIR'
+  | 'PEST_CONTROL'
+  | 'LANDSCAPING'
+  | 'GENERAL'
+  | 'EMERGENCY'
+
+export type MaintenancePriority = 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+
+export type MaintenanceJobStatus =
+  | 'QUOTE_PENDING'
+  | 'QUOTE_SENT'
+  | 'QUOTE_APPROVED'
+  | 'QUOTE_REJECTED'
+  | 'SCHEDULED'
+  | 'IN_PROGRESS'
+  | 'AWAITING_PARTS'
+  | 'COMPLETED'
+  | 'CANCELLED'
+
 // Maintenance Jobs Types
 export interface MaintenanceJob {
   id: string
@@ -717,17 +744,28 @@ export interface MaintenanceJob {
   source_cleaning_job_id?: string
   source_guest_report_id?: string
   category: string
-  priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+  serviceType: MaintenanceServiceType
+  priority: MaintenancePriority
+  status: MaintenanceJobStatus
   title: string
+  workDescription?: string
   description?: string
+  issueCategory?: string
+  partsNeeded?: string[]
+  partsUsed?: string[]
+  estimatedCost?: number
+  actualCost?: number
+  estimatedHours?: number
+  actualHours?: number
+  quoteRequired: boolean
+  quoteApproved?: boolean
   requested_date?: string
   scheduled_date?: string
   scheduled_start_time?: string
   scheduled_end_time?: string
   completed_date?: string
-  status: 'QUOTE_PENDING' | 'QUOTE_SENT' | 'APPROVED' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
   quote_id?: string
-  estimated_hours?: number
+  invoice_id?: string
   estimated_parts_cost?: number
   estimated_labor_cost?: number
   estimated_total?: number
@@ -756,9 +794,21 @@ export interface MaintenanceJob {
     last_name: string
     phone: string
   }
+  assigned_contractor?: {
+    id: string
+    name: string
+    company?: string
+    phone: string
+  }
   quote?: {
     id: string
     quote_number: string
+    total: number
+    status: string
+  }
+  invoice?: {
+    id: string
+    invoice_number: string
     total: number
     status: string
   }
@@ -774,9 +824,15 @@ export interface CreateMaintenanceJobData {
   source_cleaning_job_id?: string
   source_guest_report_id?: string
   category: string
-  priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+  serviceType: MaintenanceServiceType
+  priority: MaintenancePriority
   title: string
+  workDescription?: string
   description?: string
+  partsNeeded?: string[]
+  estimatedCost?: number
+  estimatedHours?: number
+  quoteRequired?: boolean
   requested_date?: string
   scheduled_date?: string
   service_provider_id: string
@@ -1041,5 +1097,397 @@ export const customerPropertiesAPI = {
 
   delete: async (id: string) => {
     await api.delete(`/api/customer-properties/${id}`)
+  },
+}
+
+// Enhanced Contractor Types
+export interface Contractor {
+  id: string
+  tenantId: string
+  name: string
+  email: string
+  phone: string
+  company?: string
+  specialties: MaintenanceServiceType[]
+  rating?: number
+  hourlyRate?: number
+  certifications?: string[]
+  insuranceExpiry?: Date
+  insurancePolicy?: string
+  licenseNumbers?: string[]
+  paymentTerms?: string
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+  availability?: ContractorAvailability[]
+  maintenanceJobs?: MaintenanceJob[]
+}
+
+export interface ContractorAvailability {
+  id: string
+  contractorId: string
+  dayOfWeek: number // 0-6 (Sunday-Saturday)
+  startTime: string // HH:mm format
+  endTime: string // HH:mm format
+  isAvailable: boolean
+}
+
+export interface CreateContractorData {
+  name: string
+  email: string
+  phone: string
+  company?: string
+  specialties: MaintenanceServiceType[]
+  hourlyRate?: number
+  certifications?: string[]
+  insuranceExpiry?: Date
+  licenseNumbers?: string[]
+  paymentTerms?: string
+}
+
+export interface UpdateContractorData extends Partial<CreateContractorData> {
+  isActive?: boolean
+}
+
+export interface ContractorFilters {
+  search?: string
+  specialty?: MaintenanceServiceType
+  isActive?: boolean
+  hasInsurance?: boolean
+}
+
+// Enhanced Contractors API with availability
+export const enhancedContractorsAPI = {
+  list: async (filters?: ContractorFilters) => {
+    const response = await api.get<{ data: Contractor[] }>('/api/contractors', { params: filters })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: Contractor }>(`/api/contractors/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateContractorData) => {
+    const response = await api.post<{ data: Contractor }>('/api/contractors', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: UpdateContractorData) => {
+    const response = await api.patch<{ data: Contractor }>(`/api/contractors/${id}`, data)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/contractors/${id}`)
+  },
+
+  getJobs: async (id: string) => {
+    const response = await api.get<{ data: MaintenanceJob[] }>(`/api/contractors/${id}/jobs`)
+    return response.data.data
+  },
+
+  getAvailability: async (id: string) => {
+    const response = await api.get<{ data: ContractorAvailability[] }>(`/api/contractors/${id}/availability`)
+    return response.data.data
+  },
+
+  setAvailability: async (id: string, data: ContractorAvailability[]) => {
+    const response = await api.post<{ data: ContractorAvailability[] }>(`/api/contractors/${id}/availability`, data)
+    return response.data.data
+  },
+}
+
+// Maintenance Quotes Types
+export interface MaintenanceQuote {
+  id: string
+  quote_number: string
+  customer_id: string
+  service_provider_id: string
+  property_id?: string | null
+  job_id?: string | null
+  serviceType: MaintenanceServiceType
+  status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED'
+  lineItems: QuoteLineItem[]
+  subtotal: number
+  tax_rate: number
+  tax_amount: number
+  total: number
+  validUntil: string
+  terms?: string | null
+  notes?: string | null
+  sent_date?: string | null
+  approved_date?: string | null
+  rejected_date?: string | null
+  declined_reason?: string | null
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+  }
+  property?: {
+    id: string
+    property_name: string
+    address: string
+  }
+  job?: {
+    id: string
+    title: string
+    priority: MaintenancePriority
+  }
+}
+
+export interface QuoteLineItem {
+  id: string
+  quote_id: string
+  description: string
+  quantity: number
+  unit_price: number
+  line_total: number
+}
+
+export interface CreateQuoteLineItemData {
+  description: string
+  quantity: number
+  unit_price: number
+}
+
+export interface CreateMaintenanceQuoteData {
+  customer_id: string
+  service_provider_id: string
+  property_id?: string
+  job_id?: string
+  serviceType: MaintenanceServiceType
+  service_description?: string
+  validUntil: string
+  line_items: CreateQuoteLineItemData[]
+  tax_rate?: number
+  notes?: string
+}
+
+// Maintenance Quotes API
+export const maintenanceQuotesAPI = {
+  list: async (filters?: {
+    service_provider_id?: string
+    customer_id?: string
+    status?: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'EXPIRED'
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: MaintenanceQuote[] }>('/api/maintenance-quotes', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: MaintenanceQuote }>(`/api/maintenance-quotes/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateMaintenanceQuoteData) => {
+    const response = await api.post<{ data: MaintenanceQuote }>('/api/maintenance-quotes', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateMaintenanceQuoteData>) => {
+    const response = await api.patch<{ data: MaintenanceQuote }>(`/api/maintenance-quotes/${id}`, data)
+    return response.data.data
+  },
+
+  approve: async (id: string) => {
+    const response = await api.post<{ data: MaintenanceQuote }>(`/api/maintenance-quotes/${id}/approve`)
+    return response.data.data
+  },
+
+  reject: async (id: string, reason?: string) => {
+    const response = await api.post<{ data: MaintenanceQuote }>(`/api/maintenance-quotes/${id}/reject`, { reason })
+    return response.data.data
+  },
+
+  send: async (id: string) => {
+    const response = await api.post<{ data: MaintenanceQuote }>(`/api/maintenance-quotes/${id}/send`)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/maintenance-quotes/${id}`)
+  },
+
+  convertToJob: async (id: string) => {
+    const response = await api.post<{ data: MaintenanceJob }>(`/api/maintenance-quotes/${id}/convert-to-job`)
+    return response.data.data
+  },
+
+  getPDF: async (id: string) => {
+    const response = await api.get(`/api/maintenance-quotes/${id}/pdf`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+}
+
+// Maintenance Invoices Types
+export interface MaintenanceInvoice {
+  id: string
+  invoice_number: string
+  customer_id: string
+  service_provider_id: string
+  property_id?: string | null
+  quote_id?: string | null
+  job_ids?: string[]
+  status: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED'
+  lineItems: InvoiceLineItem[]
+  subtotal: number
+  tax_rate: number
+  tax_amount: number
+  total: number
+  amountPaid: number
+  balanceDue: number
+  issueDate: string
+  dueDate: string
+  paidDate?: string | null
+  terms?: string | null
+  notes?: string | null
+  sent_date?: string | null
+  created_at: string
+  updated_at: string
+  customer?: {
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+    payment_terms: string
+  }
+  property?: {
+    id: string
+    property_name: string
+    address: string
+  }
+  quote?: {
+    id: string
+    quote_number: string
+  }
+  jobs?: MaintenanceJob[]
+  payments?: InvoicePayment[]
+}
+
+export interface InvoiceLineItem {
+  id: string
+  invoice_id: string
+  description: string
+  quantity: number
+  unit_price: number
+  line_total: number
+}
+
+export interface InvoicePayment {
+  id: string
+  invoice_id: string
+  amount: number
+  paymentDate: string
+  paymentMethod?: string
+  reference?: string
+  notes?: string
+  createdAt: string
+}
+
+export interface CreateInvoiceLineItemData {
+  description: string
+  quantity: number
+  unit_price: number
+}
+
+export interface CreateMaintenanceInvoiceData {
+  customer_id: string
+  service_provider_id: string
+  property_id?: string
+  quote_id?: string
+  job_ids?: string[]
+  issueDate: string
+  dueDate: string
+  line_items: CreateInvoiceLineItemData[]
+  tax_rate?: number
+  terms?: string
+  notes?: string
+}
+
+export interface RecordPaymentData {
+  amount: number
+  paymentDate: string
+  paymentMethod?: string
+  reference?: string
+  notes?: string
+}
+
+// Maintenance Invoices API
+export const maintenanceInvoicesAPI = {
+  list: async (filters?: {
+    service_provider_id?: string
+    customer_id?: string
+    status?: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED'
+    from_date?: string
+    to_date?: string
+  }) => {
+    const response = await api.get<{ data: MaintenanceInvoice[] }>('/api/maintenance-invoices', {
+      params: filters,
+    })
+    return response.data.data
+  },
+
+  get: async (id: string) => {
+    const response = await api.get<{ data: MaintenanceInvoice }>(`/api/maintenance-invoices/${id}`)
+    return response.data.data
+  },
+
+  create: async (data: CreateMaintenanceInvoiceData) => {
+    const response = await api.post<{ data: MaintenanceInvoice }>('/api/maintenance-invoices', data)
+    return response.data.data
+  },
+
+  update: async (id: string, data: Partial<CreateMaintenanceInvoiceData>) => {
+    const response = await api.patch<{ data: MaintenanceInvoice }>(`/api/maintenance-invoices/${id}`, data)
+    return response.data.data
+  },
+
+  send: async (id: string) => {
+    const response = await api.post<{ data: MaintenanceInvoice }>(`/api/maintenance-invoices/${id}/send`)
+    return response.data.data
+  },
+
+  recordPayment: async (id: string, data: RecordPaymentData) => {
+    const response = await api.post<{ data: InvoicePayment }>(`/api/maintenance-invoices/${id}/payments`, data)
+    return response.data.data
+  },
+
+  markAsPaid: async (id: string, data: { paid_date: string; payment_method?: string }) => {
+    const response = await api.put<{ data: MaintenanceInvoice }>(`/api/maintenance-invoices/${id}/mark-paid`, data)
+    return response.data.data
+  },
+
+  void: async (id: string) => {
+    const response = await api.post<{ data: MaintenanceInvoice }>(`/api/maintenance-invoices/${id}/void`)
+    return response.data.data
+  },
+
+  delete: async (id: string) => {
+    await api.delete(`/api/maintenance-invoices/${id}`)
+  },
+
+  getPDF: async (id: string) => {
+    const response = await api.get(`/api/maintenance-invoices/${id}/pdf`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  getStats: async (serviceProviderId: string) => {
+    const response = await api.get<{ data: any }>('/api/maintenance-invoices/stats', {
+      params: { service_provider_id: serviceProviderId },
+    })
+    return response.data.data
   },
 }
