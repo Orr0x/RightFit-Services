@@ -6,12 +6,10 @@ import { useLoading } from '../hooks/useLoading'
 import {
   customersAPI,
   customerPropertiesAPI,
-  cleaningContractsAPI,
-  cleaningJobsAPI,
+  maintenanceJobsAPI,
   type Customer,
   type CustomerProperty,
-  type CleaningContract,
-  type CleaningJob,
+  type MaintenanceJob,
 } from '../lib/api'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EditIcon from '@mui/icons-material/Edit'
@@ -31,8 +29,7 @@ export default function CustomerDetails() {
   const navigate = useNavigate()
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [properties, setProperties] = useState<CustomerProperty[]>([])
-  const [contracts, setContracts] = useState<CleaningContract[]>([])
-  const [recentJobs, setRecentJobs] = useState<CleaningJob[]>([])
+  const [recentJobs, setRecentJobs] = useState<MaintenanceJob[]>([])
   const [activeTab, setActiveTab] = useState('info')
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
@@ -43,7 +40,6 @@ export default function CustomerDetails() {
     if (id) {
       loadCustomer()
       loadProperties()
-      loadContracts()
       loadRecentJobs()
     }
   }, [id])
@@ -73,25 +69,11 @@ export default function CustomerDetails() {
     }
   }
 
-  const loadContracts = async () => {
-    if (!id) return
-
-    try {
-      const result = await cleaningContractsAPI.list({
-        service_provider_id: serviceProviderId,
-        customer_id: id,
-      })
-      setContracts(result || [])
-    } catch (err) {
-      console.log('No contracts found for customer')
-    }
-  }
-
   const loadRecentJobs = async () => {
     if (!id) return
 
     try {
-      const result = await cleaningJobsAPI.list(serviceProviderId, {
+      const result = await maintenanceJobsAPI.list(serviceProviderId, {
         customer_id: id,
         page: 1,
         limit: 10,
@@ -154,7 +136,6 @@ export default function CustomerDetails() {
   const tabs = [
     { id: 'info', label: 'Customer Info', icon: <BusinessIcon sx={{ fontSize: 18 }} /> },
     { id: 'properties', label: `Properties (${properties.length})`, icon: <HomeIcon sx={{ fontSize: 18 }} /> },
-    { id: 'contracts', label: `Contracts (${contracts.length})`, icon: <DescriptionIcon sx={{ fontSize: 18 }} /> },
     { id: 'jobs', label: `Jobs (${recentJobs.length})`, icon: <WorkIcon sx={{ fontSize: 18 }} /> },
     { id: 'billing', label: 'Invoices & Quotes', icon: <DescriptionIcon sx={{ fontSize: 18 }} /> },
   ]
@@ -528,79 +509,6 @@ export default function CustomerDetails() {
         )}
       </TabPanel>
 
-      <TabPanel tabId="contracts" activeTab={activeTab}>
-        {contracts.length === 0 ? (
-          <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50">
-            <DescriptionIcon sx={{ fontSize: 64, opacity: 0.3, mb: 2 }} />
-            <p className="text-gray-600 dark:text-gray-400 mb-4">No contracts found for this customer</p>
-            <Button onClick={() => navigate('/contracts')}>
-              View All Contracts
-            </Button>
-          </Card>
-        ) : (
-          <>
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <span className="text-2xl">📄</span>
-              Contracts ({contracts.length})
-            </h2>
-            <div className="customer-info-grid">
-              {contracts.map((contract, index) => {
-                const isActive = contract.status === 'ACTIVE'
-                const gradient = isActive
-                  ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
-                  : 'from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-700'
-
-                return (
-                  <Card
-                    key={contract.id}
-                    className={`p-5 cursor-pointer hover:shadow-xl transition-all bg-gradient-to-br ${gradient}`}
-                    onClick={() => navigate(`/contracts/${contract.id}`)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 ${
-                        isActive ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-300 dark:bg-gray-700'
-                      } rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        <span className="text-xl">📝</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-extrabold mb-1">
-                              {contract.pricing_model === 'PER_PROPERTY' ? 'Per Property' : 'Per Job'} Contract
-                            </h3>
-                            <Badge color={isActive ? 'green' : 'gray'}>{contract.status}</Badge>
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-xs">
-                          <p className="text-gray-600 dark:text-gray-400">
-                            📅 Started: {new Date(contract.contract_start_date).toLocaleDateString('en-GB')}
-                          </p>
-                          {contract.contract_end_date && (
-                            <p className="text-gray-600 dark:text-gray-400">
-                              ⏱️ Ends: {new Date(contract.contract_end_date).toLocaleDateString('en-GB')}
-                            </p>
-                          )}
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                          <div className={`text-2xl font-extrabold ${
-                            isActive ? 'text-green-900 dark:text-green-100' : 'text-gray-900 dark:text-gray-100'
-                          }`}>
-                            £{Number(contract.contract_value).toFixed(2)}
-                          </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            {contract.billing_frequency}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-          </>
-        )}
-      </TabPanel>
-
       <TabPanel tabId="jobs" activeTab={activeTab}>
         {recentJobs.length === 0 ? (
           <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50">
@@ -610,8 +518,8 @@ export default function CustomerDetails() {
         ) : (
           <>
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <span className="text-2xl">🧹</span>
-              Recent Jobs ({recentJobs.length})
+              <span className="text-2xl">🔧</span>
+              Recent Maintenance Jobs ({recentJobs.length})
             </h2>
             <div className="customer-info-grid">
               {recentJobs.map((job) => {

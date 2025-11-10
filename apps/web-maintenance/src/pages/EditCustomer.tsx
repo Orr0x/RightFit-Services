@@ -7,15 +7,13 @@ import { useServiceProvider } from '../hooks/useServiceProvider'
 import {
   customersAPI,
   customerPropertiesAPI,
-  cleaningContractsAPI,
-  cleaningInvoicesAPI,
-  cleaningQuotesAPI,
+  maintenanceInvoicesAPI,
+  maintenanceQuotesAPI,
   type CreateCustomerData,
   type Customer,
   type CustomerProperty,
-  type CleaningContract,
-  type CleaningInvoice,
-  type CleaningQuote
+  type MaintenanceInvoice,
+  type MaintenanceQuote
 } from '../lib/api'
 import './Quotes.css'
 
@@ -35,9 +33,8 @@ export default function EditCustomer() {
 
   // Linked data states
   const [properties, setProperties] = useState<CustomerProperty[]>([])
-  const [contracts, setContracts] = useState<CleaningContract[]>([])
-  const [invoices, setInvoices] = useState<CleaningInvoice[]>([])
-  const [quotes, setQuotes] = useState<CleaningQuote[]>([])
+  const [invoices, setInvoices] = useState<MaintenanceInvoice[]>([])
+  const [quotes, setQuotes] = useState<MaintenanceQuote[]>([])
   const [loadingLinkedData, setLoadingLinkedData] = useState(false)
 
   // Delete confirmation modal
@@ -157,21 +154,15 @@ export default function EditCustomer() {
         setProperties(propertiesData.data || [])
       }
 
-      // Load contracts
-      if (activeTab === 'contracts') {
-        const contractsData = await cleaningContractsAPI.list({ customer_id: id })
-        setContracts(contractsData || [])
-      }
-
       // Load invoices
       if (activeTab === 'invoices') {
-        const invoicesData = await cleaningInvoicesAPI.list({ customer_id: id })
+        const invoicesData = await maintenanceInvoicesAPI.list({ customer_id: id })
         setInvoices(invoicesData || [])
       }
 
       // Load quotes
       if (activeTab === 'quotes') {
-        const quotesData = await cleaningQuotesAPI.list({ customer_id: id })
+        const quotesData = await maintenanceQuotesAPI.list({ customer_id: id })
         setQuotes(quotesData || [])
       }
     } catch (error) {
@@ -620,58 +611,6 @@ export default function EditCustomer() {
                       <div className="quote-detail-item">
                         <span className="text-gray-600">Bedrooms:</span>
                         <span className="font-medium">{property.bedrooms}</span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabPanel>
-
-        <TabPanel tabId="contracts" label="Contracts" activeTab={activeTab}>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Cleaning Contracts</h2>
-              <Button onClick={() => navigate(`/contracts/new?customer_id=${id}`)}>+ Create Contract</Button>
-            </div>
-
-            {loadingLinkedData ? (
-              <Card className="p-12 text-center">
-                <Spinner size="lg" />
-                <p className="text-gray-600 mt-3">Loading contracts...</p>
-              </Card>
-            ) : contracts.length === 0 ? (
-              <Card className="p-12 text-center">
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Contracts</h3>
-                <p className="text-gray-600 mb-6">This customer doesn't have any contracts yet</p>
-                <Button onClick={() => navigate(`/contracts/new?customer_id=${id}`)}>+ Create Contract</Button>
-              </Card>
-            ) : (
-              <div className="quotes-grid">
-                {contracts.map((contract) => (
-                  <Card key={contract.id} className="quote-card" onClick={() => navigate(`/contracts/${contract.id}`)}>
-                    <div className="quote-card-header">
-                      <div>
-                        <h3 className="quote-number">{contract.contract_number}</h3>
-                        <p className="quote-customer">{contract.service_type?.replace('_', ' ') || 'N/A'}</p>
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        contract.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                        contract.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-200 text-gray-600'
-                      }`}>
-                        {contract.status}
-                      </span>
-                    </div>
-                    <div className="quote-details">
-                      <div className="quote-detail-item">
-                        <span className="text-gray-600">Start Date:</span>
-                        <span className="font-medium">{new Date(contract.start_date).toLocaleDateString('en-GB')}</span>
-                      </div>
-                      <div className="quote-detail-item">
-                        <span className="text-gray-600">Frequency:</span>
-                        <span className="font-medium">{contract.frequency?.replace('_', ' ') || 'N/A'}</span>
                       </div>
                     </div>
                   </Card>
