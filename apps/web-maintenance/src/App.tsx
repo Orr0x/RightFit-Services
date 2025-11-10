@@ -18,6 +18,7 @@ import Customers from './pages/Customers'
 import CustomerDetails from './pages/CustomerDetails'
 import AddCustomer from './pages/AddCustomer'
 import EditCustomer from './pages/EditCustomer'
+import MaintenanceContracts from './pages/MaintenanceContracts'
 import Invoices from './pages/Invoices'
 import InvoiceDetails from './pages/InvoiceDetails'
 import CreateInvoice from './pages/CreateInvoice'
@@ -180,6 +181,16 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <CustomerDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contracts"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <MaintenanceContracts />
                   </AppLayout>
                 </ProtectedRoute>
               }
