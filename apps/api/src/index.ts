@@ -25,6 +25,8 @@ import quotesRoutes from './routes/quotes'
 import invoicesRoutes from './routes/invoices'
 import cleaningInvoicesRoutes from './routes/cleaning-invoices'
 import cleaningQuotesRoutes from './routes/cleaning-quotes'
+import maintenanceQuotesRoutes from './routes/maintenance-quotes'
+import maintenanceInvoicesRoutes from './routes/maintenance-invoices'
 import externalContractorsRoutes from './routes/external-contractors'
 import guestIssuesRoutes from './routes/guest-issues'
 import propertySharesRoutes from './routes/property-shares'
@@ -148,6 +150,8 @@ app.use('/api/quotes', quotesRoutes)
 app.use('/api/invoices', invoicesRoutes)
 app.use('/api/cleaning-invoices', cleaningInvoicesRoutes)
 app.use('/api/cleaning-quotes', cleaningQuotesRoutes)
+app.use('/api/maintenance-quotes', maintenanceQuotesRoutes)
+app.use('/api/maintenance-invoices', maintenanceInvoicesRoutes)
 app.use('/api/external-contractors', externalContractorsRoutes)
 app.use('/api/guest-issues', guestIssuesRoutes)
 app.use('/api/customers', customersRoutes)
