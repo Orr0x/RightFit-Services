@@ -5,12 +5,10 @@ import { useLoading } from '../../hooks/useLoading'
 import {
   maintenanceJobsAPI,
   cleaningContractsAPI,
-  maintenanceJobsAPI,
   checklistTemplatesAPI,
   workersAPI,
   type MaintenanceJob,
   type CleaningContract,
-  type MaintenanceJob,
   type ChecklistTemplate,
   type Worker
 } from '../../lib/api'
