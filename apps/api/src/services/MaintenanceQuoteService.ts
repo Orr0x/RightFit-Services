@@ -106,7 +106,7 @@ export class MaintenanceQuoteService {
     data: {
       customer_id: string
       property_id?: string
-      cleaning_job_id?: string
+      maintenance_job_id?: string
       quote_date: Date
       valid_until_date: Date
       line_items: any[]
@@ -141,7 +141,7 @@ export class MaintenanceQuoteService {
       data: {
         customer_id: data.customer_id,
         property_id: data.property_id,
-        cleaning_job_id: data.cleaning_job_id,
+        maintenance_job_id: data.maintenance_job_id,
         quote_number: quoteNumber,
         quote_date: data.quote_date,
         valid_until_date: data.valid_until_date,

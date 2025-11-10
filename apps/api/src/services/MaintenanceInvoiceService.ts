@@ -38,7 +38,7 @@ export class MaintenanceInvoiceService {
     }
 
     // Check if invoice already exists for this period
-    const existingInvoice = await prisma.maintenanceInvoice.findFirst({
+    const existingInvoice = await prisma.invoice.findFirst({
       where: {
         contract_id: contractId,
         billing_period_start: billingPeriodStart,
@@ -81,7 +81,7 @@ export class MaintenanceInvoiceService {
     dueDate.setDate(dueDate.getDate() + paymentTermsDays);
 
     // Create invoice
-    const invoice = await prisma.maintenanceInvoice.create({
+    const invoice = await prisma.invoice.create({
       data: {
         contract_id: contractId,
         customer_id: contract.customer_id,
@@ -119,7 +119,7 @@ export class MaintenanceInvoiceService {
     const startOfMonth = new Date(year, now.getMonth(), 1);
     const endOfMonth = new Date(year, now.getMonth() + 1, 0);
 
-    const count = await prisma.maintenanceInvoice.count({
+    const count = await prisma.invoice.count({
       where: {
         created_at: {
           gte: startOfMonth,
@@ -137,7 +137,7 @@ export class MaintenanceInvoiceService {
    * Get invoice by ID
    */
   async getById(id: string, serviceProviderId: string) {
-    const invoice = await prisma.maintenanceInvoice.findFirst({
+    const invoice = await prisma.invoice.findFirst({
       where: {
         id,
         customer: {
@@ -208,7 +208,7 @@ export class MaintenanceInvoiceService {
     }
 
     const [invoices, total] = await Promise.all([
-      prisma.maintenanceInvoice.findMany({
+      prisma.invoice.findMany({
         where,
         skip,
         take: limit,
@@ -220,7 +220,7 @@ export class MaintenanceInvoiceService {
           customer: true,
         },
       }),
-      prisma.maintenanceInvoice.count({ where }),
+      prisma.invoice.count({ where }),
     ]);
 
     return {
@@ -247,7 +247,7 @@ export class MaintenanceInvoiceService {
   ) {
     await this.getById(id, serviceProviderId);
 
-    const invoice = await prisma.maintenanceInvoice.update({
+    const invoice = await prisma.invoice.update({
       where: { id },
       data: {
         status: 'PAID',
@@ -298,7 +298,7 @@ export class MaintenanceInvoiceService {
       };
     }
 
-    const invoice = await prisma.maintenanceInvoice.update({
+    const invoice = await prisma.invoice.update({
       where: { id },
       data: updateData,
       include: {
@@ -316,7 +316,7 @@ export class MaintenanceInvoiceService {
   async delete(id: string, serviceProviderId: string) {
     await this.getById(id, serviceProviderId);
 
-    await prisma.maintenanceInvoice.delete({
+    await prisma.invoice.delete({
       where: { id },
     });
 
@@ -347,7 +347,7 @@ export class MaintenanceInvoiceService {
    * Get stats for a customer
    */
   async getCustomerStats(customerId: string, serviceProviderId: string) {
-    const stats = await prisma.maintenanceInvoice.aggregate({
+    const stats = await prisma.invoice.aggregate({
       where: {
         customer_id: customerId,
         customer: {
@@ -362,7 +362,7 @@ export class MaintenanceInvoiceService {
       },
     });
 
-    const paidCount = await prisma.maintenanceInvoice.count({
+    const paidCount = await prisma.invoice.count({
       where: {
         customer_id: customerId,
         status: 'PAID',
@@ -372,7 +372,7 @@ export class MaintenanceInvoiceService {
       },
     });
 
-    const overduCount = await prisma.maintenanceInvoice.count({
+    const overduCount = await prisma.invoice.count({
       where: {
         customer_id: customerId,
         status: 'PENDING',

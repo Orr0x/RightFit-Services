@@ -67,7 +67,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const {
       customer_id,
       property_id,
-      cleaning_job_id,
+      maintenance_job_id,
       quote_date,
       valid_until_date,
       line_items,
@@ -87,7 +87,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       {
         customer_id,
         property_id,
-        cleaning_job_id,
+        maintenance_job_id,
         quote_date: new Date(quote_date),
         valid_until_date: new Date(valid_until_date),
         line_items,
