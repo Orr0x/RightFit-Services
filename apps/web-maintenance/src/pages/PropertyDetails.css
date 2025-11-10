@@ -1,0 +1,300 @@
+/**
+ * Property Details Page Styles
+ * Property management interface with tabs
+ */
+
+.property-details-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: visible;
+  animation: fadeInUp var(--transition-slow);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Checklists Grid */
+.checklists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-5);
+  width: 100%;
+  animation: gridFadeIn var(--transition-slow) var(--transition-fast);
+}
+
+/* Contracts Grid */
+.contracts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-5);
+  width: 100%;
+  animation: gridFadeIn var(--transition-slow) var(--transition-fast);
+}
+
+/* Maintenance Grid */
+.maintenance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-5);
+  width: 100%;
+  animation: gridFadeIn var(--transition-slow) var(--transition-fast);
+}
+
+@keyframes gridFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Checklist Card */
+.checklist-card {
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: 2px solid transparent;
+  animation: cardSlideIn var(--transition-slow) backwards;
+  padding: var(--spacing-5);
+}
+
+.checklist-card:nth-child(1) { animation-delay: 0ms; }
+.checklist-card:nth-child(2) { animation-delay: 50ms; }
+.checklist-card:nth-child(3) { animation-delay: 100ms; }
+.checklist-card:nth-child(4) { animation-delay: 150ms; }
+.checklist-card:nth-child(5) { animation-delay: 200ms; }
+.checklist-card:nth-child(6) { animation-delay: 250ms; }
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.checklist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
+}
+
+.checklist-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.checklist-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.checklist-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Checklist Details */
+.checklist-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.checklist-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+/* Checklist Footer */
+.checklist-footer {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Contract Card */
+.contract-card {
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: 2px solid transparent;
+  animation: cardSlideIn var(--transition-slow) backwards;
+  padding: var(--spacing-5);
+}
+
+.contract-card:nth-child(1) { animation-delay: 0ms; }
+.contract-card:nth-child(2) { animation-delay: 50ms; }
+.contract-card:nth-child(3) { animation-delay: 100ms; }
+.contract-card:nth-child(4) { animation-delay: 150ms; }
+.contract-card:nth-child(5) { animation-delay: 200ms; }
+.contract-card:nth-child(6) { animation-delay: 250ms; }
+
+.contract-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
+}
+
+.contract-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.contract-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.contract-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Contract Details */
+.contract-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.contract-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+/* Contract Footer */
+.contract-footer {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.contract-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
+}
+
+/* Maintenance Card */
+.maintenance-card {
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: 2px solid transparent;
+  animation: cardSlideIn var(--transition-slow) backwards;
+  padding: var(--spacing-5);
+}
+
+.maintenance-card:nth-child(1) { animation-delay: 0ms; }
+.maintenance-card:nth-child(2) { animation-delay: 50ms; }
+.maintenance-card:nth-child(3) { animation-delay: 100ms; }
+.maintenance-card:nth-child(4) { animation-delay: 150ms; }
+.maintenance-card:nth-child(5) { animation-delay: 200ms; }
+.maintenance-card:nth-child(6) { animation-delay: 250ms; }
+
+.maintenance-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
+}
+
+.maintenance-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.maintenance-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.maintenance-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Maintenance Details */
+.maintenance-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.maintenance-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+/* Maintenance Footer */
+.maintenance-footer {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .checklists-grid,
+  .contracts-grid,
+  .maintenance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .checklist-card,
+  .contract-card,
+  .maintenance-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  }
+}
