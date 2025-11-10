@@ -1,0 +1,208 @@
+/**
+ * Invoices Page Styles
+ * Financial document management interface
+ */
+
+.invoices-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: visible;
+  animation: fadeInUp var(--transition-slow);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stats Dashboard */
+.invoices-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+.stat-card {
+  padding: var(--spacing-5);
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-hover) 100%);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.stat-value {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Invoices Grid */
+.invoices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-5);
+  width: 100%;
+  animation: gridFadeIn var(--transition-slow) var(--transition-fast);
+}
+
+/* Invoices List */
+.invoices-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  animation: gridFadeIn var(--transition-slow) var(--transition-fast);
+}
+
+.invoices-list .invoice-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing-6);
+  align-items: center;
+}
+
+.invoices-list .invoice-card-header {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+@keyframes gridFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Invoice Card */
+.invoice-card {
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: 2px solid transparent;
+  animation: cardSlideIn var(--transition-slow) backwards;
+  padding: var(--spacing-5);
+}
+
+.invoice-card:nth-child(1) { animation-delay: 0ms; }
+.invoice-card:nth-child(2) { animation-delay: 50ms; }
+.invoice-card:nth-child(3) { animation-delay: 100ms; }
+.invoice-card:nth-child(4) { animation-delay: 150ms; }
+.invoice-card:nth-child(5) { animation-delay: 200ms; }
+.invoice-card:nth-child(6) { animation-delay: 250ms; }
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.invoice-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary);
+}
+
+.invoice-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.invoice-number {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.invoice-customer {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Invoice Details */
+.invoice-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.invoice-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+/* Invoice Footer */
+.invoice-footer {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.invoice-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .invoices-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoices-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .invoices-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  }
+}
