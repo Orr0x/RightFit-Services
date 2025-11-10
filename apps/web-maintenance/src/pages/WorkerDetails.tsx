@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Input, Spinner, Badge, Modal } from '@rightfit/ui-core';
 import { useToast, Tabs, TabPanel } from '../components/ui';
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import { workersAPI, cleaningJobsAPI, workerAvailabilityAPI, type Worker, type CleaningJob, type WorkerCertificate, type WorkerAvailability } from '../lib/api'
 import { WorkerHistoryTimeline } from '../components/WorkerHistoryTimeline'
 import Calendar from 'react-calendar'
@@ -15,10 +16,8 @@ import HistoryIcon from '@mui/icons-material/History'
 import '../pages/ContractDetails.css'
 import './Quotes.css'
 
-const serviceProviderId = useServiceProvider()
-  if (!serviceProviderId) return null
-
 export default function WorkerDetails() {
+  const serviceProviderId = useServiceProvider()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const toast = useToast()
@@ -78,6 +77,8 @@ export default function WorkerDetails() {
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [skillInput, setSkillInput] = useState('')
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     if (id) {

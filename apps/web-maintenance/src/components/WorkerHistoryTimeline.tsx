@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import { workersAPI, type WorkerHistoryEntry } from '../lib/api'
 import { Card } from '@rightfit/ui-core'
-
-const serviceProviderId = useServiceProvider()
-  if (!serviceProviderId) return null
 
 interface WorkerHistoryTimelineProps {
   workerId: string
 }
 
 export function WorkerHistoryTimeline({ workerId }: WorkerHistoryTimelineProps) {
+  const serviceProviderId = useServiceProvider()
   const [history, setHistory] = useState<WorkerHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     loadHistory()

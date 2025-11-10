@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, Spinner, Badge } from '@rightfit/ui-core';
 import { useToast } from '../components/ui'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import { maintenanceJobsAPI, workerAvailabilityAPI, type MaintenanceJob } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
@@ -8,10 +9,8 @@ import { QuickEditJobModal } from '../components/calendar/QuickEditJobModal'
 import './PropertyCalendar.css'
 import './ContractDetails.css'
 
-const serviceProviderId = useServiceProvider()
-  if (!serviceProviderId) return null
-
 export default function PropertyCalendar() {
+  const serviceProviderId = useServiceProvider()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [jobs, setJobs] = useState<MaintenanceJob[]>([])
   const [loading, setLoading] = useState(true)
@@ -20,6 +19,8 @@ export default function PropertyCalendar() {
   const [editingJob, setEditingJob] = useState<MaintenanceJob | null>(null)
   const toast = useToast()
   const navigate = useNavigate()
+
+  if (!serviceProviderId) return null
 
   useEffect(() => {
     loadJobs()

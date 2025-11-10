@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react'
 import { Button, Input, Card, Modal, Spinner, EmptyState } from '@rightfit/ui-core';
 import { useToast } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
+import { useServiceProvider } from '../hooks/useServiceProvider'
 import { checklistTemplatesAPI, customersAPI, type ChecklistTemplate, type ChecklistSection, type CreateChecklistTemplateData } from '../lib/api'
 import './Quotes.css'
-
-const serviceProviderId = useServiceProvider()
-  if (!serviceProviderId) return null
 
 interface FormSection {
   title: string
@@ -15,6 +13,7 @@ interface FormSection {
 }
 
 export default function ChecklistTemplates() {
+  const serviceProviderId = useServiceProvider()
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
   const [filteredTemplates, setFilteredTemplates] = useState<ChecklistTemplate[]>([])
   const { isLoading, withLoading } = useLoading()
@@ -37,6 +36,8 @@ export default function ChecklistTemplates() {
     { title: '', items: [''], images: [] }
   ])
   const [uploadingImage, setUploadingImage] = useState(false)
+
+  if (!serviceProviderId) return null
 
   useEffect(() => { loadTemplates() }, [])
 
