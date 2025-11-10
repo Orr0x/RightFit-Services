@@ -292,7 +292,7 @@ export class MaintenanceQuoteService {
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
 
-    // Get count of cleaning quotes this month
+    // Get count of maintenance quotes this month
     const startOfMonth = new Date(year, now.getMonth(), 1);
     const endOfMonth = new Date(year, now.getMonth() + 1, 0);
 
@@ -305,8 +305,8 @@ export class MaintenanceQuoteService {
       },
     });
 
-    // Format: CQ-YYYYMM-XXXX (CQ for Cleaning Quote)
-    const quoteNumber = `CQ-${year}${month}-${String(count + 1).padStart(4, '0')}`;
+    // Format: MQ-YYYYMM-XXXX (MQ for Maintenance Quote)
+    const quoteNumber = `MQ-${year}${month}-${String(count + 1).padStart(4, '0')}`;
     return quoteNumber;
   }
 
