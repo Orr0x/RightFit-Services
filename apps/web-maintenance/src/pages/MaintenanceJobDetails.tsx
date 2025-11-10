@@ -23,9 +23,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import '../ContractDetails.css'
-import '../PropertyDetails.css'
-import '../Quotes.css'
+import './ContractDetails.css'
+import './PropertyDetails.css'
+import './Quotes.css'
 
 const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
 
