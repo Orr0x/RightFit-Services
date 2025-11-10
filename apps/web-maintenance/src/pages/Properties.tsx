@@ -1,24 +1,28 @@
 import { useState, useEffect } from 'react'
-import { Card, Spinner, EmptyState } from '@rightfit/ui-core'
+import { useNavigate } from 'react-router-dom'
+import { Card, Spinner, EmptyState, Button } from '@rightfit/ui-core'
 import { useToast } from '../components/ui'
 import { useLoading } from '../hooks/useLoading'
+import { useRequiredServiceProvider } from '../hooks/useServiceProvider'
 import { customerPropertiesAPI, type CustomerProperty } from '../lib/api'
 import './Properties.css'
 
 export default function Properties() {
   const [customerProperties, setCustomerProperties] = useState<CustomerProperty[]>([])
+  const SERVICE_PROVIDER_ID = useRequiredServiceProvider()
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
+  const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   useEffect(() => {
     loadCustomerProperties()
-  }, [])
+  }, [SERVICE_PROVIDER_ID])
 
   const loadCustomerProperties = () => {
     withLoading(async () => {
       try {
-        const result = await customerPropertiesAPI.list()
+        const result = await customerPropertiesAPI.list({ service_provider_id: SERVICE_PROVIDER_ID })
         setCustomerProperties(result.data)
       } catch (err: any) {
         toast.error('Failed to load customer properties')
@@ -43,6 +47,9 @@ export default function Properties() {
           <p className="page-subtitle">Properties assigned to you by your customers</p>
         </div>
         <div className="page-header-actions">
+          <Button variant="primary" onClick={() => navigate('/properties/new')}>
+            + Add Property
+          </Button>
           <div className="view-toggle">
             <button
               className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -76,7 +83,13 @@ export default function Properties() {
       ) : (
         <div className={`properties-${viewMode}`}>
           {customerProperties.map((property) => (
-            <Card key={property.id} variant="elevated" className="property-card">
+            <Card
+              key={property.id}
+              variant="elevated"
+              className="property-card"
+              onClick={() => navigate(`/properties/${property.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="property-card-header">
                 <div>
                   <h3 className="property-name">{property.property_name}</h3>
