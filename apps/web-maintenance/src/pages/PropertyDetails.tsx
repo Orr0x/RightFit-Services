@@ -5,14 +5,10 @@ import { useToast, Tabs, TabPanel } from '../components/ui';
 import { useLoading } from '../hooks/useLoading'
 import {
   customerPropertiesAPI,
-  cleaningJobsAPI,
   checklistTemplatesAPI,
-  cleaningContractsAPI,
   maintenanceJobsAPI,
   type CustomerProperty,
-  type CleaningJob,
   type ChecklistTemplate,
-  type CleaningContract,
   type MaintenanceJob
 } from '../lib/api'
 import { PropertyHistoryTimeline } from '../components/PropertyHistoryTimeline'
@@ -57,14 +53,12 @@ export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [property, setProperty] = useState<CustomerProperty | null>(null)
-  const [recentJobs, setRecentJobs] = useState<CleaningJob[]>([])
   const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const [activeTab, setActiveTab] = useState('details')
 
   // Tab data state
   const [checklists, setChecklists] = useState<ChecklistTemplate[]>([])
-  const [contracts, setContracts] = useState<CleaningContract[]>([])
   const [maintenanceJobs, setMaintenanceJobs] = useState<MaintenanceJob[]>([])
   const [loadingTabData, setLoadingTabData] = useState(false)
 
@@ -81,13 +75,12 @@ export default function PropertyDetails() {
   useEffect(() => {
     if (id) {
       loadProperty()
-      loadRecentJobs()
     }
   }, [id])
 
   // Load tab data when tab changes
   useEffect(() => {
-    if (id && property && activeTab !== 'details' && activeTab !== 'cleaning') {
+    if (id && property && activeTab !== 'details') {
       loadTabData()
     }
   }, [id, activeTab, property])
@@ -106,21 +99,6 @@ export default function PropertyDetails() {
     })
   }
 
-  const loadRecentJobs = async () => {
-    if (!id) return
-
-    try {
-      const result = await cleaningJobsAPI.list(serviceProviderId, {
-        property_id: id,
-        page: 1,
-        limit: 5
-      })
-      setRecentJobs(result.data)
-    } catch (err) {
-      console.log('No recent jobs found')
-    }
-  }
-
   const loadTabData = async () => {
     if (!id || !property) return
 
@@ -132,20 +110,6 @@ export default function PropertyDetails() {
         const linkedChecklists = await customerPropertiesAPI.getChecklistTemplates(id)
         setChecklists(linkedChecklists || [])
         setLinkedTemplateIds(linkedChecklists.map(c => c.id))
-      }
-
-      if (activeTab === 'contracts') {
-        // Load contracts that include this property
-        if (property.customer?.id) {
-          const contractsData = await cleaningContractsAPI.list({
-            customer_id: property.customer.id,
-          })
-          // Filter to only show contracts that include this specific property
-          const filteredContracts = contractsData.filter(contract =>
-            contract.property_contracts?.some(pc => pc.property_id === id)
-          )
-          setContracts(filteredContracts || [])
-        }
       }
 
       if (activeTab === 'maintenance') {
@@ -694,82 +658,6 @@ export default function PropertyDetails() {
           )}
         </TabPanel>
 
-        <TabPanel tabId="contracts" label="Contracts" activeTab={activeTab}>
-          {loadingTabData ? (
-            <Card className="p-12 text-center">
-              <Spinner size="lg" />
-              <p className="text-gray-600 mt-3">Loading contracts...</p>
-            </Card>
-          ) : contracts.length > 0 ? (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <span className="text-2xl">📋</span>
-                  Linked Contracts ({contracts.length})
-                </h2>
-                <Button size="sm" variant="outline" onClick={() => navigate('/contracts')}>
-                  View All Contracts
-                </Button>
-              </div>
-              <div className="contracts-grid">
-                {contracts.map((contract) => (
-                  <Card
-                    key={contract.id}
-                    className="contract-card"
-                    onClick={() => navigate(`/contracts/${contract.id}`)}
-                  >
-                    <div className="contract-card-header">
-                      <div>
-                        <h3 className="contract-title">{contract.customer?.business_name}</h3>
-                        <p className="contract-subtitle">
-                          {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          contract.status === 'ACTIVE' ? 'success' :
-                          contract.status === 'PAUSED' ? 'warning' :
-                          'default'
-                        }
-                      >
-                        {contract.status}
-                      </Badge>
-                    </div>
-
-                    <div className="contract-details">
-                      <div className="contract-detail-item">
-                        <span className="text-gray-600">Contract Type:</span>
-                        <span className="font-medium">
-                          {contract.contract_type === 'FLAT_MONTHLY' ? 'Flat Monthly' : 'Per Property'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="contract-footer">
-                      <div className="contract-total">
-                        <span className="text-gray-600">Monthly Fee:</span>
-                        <span className="text-2xl font-bold text-blue-600">
-                          £{Number(contract.monthly_fee).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </>
-          ) : (
-            <Card className="p-12 text-center">
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Contracts</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                This property is not currently linked to any cleaning contracts
-              </p>
-              <Button onClick={() => navigate('/contracts')}>
-                View All Contracts
-              </Button>
-            </Card>
-          )}
-        </TabPanel>
-
         <TabPanel tabId="maintenance" label="Maintenance" activeTab={activeTab}>
           {loadingTabData ? (
             <Card className="p-12 text-center">
@@ -850,100 +738,6 @@ export default function PropertyDetails() {
               <p className="text-gray-600 dark:text-gray-400">
                 No maintenance jobs found for this property
               </p>
-            </Card>
-          )}
-        </TabPanel>
-
-        <TabPanel tabId="cleaning" label="Cleaning Jobs" activeTab={activeTab}>
-          {recentJobs.length > 0 ? (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <span className="text-2xl">🧹</span>
-                  Cleaning Jobs ({recentJobs.length})
-                </h2>
-                <Button size="sm" variant="outline" onClick={() => navigate(`/jobs?property_id=${id}`)}>
-                  View All
-                </Button>
-              </div>
-              <div className="customer-info-grid">
-                {recentJobs.map((job) => {
-                  const isCompleted = job.status === 'COMPLETED'
-                  const isInProgress = job.status === 'IN_PROGRESS'
-                  const isScheduled = job.status === 'SCHEDULED'
-
-                  const gradient = isCompleted
-                    ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
-                    : isInProgress
-                    ? 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
-                    : isScheduled
-                    ? 'from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800'
-                    : 'from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-700'
-
-                  const iconBg = isCompleted
-                    ? 'bg-green-200 dark:bg-green-800'
-                    : isInProgress
-                    ? 'bg-blue-200 dark:bg-blue-800'
-                    : isScheduled
-                    ? 'bg-amber-200 dark:bg-amber-800'
-                    : 'bg-gray-300 dark:bg-gray-700'
-
-                  const textColor = isCompleted
-                    ? 'text-green-900 dark:text-green-100'
-                    : isInProgress
-                    ? 'text-blue-900 dark:text-blue-100'
-                    : isScheduled
-                    ? 'text-amber-900 dark:text-amber-100'
-                    : 'text-gray-900 dark:text-gray-100'
-
-                  const labelColor = isCompleted
-                    ? 'text-green-700 dark:text-green-300'
-                    : isInProgress
-                    ? 'text-blue-700 dark:text-blue-300'
-                    : isScheduled
-                    ? 'text-amber-700 dark:text-amber-300'
-                    : 'text-gray-700 dark:text-gray-300'
-
-                  const icon = isCompleted ? '✅' : isInProgress ? '🔄' : isScheduled ? '📅' : '📋'
-
-                  return (
-                    <Card
-                      key={job.id}
-                      className={`p-5 cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br ${gradient}`}
-                      onClick={() => navigate(`/jobs/${job.id}`)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-xl">{icon}</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className={`text-xs font-bold ${labelColor} uppercase tracking-wide mb-1`}>
-                            {new Date(job.scheduled_date).toLocaleDateString('en-GB', {
-                              weekday: 'short',
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </p>
-                          <p className={`text-lg font-extrabold ${textColor} mb-2`}>
-                            {job.status.replace('_', ' ')}
-                          </p>
-                          {job.assigned_worker && (
-                            <p className={`text-sm font-medium ${labelColor}`}>
-                              👤 {job.assigned_worker.first_name} {job.assigned_worker.last_name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </Card>
-                  )
-                })}
-              </div>
-            </>
-          ) : (
-            <Card className="p-12 text-center">
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Cleaning Jobs</h3>
-              <p className="text-gray-600">No cleaning jobs found for this property</p>
             </Card>
           )}
         </TabPanel>
