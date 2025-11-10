@@ -12,6 +12,8 @@ import CompleteJobModal from '../../components/jobs/CompleteJobModal'
 import CreateMaintenanceIssueModal from '../../components/jobs/CreateMaintenanceIssueModal'
 import IssueDetailsModal from '../../components/jobs/IssueDetailsModal'
 import JobNotesSection from '../../components/jobs/JobNotesSection'
+import { useArrivalDetection } from '../../hooks/useArrivalDetection'
+import type { Coordinates } from '@rightfit/shared/types/navigation'
 
 interface PropertyDetails {
   id: string
@@ -98,6 +100,35 @@ export default function JobDetails() {
   const [propertyExpanded, setPropertyExpanded] = useState(false)
   const [accessExpanded, setAccessExpanded] = useState(false)
   const [customerExpanded, setCustomerExpanded] = useState(false)
+  const [showArrivalNotification, setShowArrivalNotification] = useState(false)
+
+  // Get property location for arrival detection
+  const propertyLocation: Coordinates | null = job?.property.latitude && job?.property.longitude
+    ? { latitude: job.property.latitude, longitude: job.property.longitude }
+    : null
+
+  // Arrival detection - enabled for any job with GPS coordinates
+  // Distance tracking works for all jobs, but arrival notifications only for active jobs
+  const isActiveJob = job?.status === 'SCHEDULED' || job?.status === 'IN_PROGRESS'
+  const arrivalDetection = useArrivalDetection({
+    jobId: job?.id || '',
+    propertyLocation: propertyLocation || { latitude: 0, longitude: 0 },
+    arrivalRadius: 50, // 50 meters
+    enabled: !!(job && propertyLocation), // Always enabled if job has GPS coordinates
+    onArrival: (event) => {
+      if (isActiveJob) {
+        console.log('Worker arrived at property!', event)
+        setShowArrivalNotification(true)
+        // Hide notification after 5 seconds
+        setTimeout(() => setShowArrivalNotification(false), 5000)
+      }
+    },
+    onApproaching: (distance) => {
+      if (isActiveJob) {
+        console.log(`Approaching property: ${distance}m away`)
+      }
+    }
+  })
   const [issuesExpanded, setIssuesExpanded] = useState(false)
   const [checklistExpanded, setChecklistExpanded] = useState(false)
   const [reportedIssues, setReportedIssues] = useState<WorkerReportedIssue[]>([])
@@ -291,6 +322,17 @@ export default function JobDetails() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
+      {/* Arrival Notification Toast */}
+      {showArrivalNotification && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-bounce">
+          <CheckCircle className="w-6 h-6" />
+          <div>
+            <p className="font-semibold">You've Arrived!</p>
+            <p className="text-sm opacity-90">You're now at the property</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <button
@@ -394,6 +436,37 @@ export default function JobDetails() {
                 )}
               </div>
             </div>
+
+            {/* Arrival Status */}
+            {job.property.latitude && job.property.longitude && arrivalDetection.hasArrived && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-green-900">You've arrived!</p>
+                    <p className="text-xs text-green-700">
+                      Detected at {arrivalDetection.arrivalEvent?.arrivalTime.toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Distance Indicator (when not arrived but GPS available) */}
+            {job.property.latitude && job.property.longitude && !arrivalDetection.hasArrived && arrivalDetection.formattedDistance && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-900">Distance to property:</span>
+                  </div>
+                  <span className="text-sm font-semibold text-blue-900">{arrivalDetection.formattedDistance}</span>
+                </div>
+                {arrivalDetection.isApproaching && (
+                  <p className="text-xs text-blue-700 mt-1">You're approaching the property</p>
+                )}
+              </div>
+            )}
 
             {/* Navigation Button */}
             {job.property.latitude && job.property.longitude && (

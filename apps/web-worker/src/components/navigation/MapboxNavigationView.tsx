@@ -121,6 +121,10 @@ export default function MapboxNavigationView({
   const [mapReady, setMapReady] = useState(false)
   const [mapboxLoaded, setMapboxLoaded] = useState(false)
   const isInitializingRef = useRef(false)
+  const userMarkerRef = useRef<any>(null)
+  const destinationMarkerRef = useRef<any>(null)
+  const userInteractedRef = useRef(false)
+  const lastNavigationModeRef = useRef<string | null>(null)
 
   /**
    * Load Mapbox GL JS dynamically via CDN
@@ -156,7 +160,7 @@ export default function MapboxNavigationView({
   }, [])
 
   /**
-   * Initialize Mapbox map
+   * Initialize Mapbox map - only once on mount
    */
   useEffect(() => {
     // Prevent multiple initializations (React Strict Mode protection)
@@ -202,14 +206,28 @@ export default function MapboxNavigationView({
       // Add navigation controls (zoom buttons)
       map.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
 
+      // Track user interaction
+      map.on('dragstart', () => {
+        userInteractedRef.current = true
+      })
+      map.on('zoomstart', () => {
+        userInteractedRef.current = true
+      })
+      map.on('rotatestart', () => {
+        userInteractedRef.current = true
+      })
+      map.on('pitchstart', () => {
+        userInteractedRef.current = true
+      })
+
       // Wait for map to load
       map.on('load', () => {
         mapRef.current = map
         setMapReady(true)
 
-        // Add user location marker
+        // Create user location marker (will be updated in separate effect)
         if (userLocation) {
-          new mapboxgl.Marker({ color: '#3B82F6' })
+          userMarkerRef.current = new mapboxgl.Marker({ color: '#3B82F6' })
             .setLngLat([userLocation.longitude, userLocation.latitude])
             .setPopup(
               new mapboxgl.Popup().setHTML(
@@ -219,8 +237,8 @@ export default function MapboxNavigationView({
             .addTo(map)
         }
 
-        // Add destination marker
-        new mapboxgl.Marker({ color: '#EF4444' })
+        // Create destination marker (will be updated in separate effect)
+        destinationMarkerRef.current = new mapboxgl.Marker({ color: '#EF4444' })
           .setLngLat([destination.longitude, destination.latitude])
           .setPopup(
             new mapboxgl.Popup().setHTML(
@@ -229,38 +247,35 @@ export default function MapboxNavigationView({
           )
           .addTo(map)
 
-        // Add route polyline if available
-        if (route && route.coordinates.length > 0) {
-          map.addSource('route', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: route.coordinates.map((coord) => [
-                  coord.longitude,
-                  coord.latitude,
-                ]),
-              },
+        // Add route source and layer (will be updated in separate effect)
+        map.addSource('route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: route && route.coordinates.length > 0
+                ? route.coordinates.map((coord) => [coord.longitude, coord.latitude])
+                : [],
             },
-          })
+          },
+        })
 
-          map.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round',
-            },
-            paint: {
-              'line-color': '#3B82F6',
-              'line-width': 4,
-              'line-opacity': 0.7,
-            },
-          })
-        }
+        map.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': '#3B82F6',
+            'line-width': 4,
+            'line-opacity': 0.7,
+          },
+        })
 
         if (onMapReady) {
           onMapReady()
@@ -271,9 +286,8 @@ export default function MapboxNavigationView({
       console.error('Error initializing Mapbox:', err)
     }
 
-    // Cleanup function
+    // Cleanup function - only runs when component unmounts
     return () => {
-      isInitializingRef.current = false
       if (mapRef.current) {
         try {
           mapRef.current.remove()
@@ -282,39 +296,54 @@ export default function MapboxNavigationView({
         }
         mapRef.current = null
       }
-      // Clear container on cleanup
-      if (mapContainerRef.current) {
-        mapContainerRef.current.innerHTML = ''
-      }
       setMapReady(false)
+      isInitializingRef.current = false
     }
-  }, [mapboxLoaded, destination, onMapReady])
+  }, [mapboxLoaded]) // Only reinitialize if mapbox library loads
 
   /**
-   * Update camera position when user location changes (follow mode)
+   * Update destination marker when destination changes (marker position ONLY)
    */
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !followMode || !userLocation) return
-
-    const map = mapRef.current
+    if (!mapReady || !destinationMarkerRef.current) return
 
     try {
-      // Smooth camera transition to user location
-      map.easeTo({
-        center: [userLocation.longitude, userLocation.latitude],
-        zoom: navigationMode === 'satnav' ? 18 : map.getZoom(),
-        bearing: navigationMode === 'satnav' ? bearing : 0,
-        pitch: navigationMode === 'satnav' ? pitch : 0,
-        duration: 1000,
-        essential: true,
-      })
+      destinationMarkerRef.current.setLngLat([destination.longitude, destination.latitude])
     } catch (err) {
-      console.error('Error updating camera:', err)
+      console.error('Error updating destination marker:', err)
     }
-  }, [mapReady, followMode, userLocation, bearing, pitch, navigationMode])
+  }, [mapReady, destination])
 
   /**
-   * Update navigation mode (satnav vs overview)
+   * Update user location marker when location changes
+   */
+  useEffect(() => {
+    if (!mapReady || !userLocation) return
+
+    try {
+      const mapboxgl = (window as any).mapboxgl
+
+      // Create user marker if it doesn't exist
+      if (!userMarkerRef.current && mapRef.current) {
+        userMarkerRef.current = new mapboxgl.Marker({ color: '#3B82F6' })
+          .setLngLat([userLocation.longitude, userLocation.latitude])
+          .setPopup(
+            new mapboxgl.Popup().setHTML(
+              '<div style="text-align: center;"><strong>Your Location</strong></div>'
+            )
+          )
+          .addTo(mapRef.current)
+      } else if (userMarkerRef.current) {
+        // Update existing marker position
+        userMarkerRef.current.setLngLat([userLocation.longitude, userLocation.latitude])
+      }
+    } catch (err) {
+      console.error('Error updating user location marker:', err)
+    }
+  }, [mapReady, userLocation])
+
+  /**
+   * Update route polyline when route changes
    */
   useEffect(() => {
     if (!mapReady || !mapRef.current) return
@@ -322,51 +351,120 @@ export default function MapboxNavigationView({
     const map = mapRef.current
 
     try {
+      const source = map.getSource('route')
+      if (source) {
+        source.setData({
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: route && route.coordinates.length > 0
+              ? route.coordinates.map((coord) => [coord.longitude, coord.latitude])
+              : [],
+          },
+        })
+      }
+    } catch (err) {
+      console.error('Error updating route:', err)
+    }
+  }, [mapReady, route])
+
+  /**
+   * UNIFIED CAMERA CONTROL - handles all camera movements
+   * Only runs when navigationMode changes, not on every GPS update
+   */
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return
+
+    const map = mapRef.current
+    const mapboxgl = (window as any).mapboxgl
+
+    // Check if navigationMode actually changed
+    const modeChanged = lastNavigationModeRef.current !== navigationMode
+    if (modeChanged) {
+      lastNavigationModeRef.current = navigationMode
+      // Reset user interaction flag when mode changes
+      userInteractedRef.current = false
+    }
+
+    // Skip camera updates if user has manually interacted with the map
+    // (except when mode changes - always update then)
+    if (userInteractedRef.current && !modeChanged) {
+      return
+    }
+
+    try {
       if (navigationMode === 'satnav') {
-        // Satnav mode: 3D tilted view, auto-follow
+        // ===== SATNAV MODE (3D Driver View) =====
+
+        // Determine center point for satnav view
+        let centerPoint: [number, number]
+        let zoomLevel = 16
+
+        if (followMode && userLocation) {
+          // Following user: center on user location
+          centerPoint = [userLocation.longitude, userLocation.latitude]
+          zoomLevel = 18
+        } else if (userLocation) {
+          // Not following but have user location: center on user
+          centerPoint = [userLocation.longitude, userLocation.latitude]
+          zoomLevel = 16
+        } else {
+          // No user location: center on destination
+          centerPoint = [destination.longitude, destination.latitude]
+          zoomLevel = 16
+        }
+
+        // Apply 3D view with appropriate center and zoom
         map.easeTo({
+          center: centerPoint,
+          zoom: zoomLevel,
           pitch,
-          zoom: 18,
           bearing,
-          duration: 800,
+          duration: 600,
         })
       } else {
-        // Overview mode: 2D top-down, fit route bounds
+        // ===== OVERVIEW MODE (2D Top-Down) =====
+        // Set 2D view properties
         map.easeTo({
           pitch: 0,
           bearing: 0,
-          duration: 800,
+          duration: 300,
         })
 
-        // Fit bounds to show full route (or at least user + destination)
-        const mapboxgl = (window as any).mapboxgl
+        // Fit bounds to show full route
         const bounds = new mapboxgl.LngLatBounds()
 
         // Add route coordinates if available
         if (route && route.coordinates.length > 0) {
           route.coordinates.forEach((coord) => {
-            bounds.extend([coord.longitude, coord.latitude])
+            if (coord && typeof coord.longitude === 'number' && typeof coord.latitude === 'number') {
+              bounds.extend([coord.longitude, coord.latitude])
+            }
           })
         } else {
           // No route - fit bounds to show user location and destination
-          if (userLocation) {
+          if (userLocation && typeof userLocation.longitude === 'number' && typeof userLocation.latitude === 'number') {
             bounds.extend([userLocation.longitude, userLocation.latitude])
           }
-          bounds.extend([destination.longitude, destination.latitude])
+          if (destination && typeof destination.longitude === 'number' && typeof destination.latitude === 'number') {
+            bounds.extend([destination.longitude, destination.latitude])
+          }
         }
 
         // Only fit bounds if we have at least 2 points
         if (!bounds.isEmpty()) {
           map.fitBounds(bounds, {
             padding: 80,
-            duration: 800,
+            duration: 600,
+            maxZoom: 15,
           })
         }
       }
     } catch (err) {
-      console.error('Error updating navigation mode:', err)
+      console.error('Error updating camera:', err)
     }
-  }, [mapReady, navigationMode, pitch, bearing, route])
+  }, [mapReady, navigationMode, followMode, userLocation, destination, pitch, bearing, route])
 
   // Show loading state
   if (loading || !mapboxLoaded) {
