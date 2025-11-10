@@ -196,6 +196,52 @@ function App() {
               }
             />
             <Route
+              path="/contracts/new"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <div className="container mx-auto px-4 py-8">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center">
+                        <h1 className="text-2xl font-bold mb-4">Create New Contract</h1>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                          Contract creation page coming soon! This feature will allow you to create new maintenance contracts with customers.
+                        </p>
+                        <button
+                          onClick={() => window.history.back()}
+                          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          Go Back
+                        </button>
+                      </div>
+                    </div>
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contracts/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <div className="container mx-auto px-4 py-8">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center">
+                        <h1 className="text-2xl font-bold mb-4">Contract Details</h1>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                          Contract details page coming soon! This feature will show full contract information, linked properties, jobs, and invoices.
+                        </p>
+                        <button
+                          onClick={() => window.history.back()}
+                          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          Go Back
+                        </button>
+                      </div>
+                    </div>
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/invoices"
               element={
                 <ProtectedRoute>
