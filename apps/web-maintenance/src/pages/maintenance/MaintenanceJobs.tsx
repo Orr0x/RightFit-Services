@@ -1,25 +1,26 @@
 import { useState, useEffect } from 'react'
-import { Button, Input, Card, Spinner, EmptyState, Badge } from '@rightfit/ui-core'
-import { useToast } from '../../components/ui'
+import { Button, Input, Card, Spinner, EmptyState, Select, type SelectOption } from '@rightfit/ui-core';
+import { useToast } from '../../components/ui';
 import { useLoading } from '../../hooks/useLoading'
 import { maintenanceJobsAPI, type MaintenanceJob } from '../../lib/api'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import ViewListIcon from '@mui/icons-material/ViewList'
+import ViewModuleIcon from '@mui/icons-material/ViewModule'
+import './MaintenanceJobs.css'
 
-type TabType = 'new-issues' | 'submitted-quotes' | 'accepted-quotes' | 'all'
+const SERVICE_PROVIDER_ID = 'sp-cleaning-test'
+
+type ViewMode = 'list' | 'grid'
 
 export default function MaintenanceJobs() {
-  const { user } = useAuth()
   const [jobs, setJobs] = useState<MaintenanceJob[]>([])
   const [filteredJobs, setFilteredJobs] = useState<MaintenanceJob[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<TabType>('new-issues')
-  const [priorityFilter, setPriorityFilter] = useState<string>('all')
-  const { isLoading, withLoading} = useLoading()
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const { isLoading, withLoading } = useLoading()
   const toast = useToast()
   const navigate = useNavigate()
-
-  const SERVICE_PROVIDER_ID = user?.service_provider_id
 
   useEffect(() => {
     loadJobs()
@@ -27,7 +28,7 @@ export default function MaintenanceJobs() {
 
   useEffect(() => {
     applyFilters()
-  }, [jobs, searchQuery, activeTab, priorityFilter])
+  }, [jobs, searchQuery, statusFilter])
 
   const loadJobs = () => {
     withLoading(async () => {
@@ -35,7 +36,7 @@ export default function MaintenanceJobs() {
         const result = await maintenanceJobsAPI.list(SERVICE_PROVIDER_ID)
         setJobs(result.data)
       } catch (err: any) {
-        toast.error('Failed to load maintenance jobs')
+        toast.error('Failed to load cleaning jobs')
         console.error('Load jobs error:', err)
       }
     })
@@ -44,67 +45,60 @@ export default function MaintenanceJobs() {
   const applyFilters = () => {
     let filtered = jobs
 
-    // Filter by tab
-    if (activeTab === 'new-issues') {
-      filtered = filtered.filter(job => job.status === 'QUOTE_PENDING')
-    } else if (activeTab === 'submitted-quotes') {
-      filtered = filtered.filter(job => job.status === 'QUOTE_SENT')
-    } else if (activeTab === 'accepted-quotes') {
-      filtered = filtered.filter(job =>
-        ['APPROVED', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(job.status)
-      )
-    }
-    // 'all' tab shows everything
-
-    if (priorityFilter !== 'all') {
-      filtered = filtered.filter(job => job.priority === priorityFilter)
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(job => job.status === statusFilter)
     }
 
+    // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(job =>
-        job.title.toLowerCase().includes(query) ||
         job.property?.property_name.toLowerCase().includes(query) ||
-        job.customer?.business_name.toLowerCase().includes(query)
+        job.property?.address.toLowerCase().includes(query) ||
+        job.customer?.business_name.toLowerCase().includes(query) ||
+        job.assigned_worker?.first_name.toLowerCase().includes(query) ||
+        job.assigned_worker?.last_name.toLowerCase().includes(query)
       )
     }
 
     setFilteredJobs(filtered)
   }
 
-  const getTabCounts = () => {
-    return {
-      newIssues: jobs.filter(j => j.status === 'QUOTE_PENDING').length,
-      submittedQuotes: jobs.filter(j => j.status === 'QUOTE_SENT').length,
-      acceptedQuotes: jobs.filter(j =>
-        ['APPROVED', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(j.status)
-      ).length,
-      all: jobs.length,
-    }
-  }
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this cleaning job?')) return
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'URGENT': return 'error'
-      case 'HIGH': return 'warning'
-      case 'MEDIUM': return 'warning'
-      case 'LOW': return 'default'
-      default: return 'default'
-    }
+    withLoading(async () => {
+      try {
+        await maintenanceJobsAPI.delete(id, SERVICE_PROVIDER_ID)
+        toast.success('Cleaning job deleted')
+        loadJobs()
+      } catch (err: any) {
+        toast.error('Failed to delete job')
+        console.error('Delete error:', err)
+      }
+    })
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'QUOTE_PENDING': return 'warning'
-      case 'QUOTE_SENT': return 'primary'
-      case 'APPROVED': return 'success'
-      case 'SCHEDULED': return 'primary'
-      case 'IN_PROGRESS': return 'warning'
-      case 'COMPLETED': return 'success'
-      case 'CANCELLED': return 'error'
-      default: return 'default'
+      case 'PENDING': return 'text-gray-600 bg-gray-100'
+      case 'SCHEDULED': return 'text-blue-600 bg-blue-100'
+      case 'IN_PROGRESS': return 'text-yellow-600 bg-yellow-100'
+      case 'COMPLETED': return 'text-green-600 bg-green-100'
+      case 'CANCELLED': return 'text-red-600 bg-red-100'
+      default: return 'text-gray-600 bg-gray-100'
     }
   }
+
+  const statusOptions: SelectOption[] = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'SCHEDULED', label: 'Scheduled' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'COMPLETED', label: 'Completed' },
+    { value: 'CANCELLED', label: 'Cancelled' },
+  ]
 
   if (isLoading && jobs.length === 0) {
     return (
@@ -114,126 +108,238 @@ export default function MaintenanceJobs() {
     )
   }
 
-  const counts = getTabCounts()
-
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="maintenance-jobs-page container mx-auto px-4 py-8">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Maintenance Jobs</h1>
         <Button onClick={() => navigate('/jobs/new')}>
-          Create New Job
+          Create Job
         </Button>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('new-issues')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'new-issues'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              New Issues
-              <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-orange-100 text-orange-800">
-                {counts.newIssues}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('submitted-quotes')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'submitted-quotes'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Submitted Quotes
-              <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-blue-100 text-blue-800">
-                {counts.submittedQuotes}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('accepted-quotes')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'accepted-quotes'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Accepted Quotes
-              <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-green-100 text-green-800">
-                {counts.acceptedQuotes}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'all'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              All Jobs
-              <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100 text-gray-800">
-                {counts.all}
-              </span>
-            </button>
-          </nav>
-        </div>
+      {/* Stats Dashboard */}
+      <div className="jobs-stats">
+        <Card className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Jobs</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">{jobs.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">📋</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">All cleaning jobs</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Scheduled</p>
+              <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">{jobs.filter(j => j.status === 'SCHEDULED').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">📅</span>
+            </div>
+          </div>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">{jobs.filter(j => j.status === 'PENDING').length} pending assignment</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">In Progress</p>
+              <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-100 mt-2">{jobs.filter(j => j.status === 'IN_PROGRESS').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-200 dark:bg-yellow-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">⚡</span>
+            </div>
+          </div>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">Currently active</p>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">Completed</p>
+              <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">{jobs.filter(j => j.status === 'COMPLETED').length}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-200 dark:bg-green-800 rounded-full flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+          </div>
+          <p className="text-xs text-green-600 dark:text-green-400 mt-2">Successfully finished</p>
+        </Card>
       </div>
 
       {/* Filters */}
       <Card className="p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Search</label>
             <Input
               type="text"
-              placeholder="Search jobs..."
+              placeholder="Search by property, customer, or worker..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Priority</label>
-            <select
-              className="w-full px-3 py-2 border rounded-md"
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-            >
-              <option value="all">All Priorities</option>
-              <option value="URGENT">Urgent</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </select>
+            <Select
+              label="Status"
+              options={statusOptions}
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              fullWidth
+            />
           </div>
           <div className="flex items-end">
             <Button
               variant="secondary"
               onClick={() => {
                 setSearchQuery('')
-                setPriorityFilter('all')
+                setStatusFilter('all')
               }}
               className="w-full"
             >
               Clear Filters
             </Button>
           </div>
+          <div className="flex items-end justify-end gap-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              title="List view"
+            >
+              <ViewListIcon />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              title="Grid view"
+            >
+              <ViewModuleIcon />
+            </button>
+          </div>
         </div>
       </Card>
 
-      {/* Jobs List */}
+      {/* Jobs List/Grid */}
       {filteredJobs.length === 0 ? (
         <EmptyState
-          title={searchQuery || priorityFilter !== 'all' ? 'No jobs match filters' : 'No maintenance jobs'}
-          description="Create a new maintenance job to get started"
+          title={searchQuery || statusFilter !== 'all' ? 'No jobs match your filters' : 'No cleaning jobs'}
+          description="Schedule a new cleaning job to get started"
         />
+      ) : viewMode === 'grid' ? (
+        <div className="jobs-list-grid">
+          {filteredJobs.map((job) => (
+            <Card
+              key={job.id}
+              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate(`/jobs/${job.id}`)}
+            >
+              <div className="flex flex-col h-full">
+                {/* Header */}
+                <div className="mb-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-semibold text-lg flex-1">
+                      {job.property?.property_name || 'Unknown Property'}
+                    </h3>
+                    <span className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${getStatusColor(job.status)}`}>
+                      {job.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  {job.maintenance_issues_found > 0 && (
+                    <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-600">
+                      {job.maintenance_issues_found} Issues
+                    </span>
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="space-y-2 text-sm text-gray-600 mb-3 flex-1">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Date:</span>
+                    <span>{job.scheduled_date ? new Date(job.scheduled_date).toLocaleDateString() : '01/01/1970'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Time:</span>
+                    <span>{job.scheduled_start_time && job.scheduled_end_time ? `${job.scheduled_start_time} - ${job.scheduled_end_time}` : '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Worker:</span>
+                    <span>
+                      {job.assigned_worker
+                        ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}`
+                        : 'Unassigned'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Customer:</span>
+                    <span className="truncate ml-2">{job.customer?.business_name}</span>
+                  </div>
+                </div>
+
+                {/* Progress */}
+                {job.checklist_total_items > 0 && (
+                  <div className="mb-3">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-600 h-2 rounded-full"
+                        style={{
+                          width: `${(job.checklist_completed_items / job.checklist_total_items) * 100}%`
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {job.checklist_completed_items} / {job.checklist_total_items} items
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <div>
+                    <div className="text-xl font-bold text-green-600">
+                      £{Number(job.quoted_price).toFixed(2)}
+                    </div>
+                    {job.actual_price && job.actual_price !== job.quoted_price && (
+                      <div className="text-xs text-gray-500">
+                        Actual: £{Number(job.actual_price).toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {job.status === 'PENDING' && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/jobs/${job.id}/edit`)
+                        }}
+                      >
+                        Schedule
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/jobs/${job.id}/edit`)
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div className="jobs-list-view">
           {filteredJobs.map((job) => (
             <Card
               key={job.id}
@@ -243,27 +349,35 @@ export default function MaintenanceJobs() {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-lg">{job.title}</h3>
-                    <Badge variant={getPriorityColor(job.priority)}>
-                      {job.priority}
-                    </Badge>
-                    <Badge variant={getStatusColor(job.status)}>
-                      {job.status.replace(/_/g, ' ')}
-                    </Badge>
+                    <h3 className="font-semibold text-lg">
+                      {job.property?.property_name || 'Unknown Property'}
+                    </h3>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(job.status)}`}>
+                      {job.status.replace('_', ' ')}
+                    </span>
+                    {job.maintenance_issues_found > 0 && (
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-600">
+                        {job.maintenance_issues_found} Issues
+                      </span>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                     <div>
-                      <div className="font-medium">Property</div>
-                      <div>{job.property?.property_name}</div>
+                      <div className="font-medium">Date</div>
+                      <div>{job.scheduled_date ? new Date(job.scheduled_date).toLocaleDateString() : '01/01/1970'}</div>
                     </div>
                     <div>
-                      <div className="font-medium">Category</div>
-                      <div>{job.category}</div>
+                      <div className="font-medium">Time</div>
+                      <div>{job.scheduled_start_time && job.scheduled_end_time ? `${job.scheduled_start_time} - ${job.scheduled_end_time}` : '-'}</div>
                     </div>
                     <div>
-                      <div className="font-medium">Source</div>
-                      <div>{job.source.replace(/_/g, ' ')}</div>
+                      <div className="font-medium">Worker</div>
+                      <div>
+                        {job.assigned_worker
+                          ? `${job.assigned_worker.first_name} ${job.assigned_worker.last_name}`
+                          : 'Unassigned'}
+                      </div>
                     </div>
                     <div>
                       <div className="font-medium">Customer</div>
@@ -271,22 +385,55 @@ export default function MaintenanceJobs() {
                     </div>
                   </div>
 
-                  {job.description && (
-                    <p className="text-sm text-gray-700 line-clamp-2">{job.description}</p>
+                  {job.checklist_total_items > 0 && (
+                    <div className="mt-2 text-sm">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full"
+                          style={{
+                            width: `${(job.checklist_completed_items / job.checklist_total_items) * 100}%`
+                          }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {job.checklist_completed_items} / {job.checklist_total_items} checklist items completed
+                      </div>
+                    </div>
                   )}
                 </div>
 
                 <div className="text-right ml-4">
-                  {job.estimated_total && (
-                    <div className="text-xl font-bold text-blue-600">
-                      £{Number(job.estimated_total).toFixed(2)}
+                  <div className="text-xl font-bold text-green-600">
+                    £{Number(job.quoted_price).toFixed(2)}
+                  </div>
+                  {job.actual_price && job.actual_price !== job.quoted_price && (
+                    <div className="text-sm text-gray-500">
+                      Actual: £{Number(job.actual_price).toFixed(2)}
                     </div>
                   )}
-                  {job.quote && (
-                    <div className="text-sm text-gray-500 mt-1">
-                      {job.quote.quote_number}
-                    </div>
-                  )}
+                  <div className="mt-2 space-x-2">
+                    {job.status === 'PENDING' && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/jobs/${job.id}/edit`)
+                        }}
+                      >
+                        Schedule
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/jobs/${job.id}/edit`)
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>
