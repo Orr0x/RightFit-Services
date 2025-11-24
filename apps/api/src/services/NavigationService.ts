@@ -44,6 +44,8 @@ export interface DistanceResult {
 export class NavigationService {
   private config = getNavigationConfig();
   private lastNominatimRequest = 0;
+  private routeCache = new Map<string, { data: any; timestamp: number }>();
+  private failedRoutes = new Map<string, number>(); // Track failed routes to avoid retry loops
 
   /**
    * Geocode an address for a property (with caching)
@@ -492,6 +494,21 @@ export class NavigationService {
     }>;
     polyline?: string;
   }> {
+    // Create cache key
+    const cacheKey = `${originLat},${originLon}-${destLat},${destLon}`;
+
+    // Check if this route recently failed (within last 5 minutes)
+    const failedTime = this.failedRoutes.get(cacheKey);
+    if (failedTime && Date.now() - failedTime < 5 * 60 * 1000) {
+      throw new Error('Route calculation unavailable - service timeout');
+    }
+
+    // Check cache first
+    const cached = this.routeCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.config.routing.cacheTtl * 1000) {
+      return cached.data;
+    }
+
     try {
       const response = await axios.get(
         `${this.config.routing.osrmBaseUrl}/route/v1/driving/${originLon},${originLat};${destLon},${destLat}`,
@@ -522,16 +539,29 @@ export class NavigationService {
         };
       });
 
-      return {
+      const result = {
         distance_meters: Math.round(route.distance),
         duration_seconds: Math.round(route.duration),
         steps,
         polyline: route.geometry, // Encoded polyline for map display
       };
+
+      // Cache successful result
+      this.routeCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      // Clear from failed routes if it was there
+      this.failedRoutes.delete(cacheKey);
+
+      return result;
     } catch (error) {
+      // Mark this route as failed to prevent retry loops
+      this.failedRoutes.set(cacheKey, Date.now());
+
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNREFUSED') {
-          throw new Error('Routing service temporarily unavailable. Please try again.');
+          throw new Error('Routing service temporarily unavailable');
+        }
+        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          throw new Error('Routing service timeout - service may be slow or unavailable');
         }
         throw new Error(`Routing failed: ${error.message}`);
       }

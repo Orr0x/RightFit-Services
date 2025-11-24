@@ -6,7 +6,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0', // Listen on all network interfaces
     port: 5178,
+    allowedHosts: ['.dataintellagents.co.uk'], // ADD THIS LINE - allows all subdomains
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

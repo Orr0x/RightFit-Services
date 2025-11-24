@@ -13,6 +13,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import type { Coordinates } from '@rightfit/shared/types/navigation'
+import { apiFetch } from '../../config/api'
 
 /**
  * Traffic incident from API
@@ -127,7 +128,7 @@ export default function TrafficAlert({
       setError(null)
 
       const token = localStorage.getItem('worker_token')
-      const response = await fetch('/api/navigation/traffic', {
+      const response = await apiFetch('/api/navigation/traffic', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

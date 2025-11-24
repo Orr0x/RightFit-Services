@@ -11,7 +11,9 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0', // Listen on all network interfaces
     port: 5174,
+    allowedHosts: ['.dataintellagents.co.uk'], // ADD THIS LINE - allows all subdomains
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

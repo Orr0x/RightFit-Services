@@ -23,6 +23,24 @@ export function getFullUrl(path: string | null | undefined): string {
 }
 
 /**
+ * Wrapper around fetch that automatically uses the correct API base URL
+ * Use this instead of fetch() for all API calls
+ *
+ * @param path - API path (e.g., '/api/workers/123')
+ * @param init - Fetch options
+ * @returns Promise<Response>
+ *
+ * @example
+ * const response = await apiFetch('/api/workers/me', {
+ *   headers: { 'Authorization': `Bearer ${token}` }
+ * })
+ */
+export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const url = getFullUrl(path)
+  return fetch(url, init)
+}
+
+/**
  * Constructs a full photo URL from a path
  * @param photoPath - The photo path (relative or absolute)
  * @returns Full URL to the photo

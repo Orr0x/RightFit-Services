@@ -19,6 +19,7 @@ import {
   Navigation,
 } from 'lucide-react'
 import type { Coordinates } from '@rightfit/shared/types/navigation'
+import { apiFetch } from '../../config/api'
 
 /**
  * Weather condition from API
@@ -165,7 +166,7 @@ export default function WeatherAlert({
       setError(null)
 
       const token = localStorage.getItem('worker_token')
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/navigation/weather?lat=${location.latitude}&lon=${location.longitude}`,
         {
           headers: {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -22,6 +22,7 @@ import WeatherAlert from '../../components/navigation/WeatherAlert'
 import TrafficAlert from '../../components/navigation/TrafficAlert'
 import type { Coordinates } from '@rightfit/shared/types/navigation'
 import { decodePolyline } from '../../utils/polyline'
+import { apiFetch } from '../../config/api'
 
 /**
  * Route data for MapboxNavigationView
@@ -116,11 +117,35 @@ export default function NavigationView() {
   const [mapZoomTarget, setMapZoomTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null)
   const [useMapbox, setUseMapbox] = useState(true) // Default to 3D Mapbox satnav view
 
+  // Request deduplication
+  const fetchInProgress = useRef(false)
+  const lastFetchLocation = useRef<{ lat: number; lon: number } | null>(null)
+
   /**
    * Fetch navigation data from API
    */
-  const fetchNavigationData = async () => {
+  const fetchNavigationData = useCallback(async () => {
     if (!worker || !propertyId || !userLocation) return
+
+    // Prevent duplicate requests
+    if (fetchInProgress.current) {
+      console.log('Navigation fetch already in progress, skipping...')
+      return
+    }
+
+    // Skip if location hasn't changed significantly (within 10 meters)
+    if (lastFetchLocation.current) {
+      const latDiff = Math.abs(lastFetchLocation.current.lat - userLocation.latitude)
+      const lonDiff = Math.abs(lastFetchLocation.current.lon - userLocation.longitude)
+      // Roughly 10 meters = 0.0001 degrees
+      if (latDiff < 0.0001 && lonDiff < 0.0001) {
+        console.log('Location change too small, skipping fetch...')
+        return
+      }
+    }
+
+    fetchInProgress.current = true
+    lastFetchLocation.current = { lat: userLocation.latitude, lon: userLocation.longitude }
 
     try {
       setLoading(true)
@@ -131,7 +156,7 @@ export default function NavigationView() {
       // Build URL with user location (required by API)
       const url = `/api/navigation/property/${propertyId}?user_lat=${userLocation.latitude}&user_lon=${userLocation.longitude}`
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -148,17 +173,23 @@ export default function NavigationView() {
       setError(err instanceof Error ? err.message : 'Failed to load navigation data')
     } finally {
       setLoading(false)
-    }
-  }
-
-  /**
-   * Fetch navigation data on mount and when user location changes
-   */
-  useEffect(() => {
-    if (userLocation) {
-      fetchNavigationData()
+      fetchInProgress.current = false
     }
   }, [worker, propertyId, userLocation])
+
+  /**
+   * Fetch navigation data on mount and when location changes (debounced)
+   */
+  useEffect(() => {
+    if (!userLocation) return
+
+    // Debounce: wait 500ms after location stops changing
+    const timeoutId = setTimeout(() => {
+      fetchNavigationData()
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [fetchNavigationData, userLocation])
 
   /**
    * Handle GPS tracking lifecycle for follow mode

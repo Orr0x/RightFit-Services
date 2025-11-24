@@ -100,7 +100,7 @@ export function loadNavigationConfig(): NavigationConfig {
     routing: {
       osrmBaseUrl: process.env.OSRM_BASE_URL || 'http://router.project-osrm.org',
       cacheTtl: 600, // 10 minutes
-      timeout: 15000, // 15 seconds
+      timeout: 5000, // 5 seconds (reduced from 15 to fail faster)
     },
   }
 

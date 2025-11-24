@@ -4,7 +4,7 @@
  * No authentication required - guests access via QR code with property context
  */
 
-const API_BASE_URL = '/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 export interface ReportIssueData {
   property_id: string

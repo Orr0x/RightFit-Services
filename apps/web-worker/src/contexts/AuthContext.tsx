@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { Worker } from '../types'
+import { apiFetch } from '../config/api'
 
 interface AuthContextType {
   worker: Worker | null
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (token && workerId && serviceProviderId) {
         try {
-          const response = await fetch(`/api/workers/${workerId}?service_provider_id=${serviceProviderId}`, {
+          const response = await apiFetch(`/api/workers/${workerId}?service_provider_id=${serviceProviderId}`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       // Step 1: Authenticate with the main auth endpoint
-      const authResponse = await fetch('/api/auth/login', {
+      const authResponse = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = authData.data.access_token
 
       // Step 2: Fetch worker profile using /me endpoint
-      const workerResponse = await fetch('/api/workers/me', {
+      const workerResponse = await apiFetch('/api/workers/me', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

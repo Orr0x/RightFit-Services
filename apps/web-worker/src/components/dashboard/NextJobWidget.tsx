@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { useGeolocation } from '../../hooks/useGeolocation'
 import type { CleaningJob } from '../../types'
+import { apiFetch } from '../../config/api'
 
 /**
  * Next job with navigation info
@@ -87,7 +88,7 @@ export default function NextJobWidget({
       // Fetch upcoming jobs for today
       const today = new Date().toISOString().split('T')[0]
 
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/cleaning-jobs?service_provider_id=${serviceProviderId}&assigned_worker_id=${worker.id}&start_date=${today}&end_date=${today}&status=SCHEDULED&status=IN_PROGRESS`,
         {
           headers: {
@@ -122,7 +123,7 @@ export default function NextJobWidget({
       // If we have user location and property has coordinates, calculate distance
       if (userLocation && job.property_latitude && job.property_longitude) {
         try {
-          const distanceResponse = await fetch('/api/navigation/distance', {
+          const distanceResponse = await apiFetch('/api/navigation/distance', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
