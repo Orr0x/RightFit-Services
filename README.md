@@ -27,6 +27,14 @@ This means:
 - **[CLAUDE-RULES.md](CLAUDE-RULES.md)** - AI assistant guidelines
 - **[REVIEW-GUIDE.md](REVIEW-GUIDE.md)** - Review checklist for team validation
 
+### App Separation Initiative 🆕
+- **[GLM_DOCS/SETUP-GUIDE.md](GLM_DOCS/SETUP-GUIDE.md)** - Complete setup guide for separated databases
+- **[GLM_DOCS/plan.md](GLM_DOCS/plan.md)** - Maintenance & Cleaning Apps Separation Plan (14-16 sprints)
+- **[GLM_DOCS/stories.md](GLM_DOCS/stories.md)** - Separation User Stories & Progress Tracking
+- **[GLM_DOCS/sprint-1-progress.md](GLM_DOCS/sprint-1-progress.md)** - Sprint 1 completion report ✅
+
+**Current Status**: Sprint 1 Completed ✅ | Ready for Sprint 2: Core Tables Separation
+
 ### Architecture Documentation
 - **[Architecture/ARCHITECTURE.md](Architecture/ARCHITECTURE.md)** - Complete system architecture (15,000+ words)
 - **[Architecture/CURRENT-STATE.md](Architecture/CURRENT-STATE.md)** - Current development status and priorities
@@ -103,6 +111,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for complete technical documentation.
 
 ## Quick Start
 
+### Option 1: Standard Setup (Unified Database)
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/yourusername/RightFit-Services.git
@@ -130,6 +140,45 @@ npm run db:seed
 npm run dev
 ```
 
+### Option 2: Separated Database Setup (New Architecture) 🆕
+
+> **Recommended for development teams working on the app separation initiative**
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/RightFit-Services.git
+cd RightFit-Services
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Start PostgreSQL databases (unified + separated)
+docker compose up -d postgres
+docker compose -f docker-compose.yml -f docker-compose.separated.yml up -d
+
+# 4. Configure separated databases
+cp .env.separated .env.local
+# Edit .env.local with your configuration
+
+# 5. Run database migration (dry run first)
+MIGRATION_MODE=dry_run docker compose -f docker-compose.yml -f docker-compose.separated.yml --profile migration up -d
+
+# 6. Check migration logs
+docker compose logs -f db-migration
+
+# 7. Execute migration when ready
+MIGRATION_MODE=execute docker compose -f docker-compose.yml -f docker-compose.separated.yml --profile migration up -d
+
+# 8. Configure separated services
+echo "SERVICE_MODE=separated" >> .env.local
+echo "ENABLE_SEPARATED_SERVICES=true" >> .env.local
+
+# 9. Start all applications
+npm run dev
+```
+
+📖 **For detailed setup instructions, see [GLM_DOCS/SETUP-GUIDE.md](GLM_DOCS/SETUP-GUIDE.md)**
+
 All apps will be available at:
 - API: http://localhost:3001
 - Landlord Portal: http://localhost:5173
@@ -139,6 +188,12 @@ All apps will be available at:
 - Guest Tablet: http://localhost:5177
 - Worker App: http://localhost:5178
 - Mobile: http://localhost:8081 (Expo dev server)
+
+### Separated Database Ports (if using Option 2):
+- **Unified Database**: localhost:5433 (original)
+- **Shared Auth DB**: localhost:5434
+- **Cleaning DB**: localhost:5435
+- **Maintenance DB**: localhost:5436
 
 ---
 
@@ -167,6 +222,10 @@ RightFit-Services/
 │   ├── DEVELOPMENT-ACTION-PLAN.md # Development roadmap
 │   ├── TECH-STACK-ANALYSIS.md  # Technology stack analysis
 │   └── FRONT-END-SPEC.md       # Frontend specifications
+│
+├── GLM_DOCS/                   # Apps Separation Documentation
+│   ├── plan.md                 # Complete separation plan (14-16 sprints)
+│   └── stories.md              # User stories & progress tracking
 │
 ├── Planning/                   # Planning documentation
 │   ├── PHILOSOPHY.md           # Development philosophy

@@ -1,0 +1,337 @@
+# =====================================================
+# RightFit Services - Database Migration Dockerfile
+# =====================================================
+# Purpose: Container for running database migration scripts
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.separated.yml --profile migration up -d
+
+FROM postgres:15-alpine
+
+# Set working directory
+WORKDIR /migration-scripts
+
+# Install required packages
+RUN apk add --no-cache \
+    postgresql-client \
+    curl \
+    jq \
+    bash \
+    rsync
+
+# Install Node.js for running JavaScript migration utilities
+RUN apk add --no-cache \
+    nodejs \
+    npm
+
+# Install additional PostgreSQL tools
+RUN apk add --no-cache \
+    postgresql-contrib
+
+# Copy migration scripts and configuration
+COPY migration-scripts.sql /migration-scripts/
+COPY database-setup.sh /migration-scripts/
+COPY database-analysis.md /migration-scripts/
+
+# Create directories for backup and logs
+RUN mkdir -p /backups /logs /migration-scripts/helpers
+
+# Create helper scripts
+RUN cat > /migration-scripts/helpers/wait-for-db.sh << 'EOF'
+#!/bin/bash
+# Wait for database to be ready
+wait_for_database() {
+    local db_url=$1
+    local db_name=$2
+    local max_attempts=30
+    local attempt=1
+
+    echo "Waiting for $db_name database to be ready..."
+
+    while [ $attempt -le $max_attempts ]; do
+        if psql "$db_url" -c "SELECT 1;" > /dev/null 2>&1; then
+            echo "$db_name database is ready"
+            return 0
+        fi
+
+        echo "Attempt $attempt/$max_attempts: $db_name not ready yet..."
+        sleep 2
+        ((attempt++))
+    done
+
+    echo "ERROR: $db_name database failed to start within $max_attempts attempts"
+    return 1
+}
+
+# Wait for all databases
+wait_for_database "$SOURCE_DATABASE_URL" "Source"
+wait_for_database "$SHARED_AUTH_DATABASE_URL" "Shared Auth"
+wait_for_database "$CLEANING_DATABASE_URL" "Cleaning"
+wait_for_database "$MAINTENANCE_DATABASE_URL" "Maintenance"
+
+echo "All databases are ready"
+EOF
+
+RUN chmod +x /migration-scripts/helpers/wait-for-db.sh
+
+# Create migration validation script
+RUN cat > /migration-scripts/helpers/validate-migration.sh << 'EOF'
+#!/bin/bash
+# Validate migration data integrity
+
+echo "=== Migration Validation Started ==="
+echo "Timestamp: $(date)"
+echo "Log Level: $LOG_LEVEL"
+
+# Function to validate table counts
+validate_table_counts() {
+    local db_url=$1
+    local db_name=$2
+
+    echo "Validating $db_name table counts..."
+
+    # Get table counts
+    psql "$db_url" -c "
+        SELECT
+            schemaname,
+            tablename,
+            n_tup_ins as inserts,
+            n_tup_upd as updates,
+            n_tup_del as deletes,
+            n_live_tup as live_tuples,
+            n_dead_tup as dead_tuples
+        FROM pg_stat_user_tables
+        ORDER BY schemaname, tablename;
+    " > /logs/${db_name}_table_counts.log
+}
+
+# Function to validate relationships
+validate_relationships() {
+    local db_url=$1
+    local db_name=$2
+
+    echo "Validating $db_name relationships..."
+
+    # Check for orphaned records
+    psql "$db_url" -c "
+        SELECT
+            tc.table_name,
+            kcu.column_name,
+            ccu.table_name AS foreign_table_name,
+            ccu.column_name AS foreign_column_name
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+            ON tc.constraint_name = kcu.constraint_name
+            AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage AS ccu
+            ON ccu.constraint_name = tc.constraint_name
+            AND ccu.table_schema = tc.table_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public';
+    " > /logs/${db_name}_relationships.log
+}
+
+# Function to validate data consistency
+validate_data_consistency() {
+    echo "Validating data consistency across databases..."
+
+    # Compare user counts
+    local source_users=$(psql "$SOURCE_DATABASE_URL" -t -c "SELECT COUNT(*) FROM users;")
+    local shared_users=$(psql "$SHARED_AUTH_DATABASE_URL" -t -c "SELECT COUNT(*) FROM shared_users;")
+    local cleaning_users=$(psql "$CLEANING_DATABASE_URL" -t -c "SELECT COUNT(*) FROM cleaning_users;")
+    local maintenance_users=$(psql "$MAINTENANCE_DATABASE_URL" -t -c "SELECT COUNT(*) FROM maintenance_users;")
+
+    echo "User counts:"
+    echo "  Source: $source_users"
+    echo "  Shared Auth: $shared_users"
+    echo "  Cleaning: $cleaning_users"
+    echo "  Maintenance: $maintenance_users"
+
+    # Validate user count consistency
+    if [ "$shared_users" -eq "$source_users" ]; then
+        echo "✅ User counts are consistent"
+    else
+        echo "❌ User count mismatch detected"
+        return 1
+    fi
+}
+
+# Run validation functions
+validate_table_counts "$SOURCE_DATABASE_URL" "Source"
+validate_table_counts "$SHARED_AUTH_DATABASE_URL" "SharedAuth"
+validate_table_counts "$CLEANING_DATABASE_URL" "Cleaning"
+validate_table_counts "$MAINTENANCE_DATABASE_URL" "Maintenance"
+
+validate_relationships "$SHARED_AUTH_DATABASE_URL" "SharedAuth"
+validate_relationships "$CLEANING_DATABASE_URL" "Cleaning"
+validate_relationships "$MAINTENANCE_DATABASE_URL" "Maintenance"
+
+validate_data_consistency
+
+echo "=== Migration Validation Completed ==="
+echo "Timestamp: $(date)"
+EOF
+
+RUN chmod +x /migration-scripts/helpers/validate-migration.sh
+
+# Create main migration execution script
+RUN cat > /migration-scripts/helpers/run-migration.sh << 'EOF'
+#!/bin/bash
+# Main migration execution script
+
+set -e  # Exit on any error
+
+echo "=== RightFit Database Migration Started ==="
+echo "Timestamp: $(date)"
+echo "Migration Mode: $MIGRATION_MODE"
+echo "Log Level: $LOG_LEVEL"
+
+# Function to log with timestamp
+log() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a /logs/migration.log
+}
+
+# Function to create backup
+create_backup() {
+    if [ "$ENABLE_MIGRATION_BACKUP" = "true" ]; then
+        log "Creating backup before migration..."
+
+        local backup_dir="$BACKUP_PATH/pre-migration-$(date +%Y%m%d_%H%M%S)"
+        mkdir -p "$backup_dir"
+
+        # Dump source database
+        pg_dump "$SOURCE_DATABASE_URL" > "$backup_dir/source_database.sql"
+
+        # Compress backup
+        gzip "$backup_dir"/*.sql
+
+        log "Backup created at: $backup_dir"
+    else
+        log "Backup skipped (ENABLE_MIGRATION_BACKUP=false)"
+    fi
+}
+
+# Function to run migration script
+run_migration() {
+    log "Starting database migration..."
+
+    case "$MIGRATION_MODE" in
+        "dry_run")
+            log "Running in DRY RUN mode (no changes will be made)"
+            psql "$SOURCE_DATABASE_URL" -f /migration-scripts/migration-scripts.sql \
+                --set ON_ERROR_STOP=on \
+                --echo-all \
+                --set VERBOSITY=verbose
+            ;;
+        "validate")
+            log "Running in VALIDATE mode"
+            /migration-scripts/helpers/validate-migration.sh
+            ;;
+        "execute")
+            log "Running in EXECUTE mode (changes will be applied)"
+            create_backup
+
+            # Apply migration scripts
+            log "Creating shared authentication database..."
+            psql "$SHARED_AUTH_DATABASE_URL" -f /migration-scripts/migration-scripts.sql \
+                --set ON_ERROR_STOP=on \
+                --set VERBOSITY=verbose
+
+            log "Creating cleaning service database..."
+            psql "$CLEANING_DATABASE_URL" -f /migration-scripts/migration-scripts.sql \
+                --set ON_ERROR_STOP=on \
+                --set VERBOSITY=verbose
+
+            log "Creating maintenance service database..."
+            psql "$MAINTENANCE_DATABASE_URL" -f /migration-scripts/migration-scripts.sql \
+                --set ON_ERROR_STOP=on \
+                --set VERBOSITY=verbose
+
+            # Run validation after migration
+            if [ "$ENABLE_MIGRATION_VALIDATION" = "true" ]; then
+                log "Running post-migration validation..."
+                /migration-scripts/helpers/validate-migration.sh
+            fi
+            ;;
+        "rollback")
+            log "Running in ROLLBACK mode"
+            log "Rollback functionality to be implemented"
+            ;;
+        *)
+            log "ERROR: Invalid migration mode: $MIGRATION_MODE"
+            log "Valid modes: dry_run, validate, execute, rollback"
+            exit 1
+            ;;
+    esac
+}
+
+# Function to cleanup
+cleanup() {
+    log "Migration process completed"
+    log "Timestamp: $(date)"
+    log "Check logs directory for detailed output: /logs"
+}
+
+# Trap to handle cleanup on exit
+trap cleanup EXIT
+
+# Main execution
+log "Migration process starting..."
+log "Source Database: $SOURCE_DATABASE_URL"
+log "Shared Auth Database: $SHARED_AUTH_DATABASE_URL"
+log "Cleaning Database: $CLEANING_DATABASE_URL"
+log "Maintenance Database: $MAINTENANCE_DATABASE_URL"
+
+# Wait for databases to be ready
+/migration-scripts/helpers/wait-for-db.sh
+
+# Run migration based on mode
+run_migration
+
+log "=== Migration Process Completed Successfully ==="
+EOF
+
+RUN chmod +x /migration-scripts/helpers/run-migration.sh
+
+# Create entrypoint script
+RUN cat > /docker-entrypoint-migration.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "RightFit Database Migration Container"
+echo "===================================="
+echo "Timestamp: $(date)"
+echo "Migration Mode: ${MIGRATION_MODE:-dry_run}"
+echo "Log Level: ${LOG_LEVEL:-INFO}"
+
+# Create log directory
+mkdir -p /logs
+
+# Run the migration
+exec /migration-scripts/helpers/run-migration.sh
+EOF
+
+RUN chmod +x /docker-entrypoint-migration.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/docker-entrypoint-migration.sh"]
+
+# Default command
+CMD ["--help"]
+
+# Labels for container management
+LABEL maintainer="RightFit Development Team"
+LABEL version="1.0"
+LABEL description="Database migration container for RightFit Services"
+EOF
+
+RUN chmod +x /docker-entrypoint-migration.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/docker-entrypoint-migration.sh"]
+
+# Default command
+CMD ["--help"]
+
+# Labels for container management
+LABEL maintainer="RightFit Development Team"
+LABEL version="1.0"
+LABEL description="Database migration container for RightFit Services"
+EOF

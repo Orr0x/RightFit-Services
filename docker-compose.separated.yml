@@ -1,0 +1,204 @@
+version: '3.8'
+
+# =====================================================
+# RightFit Services - Separated Databases Configuration
+# =====================================================
+# This configuration supports the new separated database architecture
+# while maintaining backward compatibility with existing setup
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.separated.yml up -d
+
+services:
+  # Shared Authentication Database (NEW)
+  rightfit-shared-auth:
+    image: postgres:15-alpine
+    container_name: rightfit-shared-auth
+    environment:
+      POSTGRES_USER: shared_user
+      POSTGRES_PASSWORD: ${SHARED_DB_PASSWORD:-shared_dev_password}
+      POSTGRES_DB: rightfit_shared_auth
+    ports:
+      - "5434:5432"
+    volumes:
+      - shared_auth_data:/var/lib/postgresql/data
+    networks:
+      - rightfit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shared_user -d rightfit_shared_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Cleaning Service Database (NEW)
+  rightfit-cleaning:
+    image: postgres:15-alpine
+    container_name: rightfit-cleaning
+    environment:
+      POSTGRES_USER: cleaning_user
+      POSTGRES_PASSWORD: ${CLEANING_DB_PASSWORD:-cleaning_dev_password}
+      POSTGRES_DB: rightfit_cleaning
+    ports:
+      - "5435:5432"
+    volumes:
+      - cleaning_data:/var/lib/postgresql/data
+    networks:
+      - rightfit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cleaning_user -d rightfit_cleaning"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Maintenance Service Database (NEW)
+  rightfit-maintenance:
+    image: postgres:15-alpine
+    container_name: rightfit-maintenance
+    environment:
+      POSTGRES_USER: maintenance_user
+      POSTGRES_PASSWORD: ${MAINTENANCE_DB_PASSWORD:-maintenance_dev_password}
+      POSTGRES_DB: rightfit_maintenance
+    ports:
+      - "5436:5432"
+    volumes:
+      - maintenance_data:/var/lib/postgresql/data
+    networks:
+      - rightfit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maintenance_user -d rightfit_maintenance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Database Migration Service (NEW)
+  db-migration:
+    build:
+      context: .
+      dockerfile: GLM_DOCS/Dockerfile.migration
+    container_name: rightfit-db-migration
+    environment:
+      # Source Database (Current)
+      SOURCE_DATABASE_URL: ${DATABASE_URL}
+
+      # Target Databases (Separated)
+      SHARED_AUTH_DATABASE_URL: "postgresql://shared_user:${SHARED_DB_PASSWORD:-shared_dev_password}@rightfit-shared-auth:5432/rightfit_shared_auth"
+      CLEANING_DATABASE_URL: "postgresql://cleaning_user:${CLEANING_DB_PASSWORD:-cleaning_dev_password}@rightfit-cleaning:5432/rightfit_cleaning"
+      MAINTENANCE_DATABASE_URL: "postgresql://maintenance_user:${MAINTENANCE_DB_PASSWORD:-maintenance_dev_password}@rightfit-maintenance:5432/rightfit_maintenance"
+
+      # Migration Settings
+      MIGRATION_MODE: ${MIGRATION_MODE:-dry_run}
+      BACKUP_PATH: "/backups"
+      LOG_LEVEL: INFO
+    volumes:
+      - ./GLM_DOCS:/migration-scripts:ro
+      - ./backups:/backups
+      - ./logs:/logs
+    networks:
+      - rightfit-network
+    depends_on:
+      rightfit-shared-auth:
+        condition: service_healthy
+      rightfit-cleaning:
+        condition: service_healthy
+      rightfit-maintenance:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    profiles: ["migration"]  # Only run with --profile migration
+    restart: "no"
+
+  # Database Backup Service (NEW)
+  db-backup:
+    image: postgres:15-alpine
+    container_name: rightfit-db-backup
+    environment:
+      # Backup schedules
+      SHARED_AUTH_BACKUP_SCHEDULE: ${SHARED_AUTH_BACKUP_SCHEDULE:-0 2 * * *}
+      CLEANING_BACKUP_SCHEDULE: ${CLEANING_BACKUP_SCHEDULE:-0 3 * * *}
+      MAINTENANCE_BACKUP_SCHEDULE: ${MAINTENANCE_BACKUP_SCHEDULE:-0 4 * * *}
+      ORIGINAL_BACKUP_SCHEDULE: ${ORIGINAL_BACKUP_SCHEDULE:-0 1 * * *}
+
+      # Backup retention (days)
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+
+      # Database connections
+      SHARED_AUTH_DB_URL: "postgresql://shared_user:${SHARED_DB_PASSWORD:-shared_dev_password}@rightfit-shared-auth:5432/rightfit_shared_auth"
+      CLEANING_DB_URL: "postgresql://cleaning_user:${CLEANING_DB_PASSWORD:-cleaning_dev_password}@rightfit-cleaning:5432/rightfit_cleaning"
+      MAINTENANCE_DB_URL: "postgresql://maintenance_user:${MAINTENANCE_DB_PASSWORD:-maintenance_dev_password}@rightfit-maintenance:5432/rightfit_maintenance"
+      ORIGINAL_DB_URL: ${DATABASE_URL}
+    volumes:
+      - ./backups:/backups
+      - ./GLM_DOCS/scripts/backup.sh:/backup.sh:ro
+    networks:
+      - rightfit-network
+    depends_on:
+      - rightfit-shared-auth
+      - rightfit-cleaning
+      - rightfit-maintenance
+      - postgres
+    command: >
+      sh -c "
+        echo 'Setting up backup service...'
+        chmod +x /backup.sh
+        echo 'Installing cron...'
+        apk add --no-cache cron
+        echo 'Setting up cron jobs...'
+        echo \"$$SHARED_AUTH_BACKUP_SCHEDULE /backup.sh shared-auth\" >> /etc/crontabs/root
+        echo \"$$CLEANING_BACKUP_SCHEDULE /backup.sh cleaning\" >> /etc/crontabs/root
+        echo \"$$MAINTENANCE_BACKUP_SCHEDULE /backup.sh maintenance\" >> /etc/crontabs/root
+        echo \"$$ORIGINAL_BACKUP_SCHEDULE /backup.sh original\" >> /etc/crontabs/root
+        echo 'Starting cron service...'
+        crond -f -l 2
+      "
+    profiles: ["backup"]  # Only run with --profile backup
+    restart: unless-stopped
+
+# Shared network for all database services
+networks:
+  rightfit-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volume definitions
+volumes:
+  # New volumes for separated databases
+  shared_auth_data:
+    driver: local
+  cleaning_data:
+    driver: local
+  maintenance_data:
+    driver: local
+
+  # Original volume (from base docker-compose.yml)
+  postgres_data:
+    external: true
