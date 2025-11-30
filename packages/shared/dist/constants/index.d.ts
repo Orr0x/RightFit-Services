@@ -1,0 +1,20 @@
+export declare const JWT_ACCESS_EXPIRY = "1h";
+export declare const JWT_REFRESH_EXPIRY = "30d";
+export declare const BCRYPT_SALT_ROUNDS = 10;
+export declare const RATE_LIMIT_LOGIN_MAX = 5;
+export declare const RATE_LIMIT_LOGIN_WINDOW_MS: number;
+export declare const RATE_LIMIT_REGISTER_MAX = 3;
+export declare const RATE_LIMIT_REGISTER_WINDOW_MS: number;
+export declare const DEFAULT_PAGE_SIZE = 20;
+export declare const MAX_PAGE_SIZE = 100;
+export declare const PROPERTY_TYPES: readonly ["HOUSE", "FLAT", "COTTAGE", "COMMERCIAL"];
+export declare const PROPERTY_STATUSES: readonly ["ACTIVE", "INACTIVE"];
+export declare const USER_ROLES: readonly ["ADMIN", "MEMBER", "CONTRACTOR"];
+export declare const SUBSCRIPTION_STATUSES: readonly ["TRIAL", "ACTIVE", "PAUSED", "CANCELLED"];
+export declare const MAINTENANCE_CATEGORIES: readonly ["PLUMBING", "ELECTRICAL", "HVAC", "APPLIANCE", "CARPENTRY", "PAINTING", "FLOORING", "ROOFING", "WINDOWS_DOORS", "PEST_CONTROL", "LANDSCAPING", "OTHER"];
+export type MaintenanceCategory = typeof MAINTENANCE_CATEGORIES[number];
+export declare const MAINTENANCE_PRIORITIES: readonly ["LOW", "MEDIUM", "HIGH", "URGENT"];
+export type MaintenancePriority = typeof MAINTENANCE_PRIORITIES[number];
+export declare const MAINTENANCE_SOURCES: readonly ["CUSTOMER_REQUEST", "CLEANER_REPORT", "GUEST_REPORT", "PREVENTIVE_MAINTENANCE", "EMERGENCY"];
+export type MaintenanceSource = typeof MAINTENANCE_SOURCES[number];
+//# sourceMappingURL=index.d.ts.map

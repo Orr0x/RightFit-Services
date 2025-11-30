@@ -1,0 +1,12 @@
+import type { MaintenanceStatus, MaintenancePriority } from '../types/maintenance-job';
+import type { WorkOrderStatus } from '../types/work-order';
+import type { IssueStatus, IssuePriority } from '../types/issue';
+import type { BadgeVariant } from '@rightfit/ui-core';
+export declare function formatMaintenanceStatus(status: MaintenanceStatus): string;
+export declare function getMaintenanceStatusVariant(status: MaintenanceStatus): BadgeVariant;
+export declare function getPriorityVariant(priority: MaintenancePriority | IssuePriority): BadgeVariant;
+export declare function formatPriority(priority: MaintenancePriority | IssuePriority): string;
+export declare function formatWorkOrderStatus(status: WorkOrderStatus): string;
+export declare function getWorkOrderStatusVariant(status: WorkOrderStatus): BadgeVariant;
+export declare function formatIssueStatus(status: IssueStatus): string;
+export declare function getIssueStatusVariant(status: IssueStatus): BadgeVariant;

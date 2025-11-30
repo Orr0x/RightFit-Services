@@ -1,0 +1,186 @@
+export declare class GuestIssuesService {
+    list(propertyId?: string): Promise<({
+        property: {
+            property_name: string;
+            address: string;
+        };
+    } & {
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        photos: string[];
+        status: import(".prisma/client").$Enums.GuestIssueStatus;
+        property_id: string;
+        guest_name: string | null;
+        guest_phone: string | null;
+        guest_email: string | null;
+        issue_type: string;
+        issue_description: string;
+        ai_severity: string | null;
+        ai_category: string | null;
+        ai_confidence: import("@prisma/client/runtime/library").Decimal | null;
+        ai_analysis_notes: string | null;
+        created_maintenance_job_id: string | null;
+        assigned_to_next_cleaning: boolean;
+        guest_notified: boolean;
+        guest_notification_message: string | null;
+        reported_at: Date;
+        triaged_at: Date | null;
+        resolved_at: Date | null;
+    })[]>;
+    getById(id: string): Promise<{
+        property: {
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            postcode: string;
+            property_type: string;
+            bedrooms: number;
+            bathrooms: number;
+            access_instructions: string | null;
+            is_active: boolean;
+            property_name: string;
+            customer_id: string;
+            address: string;
+            access_code: string | null;
+            cleaning_checklist_template_id: string | null;
+            guest_portal_enabled: boolean;
+            guest_portal_qr_code_url: string | null;
+        };
+        maintenance_jobs: {
+            id: string;
+            status: import(".prisma/client").$Enums.MaintenanceStatus;
+            title: string;
+            priority: import(".prisma/client").$Enums.MaintenancePriority;
+        }[];
+    } & {
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        photos: string[];
+        status: import(".prisma/client").$Enums.GuestIssueStatus;
+        property_id: string;
+        guest_name: string | null;
+        guest_phone: string | null;
+        guest_email: string | null;
+        issue_type: string;
+        issue_description: string;
+        ai_severity: string | null;
+        ai_category: string | null;
+        ai_confidence: import("@prisma/client/runtime/library").Decimal | null;
+        ai_analysis_notes: string | null;
+        created_maintenance_job_id: string | null;
+        assigned_to_next_cleaning: boolean;
+        guest_notified: boolean;
+        guest_notification_message: string | null;
+        reported_at: Date;
+        triaged_at: Date | null;
+        resolved_at: Date | null;
+    }>;
+    create(data: {
+        property_id: string;
+        guest_name?: string;
+        guest_phone?: string;
+        guest_email?: string;
+        issue_type: string;
+        issue_description: string;
+        photos?: string[];
+    }): Promise<{
+        property: {
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            postcode: string;
+            property_type: string;
+            bedrooms: number;
+            bathrooms: number;
+            access_instructions: string | null;
+            is_active: boolean;
+            property_name: string;
+            customer_id: string;
+            address: string;
+            access_code: string | null;
+            cleaning_checklist_template_id: string | null;
+            guest_portal_enabled: boolean;
+            guest_portal_qr_code_url: string | null;
+        };
+    } & {
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        photos: string[];
+        status: import(".prisma/client").$Enums.GuestIssueStatus;
+        property_id: string;
+        guest_name: string | null;
+        guest_phone: string | null;
+        guest_email: string | null;
+        issue_type: string;
+        issue_description: string;
+        ai_severity: string | null;
+        ai_category: string | null;
+        ai_confidence: import("@prisma/client/runtime/library").Decimal | null;
+        ai_analysis_notes: string | null;
+        created_maintenance_job_id: string | null;
+        assigned_to_next_cleaning: boolean;
+        guest_notified: boolean;
+        guest_notification_message: string | null;
+        reported_at: Date;
+        triaged_at: Date | null;
+        resolved_at: Date | null;
+    }>;
+    update(id: string, data: any): Promise<{
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        photos: string[];
+        status: import(".prisma/client").$Enums.GuestIssueStatus;
+        property_id: string;
+        guest_name: string | null;
+        guest_phone: string | null;
+        guest_email: string | null;
+        issue_type: string;
+        issue_description: string;
+        ai_severity: string | null;
+        ai_category: string | null;
+        ai_confidence: import("@prisma/client/runtime/library").Decimal | null;
+        ai_analysis_notes: string | null;
+        created_maintenance_job_id: string | null;
+        assigned_to_next_cleaning: boolean;
+        guest_notified: boolean;
+        guest_notification_message: string | null;
+        reported_at: Date;
+        triaged_at: Date | null;
+        resolved_at: Date | null;
+    }>;
+    triage(id: string, triageData: {
+        ai_severity?: string;
+        ai_category?: string;
+        ai_confidence?: number;
+        ai_analysis_notes?: string;
+        status: 'TRIAGED' | 'WORK_ORDER_CREATED' | 'RESOLVED' | 'DISMISSED';
+    }): Promise<{
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        photos: string[];
+        status: import(".prisma/client").$Enums.GuestIssueStatus;
+        property_id: string;
+        guest_name: string | null;
+        guest_phone: string | null;
+        guest_email: string | null;
+        issue_type: string;
+        issue_description: string;
+        ai_severity: string | null;
+        ai_category: string | null;
+        ai_confidence: import("@prisma/client/runtime/library").Decimal | null;
+        ai_analysis_notes: string | null;
+        created_maintenance_job_id: string | null;
+        assigned_to_next_cleaning: boolean;
+        guest_notified: boolean;
+        guest_notification_message: string | null;
+        reported_at: Date;
+        triaged_at: Date | null;
+        resolved_at: Date | null;
+    }>;
+}
+//# sourceMappingURL=GuestIssuesService.d.ts.map

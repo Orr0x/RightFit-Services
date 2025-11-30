@@ -154,7 +154,7 @@ export const createCommonShortcuts = (actions: {
       callback: actions.onLogout || (() => {}),
       description: 'Logout',
     },
-  ].filter((shortcut) => shortcut.callback !== (() => {}))
+  ].filter((shortcut) => shortcut.callback.toString() !== '() => {}')
 }
 
 /**

@@ -52,7 +52,7 @@ import logger from './utils/logger'
 import cronService from './services/CronService'
 
 const app = express()
-const PORT = Number(process.env.PORT) || 3000
+const PORT = Number(process.env.PORT) || 3001
 
 
 // Security middleware
